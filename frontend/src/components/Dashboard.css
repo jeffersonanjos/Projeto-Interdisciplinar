@@ -111,24 +111,14 @@
   box-shadow: 0 8px 16px var(--sombra);
   text-align: center;
   transition: all 0.3s ease;
-  position: relative;
-}
-
-.dashboard-card::before {
-  content: '';
-  position: absolute;
-  top: -3px;
-  left: -3px;
-  right: -3px;
-  bottom: -3px;
-  background: linear-gradient(45deg, var(--verde-escuro), var(--marrom));
-  border-radius: 15px;
-  z-index: -1;
+  cursor: pointer;
 }
 
 .dashboard-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 12px 24px var(--sombra);
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: 0 15px 30px rgba(45, 80, 22, 0.4);
+  border-color: var(--marrom);
+  background: linear-gradient(135deg, var(--creme) 0%, #fff5e6 100%);
 }
 
 .dashboard-card h3 {
