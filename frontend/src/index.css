@@ -1,68 +1,182 @@
+/* Importar a fonte Press Start 2P */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+/* Reset global */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Variáveis de cores baseadas na identidade visual */
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+  --verde-escuro: #2d5016;
+  --marrom: #8b4513;
+  --creme: #f5f5dc;
+  --verde-claro: #4a7c59;
+  --marrom-claro: #a0522d;
+  --texto-escuro: #2c2c2c;
+  --texto-claro: #ffffff;
+  --sombra: rgba(0, 0, 0, 0.1);
+}
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+/* Estilos base */
+html {
+  font-size: 16px;
+}
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
+body {
+  font-family: 'Press Start 2P', monospace;
+  line-height: 1.6;
+  color: var(--texto-escuro);
+  background: linear-gradient(135deg, var(--verde-escuro) 0%, var(--marrom) 100%);
+  min-height: 100vh;
+  margin: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+/* Estilos para elementos de texto */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Press Start 2P', monospace;
+  line-height: 1.2;
 }
 
 h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+  font-size: 2.5rem;
+  color: var(--verde-escuro);
+  text-shadow: 2px 2px 0px var(--marrom-claro);
 }
 
+h2 {
+  font-size: 2rem;
+  color: var(--verde-escuro);
+}
+
+h3 {
+  font-size: 1.5rem;
+  color: var(--verde-escuro);
+}
+
+/* Estilos para links */
+a {
+  color: var(--verde-escuro);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+a:hover {
+  color: var(--verde-claro);
+  text-decoration: underline;
+}
+
+/* Estilos para botões */
 button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
+  font-family: 'Press Start 2P', monospace;
   cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  border: none;
+  transition: all 0.3s ease;
+  font-size: 0.8rem;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
+button:focus {
+  outline: 2px solid var(--verde-claro);
+  outline-offset: 2px;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Estilos para inputs */
+input, textarea, select {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.8rem;
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: 2px solid var(--verde-claro);
+  outline-offset: 2px;
+}
+
+/* Estilos para formulários */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Scrollbar personalizada */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--creme);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--marrom);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--marrom-claro);
+}
+
+/* Animações */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.slide-in {
+  animation: slideIn 0.3s ease-out;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  html {
+    font-size: 14px;
   }
-  a:hover {
-    color: #747bff;
+  
+  h1 {
+    font-size: 2rem;
   }
-  button {
-    background-color: #f9f9f9;
+  
+  h2 {
+    font-size: 1.5rem;
+  }
+  
+  h3 {
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  html {
+    font-size: 12px;
+  }
+  
+  h1 {
+    font-size: 1.5rem;
+  }
+  
+  h2 {
+    font-size: 1.2rem;
+  }
+  
+  h3 {
+    font-size: 1rem;
   }
 }

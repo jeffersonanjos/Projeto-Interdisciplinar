@@ -1,0 +1,213 @@
+/* Importar a fonte Press Start 2P */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+/* Variáveis de cores baseadas na identidade visual */
+:root {
+  --verde-escuro: #2d5016;
+  --marrom: #8b4513;
+  --creme: #f5f5dc;
+  --verde-claro: #4a7c59;
+  --marrom-claro: #a0522d;
+  --texto-escuro: #2c2c2c;
+  --texto-claro: #ffffff;
+  --sombra: rgba(0, 0, 0, 0.1);
+}
+
+/* Reset e estilos base */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Press Start 2P', monospace;
+  background: linear-gradient(135deg, var(--verde-escuro) 0%, var(--marrom) 100%);
+  min-height: 100vh;
+  color: var(--texto-escuro);
+}
+
+/* Container principal de autenticação */
+.auth-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: linear-gradient(135deg, var(--verde-escuro) 0%, var(--marrom) 100%);
+}
+
+/* Card de autenticação */
+.auth-card {
+  background: var(--creme);
+  border-radius: 15px;
+  padding: 40px;
+  box-shadow: 0 10px 30px var(--sombra);
+  width: 100%;
+  max-width: 400px;
+  border: 3px solid var(--verde-escuro);
+  position: relative;
+}
+
+.auth-card::before {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  right: -3px;
+  bottom: -3px;
+  background: linear-gradient(45deg, var(--verde-escuro), var(--marrom));
+  border-radius: 15px;
+  z-index: -1;
+}
+
+/* Cabeçalho */
+.auth-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.auth-title {
+  font-size: 24px;
+  color: var(--verde-escuro);
+  margin-bottom: 10px;
+  text-shadow: 2px 2px 0px var(--marrom-claro);
+}
+
+.auth-subtitle {
+  font-size: 12px;
+  color: var(--marrom);
+  font-weight: normal;
+}
+
+/* Formulário */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-label {
+  font-size: 10px;
+  color: var(--verde-escuro);
+  font-weight: bold;
+}
+
+.form-input {
+  padding: 12px;
+  border: 2px solid var(--marrom);
+  border-radius: 8px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  background: var(--texto-claro);
+  color: var(--texto-escuro);
+  transition: all 0.3s ease;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--verde-escuro);
+  box-shadow: 0 0 0 3px rgba(45, 80, 22, 0.1);
+}
+
+.form-input::placeholder {
+  color: var(--marrom-claro);
+  font-size: 9px;
+}
+
+/* Botão de autenticação */
+.auth-button {
+  background: linear-gradient(45deg, var(--verde-escuro), var(--verde-claro));
+  color: var(--texto-claro);
+  border: none;
+  padding: 15px;
+  border-radius: 8px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 8px var(--sombra);
+}
+
+.auth-button:hover:not(:disabled) {
+  background: linear-gradient(45deg, var(--verde-claro), var(--verde-escuro));
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px var(--sombra);
+}
+
+.auth-button:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px var(--sombra);
+}
+
+.auth-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Mensagem de erro */
+.error-message {
+  background: #ffebee;
+  color: #c62828;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 9px;
+  text-align: center;
+  border: 2px solid #ffcdd2;
+  animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+/* Rodapé */
+.auth-footer {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 9px;
+}
+
+.auth-link {
+  color: var(--verde-escuro);
+  text-decoration: none;
+  font-weight: bold;
+  transition: color 0.3s ease;
+}
+
+.auth-link:hover {
+  color: var(--verde-claro);
+  text-decoration: underline;
+}
+
+/* Responsividade */
+@media (max-width: 480px) {
+  .auth-card {
+    padding: 30px 20px;
+    margin: 10px;
+  }
+  
+  .auth-title {
+    font-size: 20px;
+  }
+  
+  .form-input {
+    font-size: 9px;
+  }
+  
+  .auth-button {
+    font-size: 9px;
+    padding: 12px;
+  }
+}
