@@ -1,7 +1,6 @@
 from datetime import datetime, timedelta
 from typing import Optional
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlmodel import Session, select
@@ -16,23 +15,28 @@ SECRET_KEY = "your-secret-key-change-in-production"  # Em produção, use uma ch
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
-# Contexto para hash de senhas
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 # OAuth2 scheme
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
+def _truncate_password(password: str) -> bytes:
+    """Trunca a senha para 72 bytes (limite do bcrypt)"""
+    password_bytes = password.encode('utf-8')[:72]
+    return password_bytes
+
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verifica se a senha está correta"""
-    return pwd_context.verify(plain_password, hashed_password)
+    # bcrypt tem limite de 72 bytes - truncar para o mesmo tamanho usado no hash
+    password_bytes = _truncate_password(plain_password)
+    hashed_bytes = hashed_password.encode('utf-8')
+    return bcrypt.checkpw(password_bytes, hashed_bytes)
 
 def get_password_hash(password: str) -> str:
     """Gera hash da senha"""
-    # bcrypt tem limite de 72 bytes para senhas
-    # Se a senha for muito longa, truncamos para 72 bytes
-    if len(password.encode('utf-8')) > 72:
-        password = password[:72]
-    return pwd_context.hash(password)
+    # bcrypt tem limite de 72 bytes para senhas - truncar BYTES (não caracteres)
+    password_bytes = _truncate_password(password)
+    salt = bcrypt.gensalt()
+    hashed = bcrypt.hashpw(password_bytes, salt)
+    return hashed.decode('utf-8')
 
 def get_user_by_username(session: Session, username: str) -> Optional[User]:
     """Busca usuário pelo username"""

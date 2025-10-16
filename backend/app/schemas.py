@@ -9,12 +9,15 @@ class UserBase(SQLModel):
     email: str
 
 class UserCreate(UserBase):
-    password: str = Field(..., min_length=1, max_length=72, description="Senha em texto plano (máximo 72 caracteres)")  # senha em texto plano, será convertida para hash
+    password: str = Field(..., min_length=1, description="Senha em texto plano")  # senha em texto plano, será convertida para hash
     
     @validator('password')
     def validate_password_length(cls, v):
+        # bcrypt tem limite de 72 bytes - truncar automaticamente se necessário
         if len(v.encode('utf-8')) > 72:
-            raise ValueError('A senha não pode ter mais de 72 caracteres')
+            # Truncar em 72 bytes (não caracteres)
+            password_bytes = v.encode('utf-8')[:72]
+            v = password_bytes.decode('utf-8', errors='ignore')
         return v
 
 class UserRead(UserBase):
