@@ -5,6 +5,7 @@ from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlmodel import Session, select
+import bcrypt
 
 from models import User
 from database import get_session
@@ -27,6 +28,10 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 def get_password_hash(password: str) -> str:
     """Gera hash da senha"""
+    # bcrypt tem limite de 72 bytes para senhas
+    # Se a senha for muito longa, truncamos para 72 bytes
+    if len(password.encode('utf-8')) > 72:
+        password = password[:72]
     return pwd_context.hash(password)
 
 def get_user_by_username(session: Session, username: str) -> Optional[User]:

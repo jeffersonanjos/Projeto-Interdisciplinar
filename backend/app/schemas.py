@@ -1,6 +1,7 @@
 from typing import Optional, List
 from datetime import datetime
 from sqlmodel import SQLModel
+from pydantic import Field, validator
 
 # Usuário
 class UserBase(SQLModel):
@@ -8,7 +9,13 @@ class UserBase(SQLModel):
     email: str
 
 class UserCreate(UserBase):
-    password: str  # senha em texto plano, será convertida para hash
+    password: str = Field(..., min_length=1, max_length=72, description="Senha em texto plano (máximo 72 caracteres)")  # senha em texto plano, será convertida para hash
+    
+    @validator('password')
+    def validate_password_length(cls, v):
+        if len(v.encode('utf-8')) > 72:
+            raise ValueError('A senha não pode ter mais de 72 caracteres')
+        return v
 
 class UserRead(UserBase):
     id: int
