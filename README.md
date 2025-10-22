@@ -33,7 +33,7 @@ uvicorn main:app --port 8001
 ```
 ---
 
-### 2️⃣ Instalando as dependências
+### Instalando as dependências
 
 No terminal, estando dentro da pasta do front-end, execute:
 
