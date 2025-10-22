@@ -21,6 +21,17 @@ git config --global user.name "Jefferson Santos"
 git config --global user.email "jefferson@email.com"
 ```
 
+
+## Executando o back-end passo a passo
+O sistema **só funciona corretamente** quando você inicia o servidor **dentro da pasta `app`**, porque todos os imports e caminhos relativos foram configurados considerando esse diretório. Siga os passos abaixo:
+
+### Entrando na pasta `app`
+No terminal, estando na raiz do projeto, execute:
+```bash
+cd app
+uvicorn main:app --port 8001
+```
+
 ## Funcionalidades Principais  
 1. **Cadastro e Login de Usuários** ✅ **CONCLUÍDO** (Sistema completo implementado)
 2. **Busca e Exibição de Livros e Filmes** ❌ **PENDENTE** (Modelos criados, endpoints não implementados)
