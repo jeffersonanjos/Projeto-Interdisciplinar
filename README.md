@@ -31,6 +31,16 @@ No terminal, estando na raiz do projeto, execute:
 cd app
 uvicorn main:app --port 8001
 ```
+---
+
+### 2️⃣ Instalando as dependências
+
+No terminal, estando dentro da pasta do front-end, execute:
+
+```bash
+npm install
+npm run dev
+```
 
 ## Funcionalidades Principais  
 1. **Cadastro e Login de Usuários** ✅ **CONCLUÍDO** (Sistema completo implementado)
