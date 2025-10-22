@@ -1,21 +1,24 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-
 from routers import router as api_router
 from database import create_db_and_tables
+
+#  importa as novas rotas
+from profile import router as profile_router
+from user_reviews import router as user_reviews_router
 
 
 app = FastAPI(
     title="Sistema de Recomendação de Livros e Filmes",
     description="Backend com FastAPI para cadastro, avaliação, recomendação de livros e filmes",
-    version="0.1.0"
+    version="0.2.0"
 )
 
 # Configuração de CORS para permitir requisições do frontend
 origins = [
-    "http://localhost:5173", # Endereço padrão do Vite
-    "http://localhost:3000", # Endereço alternativo que podemos mapear
+    "http://localhost:5173",  # padrão Vite
+    "http://localhost:3000",  # alternativo
 ]
 
 app.add_middleware(
@@ -26,13 +29,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# incluir rotas
-app.include_router(api_router)
-
 
 @app.on_event("startup")
 def on_startup():
     create_db_and_tables()
+
+
+#  Inclui as rotas principais e as novas funcionalidades
+app.include_router(api_router)
+app.include_router(profile_router)
+app.include_router(user_reviews_router)
 
 
 @app.get("/")

@@ -3,7 +3,7 @@ from sqlalchemy import Column, JSON
 from typing import List, Optional
 from datetime import datetime
 
-#class 
+
 class User(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     username: str = Field(index=True, unique=True)
@@ -13,6 +13,10 @@ class User(SQLModel, table=True):
 
     ratings: List["Rating"] = Relationship(back_populates="user")
     recommendations: List["Recommendation"] = Relationship(back_populates="user")
+    profile: Optional["UserProfile"] = Relationship(back_populates="user", sa_relationship_kwargs={"uselist": False})
+    reviews_given: List["UserReview"] = Relationship(back_populates="author_user")
+    reviews_received: List["UserReview"] = Relationship(back_populates="target_user")
+
 
 class Book(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -23,6 +27,7 @@ class Book(SQLModel, table=True):
     external_id: Optional[str] = None  
     ratings: List["Rating"] = Relationship(back_populates="book")
 
+
 class Movie(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     title: str
@@ -31,6 +36,7 @@ class Movie(SQLModel, table=True):
     cover_url: Optional[str] = None
     external_id: Optional[str] = None
     ratings: List["Rating"] = Relationship(back_populates="movie")
+
 
 class Rating(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -45,6 +51,7 @@ class Rating(SQLModel, table=True):
     book: Optional["Book"] = Relationship(back_populates="ratings")
     movie: Optional["Movie"] = Relationship(back_populates="ratings")
 
+
 class Recommendation(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="user.id")
@@ -53,3 +60,31 @@ class Recommendation(SQLModel, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     user: "User" = Relationship(back_populates="recommendations")
+
+
+class UserProfile(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="user.id")
+    bio: Optional[str] = None
+    avatar_url: Optional[str] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+    user: "User" = Relationship(back_populates="profile")
+
+
+class UserReview(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    author_user_id: int = Field(foreign_key="user.id")
+    target_user_id: int = Field(foreign_key="user.id")
+    rating: float
+    comment: Optional[str] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+    author_user: "User" = Relationship(
+        back_populates="reviews_given",
+        sa_relationship_kwargs={"foreign_keys": "[UserReview.author_user_id]"}
+    )
+    target_user: "User" = Relationship(
+        back_populates="reviews_received",
+        sa_relationship_kwargs={"foreign_keys": "[UserReview.target_user_id]"}
+    )
