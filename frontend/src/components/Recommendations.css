@@ -1,0 +1,131 @@
+.recommendations-container {
+  padding: 30px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.recommendations-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.recommendations-header h2 {
+  font-size: 18px;
+  color: var(--creme);
+  text-shadow: 2px 2px 0px var(--verde-escuro);
+}
+
+.generate-button {
+  padding: 12px 24px;
+  background: linear-gradient(45deg, var(--verde-escuro), var(--verde-claro));
+  color: var(--texto-claro);
+  border: none;
+  border-radius: 8px;
+  font-size: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.generate-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px var(--sombra);
+}
+
+.generate-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.no-recommendations {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--creme);
+  font-size: 12px;
+}
+
+.no-recommendations p {
+  margin-bottom: 10px;
+}
+
+.recommendations-content {
+  margin-top: 30px;
+}
+
+.recommendations-group {
+  margin-bottom: 40px;
+}
+
+.recommendations-group h3 {
+  font-size: 16px;
+  color: var(--creme);
+  margin-bottom: 20px;
+  text-shadow: 2px 2px 0px var(--verde-escuro);
+}
+
+.recommendations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.recommendation-card {
+  background: var(--creme);
+  border-radius: 15px;
+  padding: 25px;
+  border: 3px solid var(--verde-escuro);
+  box-shadow: 0 8px 16px var(--sombra);
+  transition: all 0.3s ease;
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.recommendation-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(45, 80, 22, 0.4);
+}
+
+.recommendation-placeholder {
+  text-align: center;
+  color: var(--marrom);
+}
+
+.recommendation-placeholder p {
+  font-size: 10px;
+  margin-bottom: 8px;
+}
+
+.recommendation-note {
+  font-size: 8px;
+  opacity: 0.7;
+}
+
+.loading-container {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--creme);
+  font-size: 12px;
+}
+
+@media (max-width: 768px) {
+  .recommendations-container {
+    padding: 20px;
+  }
+
+  .recommendations-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .recommendations-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
