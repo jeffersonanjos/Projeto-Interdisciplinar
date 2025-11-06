@@ -22,6 +22,26 @@ from auth import (
 
 router = APIRouter()
 
+@router.get("/books/search", response_model=List[BookRead], tags=["books"])
+async def search_books(query: str, session: Session = Depends(get_session)):
+    # Implement search logic using Google Books API
+    pass
+
+@router.get("/books/{external_id}", response_model=BookRead, tags=["books"])
+async def get_book(external_id: str, session: Session = Depends(get_session)):
+    # Implement logic to fetch book details using Google Books API
+    pass
+
+@router.get("/movies/search", response_model=List[MovieRead], tags=["movies"])
+async def search_movies(query: str, session: Session = Depends(get_session)):
+    # Implement search logic using TMDB API
+    pass
+
+@router.get("/movies/{external_id}", response_model=MovieRead, tags=["movies"])
+async def get_movie(external_id: str, session: Session = Depends(get_session)):
+    # Implement logic to fetch movie details using TMDB API
+    pass
+
 @router.post("/users/", response_model=UserRead, status_code=status.HTTP_201_CREATED, tags=["users"])
 def create_user(user: UserCreate, session: Session = Depends(get_session)):
     db_user = session.exec(select(User).where(User.username == user.username)).first()

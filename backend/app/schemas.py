@@ -51,6 +51,10 @@ class BookBase(SQLModel):
     description: Optional[str] = None
     cover_url: Optional[str] = None
     external_id: Optional[str] = None
+    isbn: Optional[str] = None
+    publisher: Optional[str] = None
+    publication_date: Optional[date] = None
+    genres: Optional[List[str]] = None
 
 class BookCreate(BookBase):
     pass
@@ -75,6 +79,9 @@ class MovieBase(SQLModel):
     description: Optional[str] = None
     cover_url: Optional[str] = None
     external_id: Optional[str] = None
+    release_date: Optional[date] = None
+    genres: Optional[List[str]] = None
+    cast: Optional[List[str]] = None
 
 class MovieCreate(MovieBase):
     pass

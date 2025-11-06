@@ -24,7 +24,11 @@ class Book(SQLModel, table=True):
     author: Optional[str] = None
     description: Optional[str] = None
     cover_url: Optional[str] = None
-    external_id: Optional[str] = None  
+    external_id: Optional[str] = None
+    isbn: Optional[str] = None
+    publisher: Optional[str] = None
+    publication_date: Optional[date] = None
+    genres: Optional[List[str]] = Field(default=None, sa_column=Column(JSON))
     ratings: List["Rating"] = Relationship(back_populates="book")
 
 
@@ -35,6 +39,9 @@ class Movie(SQLModel, table=True):
     description: Optional[str] = None
     cover_url: Optional[str] = None
     external_id: Optional[str] = None
+    release_date: Optional[date] = None
+    genres: Optional[List[str]] = Field(default=None, sa_column=Column(JSON))
+    cast: Optional[List[str]] = Field(default=None, sa_column=Column(JSON))
     ratings: List["Rating"] = Relationship(back_populates="movie")
 
 
