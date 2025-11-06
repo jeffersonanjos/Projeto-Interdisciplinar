@@ -3,7 +3,6 @@ from sqlalchemy import Column, JSON
 from typing import List, Optional
 from datetime import datetime
 
-
 class User(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     username: str = Field(index=True, unique=True)
@@ -14,9 +13,16 @@ class User(SQLModel, table=True):
     ratings: List["Rating"] = Relationship(back_populates="user")
     recommendations: List["Recommendation"] = Relationship(back_populates="user")
     profile: Optional["UserProfile"] = Relationship(back_populates="user", sa_relationship_kwargs={"uselist": False})
-    reviews_given: List["UserReview"] = Relationship(back_populates="author_user")
-    reviews_received: List["UserReview"] = Relationship(back_populates="target_user")
 
+    reviews_given: List["UserReview"] = Relationship(
+        back_populates="author_user",
+        sa_relationship_kwargs={"foreign_keys": "[UserReview.author_user_id]"}
+    )
+
+    reviews_received: List["UserReview"] = Relationship(
+        back_populates="target_user",
+        sa_relationship_kwargs={"foreign_keys": "[UserReview.target_user_id]"}
+    )
 
 class Book(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
