@@ -1,7 +1,7 @@
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from datetime import datetime
 from sqlmodel import SQLModel
-from pydantic import Field, validator
+from pydantic import Field, validator, BaseModel
 
 # Usuário
 class UserBase(SQLModel):
@@ -23,6 +23,49 @@ class UserCreate(UserBase):
 class UserRead(UserBase):
     id: int
     created_at: datetime
+
+    items: list[Item] = []
+
+    class Config:
+        orm_mode = True
+
+
+class Book(BaseModel):
+    id: str
+    title: str
+    authors: list[str]
+    description: str | None = None
+    image_url: str | None = None
+
+    class Config:
+        orm_mode = True
+
+
+class Movie(BaseModel):
+    id: int
+    title: str
+    overview: str | None = None
+    poster_path: str | None = None
+    release_date: str
+
+    class Config:
+        orm_mode = True
+    id: str
+    title: str
+    authors: list[str]
+    description: str | None = None
+    image_url: str | None = None
+
+    class Config:
+        orm_mode = True
+
+
+class Movie(BaseModel):
+    id: int
+    title: str
+    overview: str | None = None
+    poster_path: str | None = None
+    release_date: str
 
     class Config:
         orm_mode = True

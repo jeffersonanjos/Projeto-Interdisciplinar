@@ -1,10 +1,13 @@
 from fastapi import APIRouter, HTTPException, Depends, status
 from fastapi.security import OAuth2PasswordRequestForm
-from typing import List
+from typing import List, Optional, Dict, Any
 from datetime import timedelta
 
 from models import User, Book, Movie, Rating, Recommendation
 from sqlmodel import Session, select
+
+from app.api_clients import fetch_book_data, fetch_movie_data
+from schemas import Book, Movie
 from database import get_session
 from schemas import (
     UserCreate, UserRead, UserUpdate,
@@ -131,3 +134,44 @@ def create_rating(
     session.commit()
     session.refresh(db_rating)
     return db_rating
+
+
+@router.get("/books", response_model=List[Book])
+async def search_books(query: str):
+    """Searches for books using the Google Books API."""
+    book_data = fetch_book_data(query)
+    if not book_data or "items" not in book_data:
+        raise HTTPException(status_code=404, detail="No books found")
+
+    books = []
+    for item in book_data["items"]:
+        volume_info = item["volumeInfo"]
+        book = Book(
+            id=item["id"],
+            title=volume_info.get("title", "N/A"),
+            authors=volume_info.get("authors", ["N/A"]),
+            description=volume_info.get("description", "N/A"),
+            image_url=volume_info.get("imageLinks", {}).get("thumbnail", None),
+        )
+        books.append(book)
+    return books
+
+
+@router.get("/movies", response_model=List[Movie])
+async def search_movies(query: str):
+    """Searches for movies using the TMDB API."""
+    movie_data = fetch_movie_data(query)
+    if not movie_data or "results" not in movie_data:
+        raise HTTPException(status_code=404, detail="No movies found")
+
+    movies = []
+    for item in movie_data["results"]:
+        movie = Movie(
+            id=item["id"],
+            title=item["title"],
+            overview=item.get("overview", "N/A"),
+            poster_path=item.get("poster_path", None),
+            release_date=item.get("release_date", "N/A"),
+        )
+        movies.append(movie)
+    return movies

@@ -208,7 +208,7 @@ export const externalApiService = {
   // Buscar livros no backend
   async getBooksFromBackend(query) {
     try {
-      const response = await api.get(`/books/search?query=${encodeURIComponent(query)}`);
+      const response = await api.get(`/books?query=${encodeURIComponent(query)}`);
       return { success: true, data: response.data };
     } catch (error) {
       return { success: false, error: error.response?.data?.detail || 'Erro ao buscar livros no backend' };
@@ -217,7 +217,7 @@ export const externalApiService = {
   // Buscar filme no backend
   async getMoviesFromBackend(query) {
     try {
-      const response = await api.get(`/movies/search?query=${encodeURIComponent(query)}`);
+      const response = await api.get(`/movies?query=${encodeURIComponent(query)}`);
       return { success: true, data: response.data };
     } catch (error) {
       return { success: false, error: error.response?.data?.detail || 'Erro ao buscar filmes no backend' };
