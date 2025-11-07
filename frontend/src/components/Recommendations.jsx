@@ -4,39 +4,47 @@ import { recommendationService, bookService, movieService } from '../services/ap
 import './Recommendations.css';
 
 const Recommendations = () => {
+  console.log("Recommendations component loaded");
   const { user } = useAuth();
   const [recommendations, setRecommendations] = useState(null);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
 
   useEffect(() => {
+	console.log("Recommendations useEffect called");
     loadRecommendations();
   }, [user]);
 
   const loadRecommendations = async () => {
+	console.log("Recommendations loadRecommendations called");
     if (!user) return;
     
     setLoading(true);
     try {
       const result = await recommendationService.getUserRecommendations(user.id);
+	  console.log("Recommendations loadRecommendations result:", result);
       if (result.success && result.data.length > 0) {
         // Pegar a recomendação mais recente
         const latest = result.data[result.data.length - 1];
         setRecommendations(latest);
+		console.log("Recommendations loadRecommendations recommendations set:", latest);
       }
     } catch (error) {
       console.error('Erro ao carregar recomendações:', error);
     } finally {
       setLoading(false);
+	  console.log("Recommendations loadRecommendations loading set to false");
     }
   };
 
   const handleGenerateRecommendations = async () => {
+	console.log("Recommendations handleGenerateRecommendations called");
     if (!user) return;
     
     setGenerating(true);
     try {
       const result = await recommendationService.generateRecommendations(user.id);
+	  console.log("Recommendations handleGenerateRecommendations result:", result);
       if (result.success) {
         alert('Recomendações geradas com sucesso!');
         loadRecommendations();
@@ -45,8 +53,10 @@ const Recommendations = () => {
       }
     } catch (error) {
       alert('Erro ao gerar recomendações');
+	  console.error("Recommendations handleGenerateRecommendations error:", error);
     } finally {
       setGenerating(false);
+	  console.log("Recommendations handleGenerateRecommendations generating set to false");
     }
   };
 
@@ -128,4 +138,3 @@ const Recommendations = () => {
 };
 
 export default Recommendations;
-

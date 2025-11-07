@@ -9,20 +9,24 @@ import { ratingService } from '../services/apiService';
 import './Dashboard.css';
 
 const Dashboard = () => {
+  console.log("Dashboard component loaded");
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [activeView, setActiveView] = useState('home');
   const [stats, setStats] = useState({ books: 0, movies: 0, ratings: 0 });
 
   useEffect(() => {
+	console.log("Dashboard useEffect called");
     loadStats();
   }, [user]);
 
   const loadStats = async () => {
+	console.log("Dashboard loadStats called");
     if (!user) return;
     
     try {
       const ratingsResult = await ratingService.getUserRatings(user.id);
+	  console.log("Dashboard loadStats ratingsResult:", ratingsResult);
       if (ratingsResult.success) {
         const ratings = ratingsResult.data;
         setStats({
@@ -30,6 +34,7 @@ const Dashboard = () => {
           movies: ratings.filter(r => r.movie_id).length,
           ratings: ratings.length
         });
+		console.log("Dashboard loadStats stats set:", stats);
       }
     } catch (error) {
       console.error('Erro ao carregar estatísticas:', error);
@@ -37,11 +42,13 @@ const Dashboard = () => {
   };
 
   const handleLogout = () => {
+	console.log("Dashboard handleLogout called");
     logout();
     navigate('/login');
   };
 
   const renderContent = () => {
+	console.log("Dashboard renderContent called, activeView:", activeView);
     switch (activeView) {
       case 'search':
         return <Search />;

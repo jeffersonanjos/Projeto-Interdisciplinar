@@ -5,6 +5,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlmodel import Session, select
 import bcrypt
+import logging
 
 from models import User
 from database import get_session
@@ -17,6 +18,8 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 # OAuth2 scheme
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+logger = logging.getLogger(__name__)
 
 def _truncate_password(password: str) -> bytes:
     """Trunca a senha para 72 bytes (limite do bcrypt)"""
@@ -40,15 +43,20 @@ def get_password_hash(password: str) -> str:
 
 def get_user_by_username(session: Session, username: str) -> Optional[User]:
     """Busca usuário pelo username"""
+    logger.info(f"Getting user by username: {username}")
     return session.exec(select(User).where(User.username == username)).first()
 
 def authenticate_user(session: Session, username: str, password: str) -> Optional[User]:
     """Autentica o usuário"""
+    logger.info(f"Authenticating user: {username}")
     user = get_user_by_username(session, username)
     if not user:
+        logger.warning(f"User {username} not found")
         return None
     if not verify_password(password, user.hashed_password):
+        logger.warning(f"Invalid password for user: {username}")
         return None
+    logger.info(f"User {username} authenticated successfully")
     return user
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
@@ -73,18 +81,19 @@ async def get_current_user(token: str = Depends(oauth2_scheme), session: Session
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
         if username is None:
+            logger.warning("Token payload does not contain username")
             raise credentials_exception
         token_data = TokenData(username=username)
-    except JWTError:
+    except JWTError as e:
+        logger.exception("JWTError during token decoding")
         raise credentials_exception
     
     user = get_user_by_username(session, username=token_data.username)
     if user is None:
+        logger.warning(f"User {username} not found during token validation")
         raise credentials_exception
     return user
 
 async def get_current_active_user(current_user: User = Depends(get_current_user)) -> User:
     """Obtém o usuário ativo atual"""
     return current_user
-
-

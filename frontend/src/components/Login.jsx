@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+console.log("Login component loaded");
 import './Auth.css';
 
 const Login = () => {
@@ -13,6 +14,7 @@ const Login = () => {
   
   const { login } = useAuth();
   const navigate = useNavigate();
+  console.log("Login state initialized");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -38,12 +40,16 @@ const Login = () => {
 
     try {
       const result = await login(formData.username, formData.password);
+      console.log("Login API response:", result);
       if (result.success) {
+        console.log("Login successful");
         navigate('/dashboard');
       } else {
+        console.log("Login failed");
         setError(result.error);
       }
     } catch (err) {
+      console.error("Login error:", err);
       setError('Erro inesperado. Tente novamente.');
     } finally {
       setLoading(false);

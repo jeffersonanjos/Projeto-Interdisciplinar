@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import './Auth.css';
+console.log("Register component loaded");
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -15,6 +16,7 @@ const Register = () => {
   
   const { register } = useAuth();
   const navigate = useNavigate();
+  console.log("Register state initialized");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -64,12 +66,16 @@ const Register = () => {
 
     try {
       const result = await register(formData.username, formData.email, formData.password);
+      console.log("Register API response:", result);
       if (result.success) {
+        console.log("Register successful");
         navigate('/dashboard');
       } else {
+        console.log("Register failed");
         setError(result.error);
       }
     } catch (err) {
+      console.error("Register error:", err);
       setError('Erro inesperado. Tente novamente.');
     } finally {
       setLoading(false);

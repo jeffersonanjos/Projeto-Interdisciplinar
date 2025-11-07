@@ -4,6 +4,7 @@ import { profileService, ratingService } from '../services/apiService';
 import './Profile.css';
 
 const Profile = () => {
+  console.log("Profile component loaded");
   const { user } = useAuth();
   const [profile, setProfile] = useState(null);
   const [stats, setStats] = useState({ books: 0, movies: 0, ratings: 0 });
@@ -12,34 +13,42 @@ const Profile = () => {
   const [formData, setFormData] = useState({ bio: '', avatar_url: '' });
 
   useEffect(() => {
+	console.log("Profile useEffect called");
     loadProfile();
     loadStats();
   }, [user]);
 
   const loadProfile = async () => {
+	console.log("Profile loadProfile called");
     if (!user) return;
     
     try {
       const result = await profileService.getProfile(user.id);
+	  console.log("Profile loadProfile result:", result);
       if (result.success && result.data) {
         setProfile(result.data);
+		console.log("Profile loadProfile profile set:", result.data);
         setFormData({
           bio: result.data.bio || '',
           avatar_url: result.data.avatar_url || ''
         });
+		console.log("Profile loadProfile formData set:", formData);
       }
     } catch (error) {
       console.error('Erro ao carregar perfil:', error);
     } finally {
       setLoading(false);
+	  console.log("Profile loadProfile loading set to false");
     }
   };
 
   const loadStats = async () => {
+	console.log("Profile loadStats called");
     if (!user) return;
     
     try {
       const ratingsResult = await ratingService.getUserRatings(user.id);
+	  console.log("Profile loadStats ratingsResult:", ratingsResult);
       if (ratingsResult.success) {
         const ratings = ratingsResult.data;
         setStats({
@@ -47,6 +56,7 @@ const Profile = () => {
           movies: ratings.filter(r => r.movie_id).length,
           ratings: ratings.length
         });
+		console.log("Profile loadStats stats set:", stats);
       }
     } catch (error) {
       console.error('Erro ao carregar estatísticas:', error);
@@ -54,20 +64,25 @@ const Profile = () => {
   };
 
   const handleSave = async (e) => {
+	console.log("Profile handleSave called");
     e.preventDefault();
     if (!user) return;
 
     try {
       const result = await profileService.createOrUpdateProfile(user.id, formData);
+	  console.log("Profile handleSave createOrUpdateProfile result:", result);
       if (result.success) {
         setProfile(result.data);
+		console.log("Profile handleSave profile set:", result.data);
         setEditing(false);
+		console.log("Profile handleSave editing set to false");
         alert('Perfil atualizado com sucesso!');
       } else {
         alert('Erro ao salvar perfil: ' + result.error);
       }
     } catch (error) {
       alert('Erro ao salvar perfil');
+	  console.error("Profile handleSave error:", error);
     }
   };
 
@@ -177,4 +192,3 @@ const Profile = () => {
 };
 
 export default Profile;
-

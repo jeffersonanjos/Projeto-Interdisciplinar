@@ -24,7 +24,7 @@ class UserRead(UserBase):
     id: int
     created_at: datetime
 
-    items: list[Item] = []
+    # items: list[Item] = []
 
     class Config:
         orm_mode = True
@@ -48,24 +48,11 @@ class Movie(BaseModel):
     poster_path: str | None = None
     release_date: str
 
-    class Config:
-        orm_mode = True
-    id: str
-    title: str
-    authors: list[str]
-    description: str | None = None
-    image_url: str | None = None
 
     class Config:
         orm_mode = True
 
 
-class Movie(BaseModel):
-    id: int
-    title: str
-    overview: str | None = None
-    poster_path: str | None = None
-    release_date: str
 
     class Config:
         orm_mode = True
@@ -85,7 +72,7 @@ class Token(SQLModel):
     token_type: str
 
 class TokenData(SQLModel):
-    username: Optional[str] = None
+    username: Optional[str]
 
 # Livro
 class BookBase(SQLModel):

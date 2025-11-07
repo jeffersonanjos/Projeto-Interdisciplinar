@@ -41,21 +41,27 @@ api.interceptors.response.use(
 export const authService = {
   // Login do usuário
   async login(username, password) {
+	console.log("authService.login called with:", username, password);
     try {
       const response = await api.post('/login', {
         username,
         password,
       });
+	  console.log("authService.login API response:", response);
       
       const { access_token } = response.data;
       localStorage.setItem('access_token', access_token);
+	  console.log("authService.login access_token set:", access_token);
       
       // Buscar dados do usuário
       const userResponse = await api.get('/users/me/');
+	  console.log("authService.login userResponse:", userResponse);
       localStorage.setItem('user', JSON.stringify(userResponse.data));
+	  console.log("authService.login user set:", userResponse.data);
       
       return { success: true, user: userResponse.data };
     } catch (error) {
+	  console.error("authService.login error:", error);
       return {
         success: false,
         error: error.response?.data?.detail || 'Erro ao fazer login',
@@ -65,15 +71,17 @@ export const authService = {
 
   // Registro de novo usuário
   async register(username, email, password) {
+	console.log("authService.register called with:", username, email, password);
     try {
       const response = await api.post('/users/', {
         username,
         email,
         password,
       });
-      
+	  console.log("authService.register API response:", response);
       return { success: true, user: response.data };
     } catch (error) {
+	  console.error("authService.register error:", error);
       return {
         success: false,
         error: error.response?.data?.detail || 'Erro ao criar conta',

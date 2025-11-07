@@ -4,6 +4,7 @@ import { ratingService } from '../services/apiService';
 import './Library.css';
 
 const Library = () => {
+  console.log("Library component loaded");
   const { user } = useAuth();
   const [libraryType, setLibraryType] = useState('books'); // 'books' ou 'movies'
   const [items, setItems] = useState([]);
@@ -14,16 +15,19 @@ const Library = () => {
   const [ratingForm, setRatingForm] = useState({ score: 5, comment: '' });
 
   useEffect(() => {
+	console.log("Library useEffect called");
     loadLibrary();
   }, [libraryType, user]);
 
   const loadLibrary = async () => {
+	console.log("Library loadLibrary called");
     if (!user) return;
     
     setLoading(true);
     try {
       // Buscar avaliações do usuário
       const ratingsResult = await ratingService.getUserRatings(user.id);
+	  console.log("Library loadLibrary ratingsResult:", ratingsResult);
       if (ratingsResult.success) {
         const userRatings = ratingsResult.data;
         
@@ -33,6 +37,7 @@ const Library = () => {
           : userRatings.filter(r => r.movie_id);
         
         setRatings(filteredRatings);
+		console.log("Library loadLibrary ratings set:", filteredRatings);
         
         // Aqui você normalmente buscaria os itens completos (livros/filmes)
         // Por enquanto, usamos os dados das avaliações
@@ -41,15 +46,18 @@ const Library = () => {
           title: `Item ${libraryType === 'books' ? r.book_id : r.movie_id}`,
           rating: r
         })));
+		console.log("Library loadLibrary items set:", items);
       }
     } catch (error) {
       console.error('Erro ao carregar biblioteca:', error);
     } finally {
       setLoading(false);
+	  console.log("Library loadLibrary loading set to false");
     }
   };
 
   const handleRateItem = (item) => {
+	console.log("Library handleRateItem called with:", item);
     setSelectedItem(item);
     const existingRating = ratings.find(r => 
       (libraryType === 'books' ? r.book_id : r.movie_id) === item.id
@@ -60,14 +68,18 @@ const Library = () => {
         score: existingRating.score,
         comment: existingRating.comment || ''
       });
+	  console.log("Library handleRateItem existing rating found, ratingForm set:", ratingForm);
     } else {
       setRatingForm({ score: 5, comment: '' });
+	  console.log("Library handleRateItem no existing rating found, ratingForm set:", ratingForm);
     }
     
     setShowRatingModal(true);
+	console.log("Library handleRateItem showRatingModal set to true");
   };
 
   const handleSubmitRating = async (e) => {
+	console.log("Library handleSubmitRating called");
     e.preventDefault();
     if (!selectedItem || !user) return;
 
@@ -78,8 +90,10 @@ const Library = () => {
         user_id: user.id,
         [libraryType === 'books' ? 'book_id' : 'movie_id']: selectedItem.id
       };
+	  console.log("Library handleSubmitRating ratingData:", ratingData);
 
       const result = await ratingService.createRating(ratingData);
+	  console.log("Library handleSubmitRating createRating result:", result);
       if (result.success) {
         alert('Avaliação salva com sucesso!');
         setShowRatingModal(false);
@@ -89,6 +103,7 @@ const Library = () => {
       }
     } catch (error) {
       alert('Erro ao salvar avaliação');
+	  console.error("Library handleSubmitRating error:", error);
     }
   };
 
@@ -214,4 +229,3 @@ const Library = () => {
 };
 
 export default Library;
-
