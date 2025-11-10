@@ -89,6 +89,7 @@ class BookBase(SQLModel):
 class BookCreate(BookBase):
     pass
 
+
 class BookRead(BookBase):
     id: int
 
