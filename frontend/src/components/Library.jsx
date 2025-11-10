@@ -25,14 +25,14 @@ const Library = () => {
     
     setLoading(true);
     try {
-      // Buscar avaliações do usuário
-      const ratingsResult = await ratingService.getUserRatings(user.id);
-	  console.log("Library loadLibrary ratingsResult:", ratingsResult);
-      if (ratingsResult.success) {
-        const userRatings = ratingsResult.data;
-        
+      // Buscar livros da biblioteca do usuário
+      const libraryResult = await externalApiService.getUserLibrary(parseInt(user.id));
+   console.log("Library loadLibrary libraryResult:", libraryResult);
+      if (libraryResult.success) {
+        const libraryItems = libraryResult.data;
+        console.log("Library loadLibrary libraryItems:", libraryItems);
         // Filtrar por tipo (livros ou filmes)
-        const filteredRatings = libraryType === 'books' 
+        const filteredItems = libraryType === 'books'
           ? userRatings.filter(r => r.book_id)
           : userRatings.filter(r => r.movie_id);
         
@@ -41,12 +41,9 @@ const Library = () => {
         
         // Aqui você normalmente buscaria os itens completos (livros/filmes)
         // Por enquanto, usamos os dados das avaliações
-        setItems(filteredRatings.map(r => ({
-          id: libraryType === 'books' ? r.book_id : r.movie_id,
-          title: `Item ${libraryType === 'books' ? r.book_id : r.movie_id}`,
-          rating: r
-        })));
-		console.log("Library loadLibrary items set:", items);
+        const itemsData = libraryItems.map(item => (libraryType === 'books' ? item : item));
+        setItems(itemsData.filter(item => item !== null && item.id));
+  console.log("Library loadLibrary items set:", items);
       }
     } catch (error) {
       console.error('Erro ao carregar biblioteca:', error);
@@ -55,6 +52,7 @@ const Library = () => {
 	  console.log("Library loadLibrary loading set to false");
     }
   };
+  console.log("Library items:", items);
 
   const handleRateItem = (item) => {
 	console.log("Library handleRateItem called with:", item);
@@ -159,20 +157,19 @@ const Library = () => {
           <p>Use a busca para adicionar {libraryType === 'books' ? 'livros' : 'filmes'}!</p>
         </div>
       ) : (
-        <div className="library-grid">
+        <div className="book-grid">
           {items.map((item) => (
-            <div key={item.id} className="library-card">
-              <div className="library-card-header">
-                <h3>{item.title}</h3>
-                {item.rating && (
-                  <div className="library-rating">
-                    {renderStars(item.rating.score)}
-                    {item.rating.comment && (
-                      <p className="library-comment">{item.rating.comment}</p>
-                    )}
-                  </div>
-                )}
-              </div>
+            <div key={item.id} className="book-item">
+              <img src={item.image_url} alt={item.title} className="book-cover" />
+              <h3>{item.title}</h3>
+              {item.rating && (
+                <div className="library-rating">
+                  {renderStars(item.rating.score)}
+                  {item.rating.comment && (
+                    <p className="library-comment">{item.rating.comment}</p>
+                  )}
+                </div>
+              )}
               <button
                 onClick={() => handleRateItem(item)}
                 className="rate-button"

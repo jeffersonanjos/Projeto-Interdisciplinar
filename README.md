@@ -47,11 +47,15 @@ npm run dev
 2. **Busca e Exibição de Livros e Filmes** ❌ **PENDENTE** (Modelos criados, endpoints não implementados)
 3. **Sistema de Avaliação (notas e comentários)** ✅ **CONCLUÍDO** (Endpoint de criação de avaliações implementado)
 4. **Recomendações personalizadas** ❌ **PENDENTE** (Modelo criado, algoritmo não implementado)
-5. **Integração com APIs externas (Google Books e TMDB)** ❌ **PENDENTE** (Não implementado)
+5. **Integração com APIs externas (Google Books)** [-] **EM ANDAMENTO** (Implementado busca de livros)
 6. **Exibição de cards com capas, notas e sinopses** ❌ **PENDENTE** (Frontend não implementado)
 7. **Histórico de Avaliações no perfil do usuário** ❌ **PENDENTE** (Endpoints não implementados)
 
 ## Status do Projeto
+
+### Google Books API Integration:
+- The backend has been integrated with the Google Books API to search for books by query.
+- The frontend has been updated to allow users to search for books and display the results.
 
 ### ✅ **IMPLEMENTADO:**
 - **Backend com FastAPI**: Estrutura base do servidor
@@ -71,11 +75,82 @@ npm run dev
 ### ❌ **PENDENTE:**
 - **Endpoints de Livros**: CRUD completo para livros
 - **Endpoints de Filmes**: CRUD completo para filmes
-- **Integração com APIs Externas**: Google Books e TMDB
+- **Integração com APIs Externas**: Google Books (search implemented) and TMDB
 - **Sistema de Recomendações**: Algoritmo de recomendação personalizada
 - **Frontend**: Interface web responsiva
 - **Endpoints de Histórico**: Buscar avaliações do usuário
 - **Endpoints de Recomendações**: Buscar recomendações do usuário
+
+### 🔧 **Code Examples:**
+
+#### Backend (backend/app/routers.py):
+```python
+from google_books import search_books as google_search_books, get_book_by_id
+
+@router.get("/books/search", response_model=List[BookRead], tags=["books"])
+async def search_books(query: str, session: Session = Depends(get_session)):
+    logger.info(f"Searching for books with query: {query}")
+    books = google_search_books(query)
+    # Convert the books to BookRead schema
+    book_list = []
+    for book in books:
+        volume_info = book.get("volumeInfo", {})
+        book_data = BookRead(
+            id=book.get("id", "N/A"),
+            title=volume_info.get("title", "N/A"),
+            authors=volume_info.get("authors", ["N/A"]),
+            description=volume_info.get("description", "N/A"),
+            image_url=volume_info.get("imageLinks", {}).get("thumbnail", None),
+        )
+        book_list.append(book_data)
+    return book_list
+
+@router.get("/books/{book_id}", response_model=BookRead, tags=["books"])
+async def get_book(book_id: str, session: Session = Depends(get_session)):
+    logger.info(f"Getting book with book_id: {book_id}")
+    book = get_book_by_id(book_id)
+    if book:
+        volume_info = book.get("volumeInfo", {})
+        book_data = BookRead(
+            id=book.get("id", "N/A"),
+            title=volume_info.get("title", "N/A"),
+            authors=volume_info.get("authors", ["N/A"]),
+            description=volume_info.get("description", "N/A"),
+            image_url=volume_info.get("imageLinks", {}).get("thumbnail", None),
+        )
+        return book_data
+    else:
+        raise HTTPException(status_code=404, detail="Book not found")
+```
+
+#### Frontend (frontend/src/components/Search.jsx):
+```javascript
+import { externalApiService } from '../services/apiService';
+
+const handleSearch = async () => {
+  console.log("Search handleSearch called with query:", query);
+  setLoading(true);
+  setError('');
+
+  try {
+    const bookResponse = await externalApiService.searchBooksFromBackend(query);
+    console.log("Search handleSearch bookResponse:", bookResponse);
+    if (bookResponse.success) {
+      setBookResults(bookResponse.data);
+      console.log("Search handleSearch bookResults set:", bookResponse.data);
+    } else {
+      setError(bookResponse.error || 'Erro ao buscar livros');
+      console.error("Search handleSearch getBooksFromBackend error:", bookResponse.error);
+    }
+  } catch (error) {
+    setError('Erro ao realizar a busca.');
+    console.error("Search handleSearch general error:", error);
+  } finally {
+    setLoading(false);
+    console.log("Search handleSearch loading set to false");
+  }
+};
+```
 
 ### 🔧 **TECNOLOGIAS UTILIZADAS:**
 - **Backend**: FastAPI (Python)

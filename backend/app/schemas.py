@@ -91,7 +91,8 @@ class BookCreate(BookBase):
 
 
 class BookRead(BookBase):
-    id: int
+    id: str
+    image_url: Optional[str] = None
 
     class Config:
         orm_mode = True
