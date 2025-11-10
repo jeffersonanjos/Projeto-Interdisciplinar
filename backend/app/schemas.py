@@ -74,7 +74,7 @@ class Token(SQLModel):
 class TokenData(SQLModel):
     username: Optional[str]
 
-# Livro
+# Livros
 class BookBase(SQLModel):
     title: str
     author: Optional[str] = None
