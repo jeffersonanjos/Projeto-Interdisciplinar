@@ -1,16 +1,15 @@
 /* Importar a fonte Press Start 2P */
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
-/* Variáveis de cores baseadas na identidade visual */
+/* Variáveis de tema (herdadas de index.css) */
 :root {
-  --verde-escuro: #2d5016;
-  --marrom: #8b4513;
-  --creme: #f5f5dc;
-  --verde-claro: #4a7c59;
-  --marrom-claro: #a0522d;
-  --texto-escuro: #2c2c2c;
-  --texto-claro: #ffffff;
-  --sombra: rgba(0, 0, 0, 0.1);
+  --green: #1f5a2d;
+  --green-dark: #1f5a2d;
+  --offwhite: #FFF8E7;
+  --white: #ffffff;
+  --brown: #8b4513;
+  --brown-light: #a0522d;
+  --shadow: rgba(0, 0, 0, 0.12);
 }
 
 /* Reset e estilos base */
@@ -22,9 +21,9 @@
 
 body {
   font-family: 'Press Start 2P', monospace;
-  background: linear-gradient(135deg, var(--verde-escuro) 0%, var(--marrom) 100%);
+  background: var(--green);
   min-height: 100vh;
-  color: var(--texto-escuro);
+  color: var(--offwhite);
 }
 
 /* Container principal de autenticação */
@@ -34,31 +33,19 @@ body {
   align-items: center;
   justify-content: center;
   padding: 20px;
-  background: linear-gradient(135deg, var(--verde-escuro) 0%, var(--marrom) 100%);
+  background: var(--green);
 }
 
 /* Card de autenticação */
 .auth-card {
-  background: var(--creme);
+  background: var(--offwhite);
+  color: var(--green);
   border-radius: 15px;
   padding: 40px;
-  box-shadow: 0 10px 30px var(--sombra);
+  box-shadow: 0 10px 30px var(--shadow);
   width: 100%;
   max-width: 400px;
-  border: 3px solid var(--verde-escuro);
-  position: relative;
-}
-
-.auth-card::before {
-  content: '';
-  position: absolute;
-  top: -3px;
-  left: -3px;
-  right: -3px;
-  bottom: -3px;
-  background: linear-gradient(45deg, var(--verde-escuro), var(--marrom));
-  border-radius: 15px;
-  z-index: -1;
+  border: 3px solid var(--brown);
 }
 
 /* Cabeçalho */
@@ -69,14 +56,13 @@ body {
 
 .auth-title {
   font-size: 24px;
-  color: var(--verde-escuro);
+  color: var(--green-dark);
   margin-bottom: 10px;
-  text-shadow: 2px 2px 0px var(--marrom-claro);
 }
 
 .auth-subtitle {
   font-size: 12px;
-  color: var(--marrom);
+  color: var(--brown);
   font-weight: normal;
 }
 
@@ -95,37 +81,37 @@ body {
 
 .form-label {
   font-size: 10px;
-  color: var(--verde-escuro);
+  color: var(--green-dark);
   font-weight: bold;
 }
 
 .form-input {
   padding: 12px;
-  border: 2px solid var(--marrom);
+  border: 2px solid var(--brown);
   border-radius: 8px;
   font-family: 'Press Start 2P', monospace;
   font-size: 10px;
-  background: var(--texto-claro);
-  color: var(--texto-escuro);
+  background: var(--white);
+  color: var(--green-dark);
   transition: all 0.3s ease;
 }
 
 .form-input:focus {
   outline: none;
-  border-color: var(--verde-escuro);
-  box-shadow: 0 0 0 3px rgba(45, 80, 22, 0.1);
+  border-color: var(--brown-light);
+  box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.12);
 }
 
 .form-input::placeholder {
-  color: var(--marrom-claro);
+  color: var(--brown-light);
   font-size: 9px;
 }
 
 /* Botão de autenticação */
 .auth-button {
-  background: linear-gradient(45deg, var(--verde-escuro), var(--verde-claro));
-  color: var(--texto-claro);
-  border: none;
+  background: var(--green);
+  color: var(--offwhite);
+  border: 2px solid var(--green);
   padding: 15px;
   border-radius: 8px;
   font-family: 'Press Start 2P', monospace;
@@ -134,18 +120,19 @@ body {
   transition: all 0.3s ease;
   text-transform: uppercase;
   letter-spacing: 1px;
-  box-shadow: 0 4px 8px var(--sombra);
+  box-shadow: 0 4px 8px var(--shadow);
 }
 
 .auth-button:hover:not(:disabled) {
-  background: linear-gradient(45deg, var(--verde-claro), var(--verde-escuro));
+  background: var(--green-dark);
+  border-color: var(--green-dark);
   transform: translateY(-2px);
-  box-shadow: 0 6px 12px var(--sombra);
+  box-shadow: 0 6px 12px var(--shadow);
 }
 
 .auth-button:active:not(:disabled) {
   transform: translateY(0);
-  box-shadow: 0 2px 4px var(--sombra);
+  box-shadow: 0 2px 4px var(--shadow);
 }
 
 .auth-button:disabled {
@@ -180,14 +167,14 @@ body {
 }
 
 .auth-link {
-  color: var(--verde-escuro);
+  color: var(--brown);
   text-decoration: none;
   font-weight: bold;
   transition: color 0.3s ease;
 }
 
 .auth-link:hover {
-  color: var(--verde-claro);
+  color: var(--brown-light);
   text-decoration: underline;
 }
 

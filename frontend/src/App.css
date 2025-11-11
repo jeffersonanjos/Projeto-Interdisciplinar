@@ -8,23 +8,21 @@
   box-sizing: border-box;
 }
 
-/* Variáveis de cores baseadas na identidade visual */
+/* Variáveis de tema (herdadas de index.css) */
 :root {
-  --verde-escuro: #2d5016;
-  --marrom: #8b4513;
-  --creme: #f5f5dc;
-  --verde-claro: #4a7c59;
-  --marrom-claro: #a0522d;
-  --texto-escuro: #2c2c2c;
-  --texto-claro: #ffffff;
-  --sombra: rgba(0, 0, 0, 0.1);
+  --green: #2d7c3f;
+  --green-dark: #1f5a2d;
+  --offwhite: #FFF8E7;
+  --white: #ffffff;
+  --shadow: rgba(0, 0, 0, 0.12);
 }
 
 /* Estilos base da aplicação */
 #root {
   min-height: 100vh;
   font-family: 'Press Start 2P', monospace;
-  background: linear-gradient(135deg, var(--verde-escuro) 0%, var(--marrom) 100%);
+  background: var(--green);
+  color: var(--offwhite);
 }
 
 .App {
@@ -33,13 +31,13 @@
 
 /* Estilos para links */
 a {
-  color: var(--verde-escuro);
+  color: var(--offwhite);
   text-decoration: none;
-  transition: color 0.3s ease;
+  transition: opacity 0.3s ease;
 }
 
 a:hover {
-  color: var(--verde-claro);
+  opacity: 0.85;
 }
 
 /* Estilos para botões */
@@ -51,7 +49,7 @@ button {
 }
 
 button:focus {
-  outline: 2px solid var(--verde-claro);
+  outline: 2px solid var(--offwhite);
   outline-offset: 2px;
 }
 
@@ -61,7 +59,7 @@ input {
 }
 
 input:focus {
-  outline: 2px solid var(--verde-claro);
+  outline: 2px solid var(--offwhite);
   outline-offset: 2px;
 }
 
@@ -71,14 +69,14 @@ input:focus {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--creme);
+  background: var(--white);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--marrom);
+  background: var(--green-dark);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--marrom-claro);
+  background: var(--green);
 }

@@ -15,8 +15,7 @@
 
 .search-header h2 {
   font-size: 18px;
-  color: var(--creme);
-  text-shadow: 2px 2px 0px var(--verde-escuro);
+  color: var(--offwhite);
 }
 
 .search-type-toggle {
@@ -28,22 +27,22 @@
   padding: 10px 20px;
   border-radius: 8px;
   font-size: 9px;
-  background: var(--creme);
-  color: var(--verde-escuro);
-  border: 2px solid var(--verde-escuro);
+  background: var(--offwhite);
+  color: var(--green);
+  border: 2px solid var(--brown);
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .search-type-toggle button:hover {
-  background: var(--verde-claro);
-  color: var(--texto-claro);
+  background: var(--white);
+  border-color: var(--brown-light);
 }
 
 .search-type-toggle button.active {
-  background: linear-gradient(45deg, var(--verde-escuro), var(--verde-claro));
-  color: var(--texto-claro);
-  border-color: var(--verde-escuro);
+  background: var(--white);
+  color: var(--green);
+  border-color: var(--brown);
 }
 
 .search-form {
@@ -58,24 +57,24 @@
 .search-input {
   flex: 1;
   padding: 15px;
-  border: 2px solid var(--marrom);
+  border: 2px solid var(--brown);
   border-radius: 8px;
   font-size: 10px;
-  background: var(--creme);
-  color: var(--texto-escuro);
+  background: var(--offwhite);
+  color: var(--green);
 }
 
 .search-input:focus {
   outline: none;
-  border-color: var(--verde-escuro);
-  box-shadow: 0 0 0 3px rgba(45, 80, 22, 0.1);
+  border-color: var(--brown-light);
+  box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.12);
 }
 
 .search-button {
   padding: 15px 30px;
-  background: linear-gradient(45deg, var(--verde-escuro), var(--verde-claro));
-  color: var(--texto-claro);
-  border: none;
+  background: var(--offwhite);
+  color: var(--green);
+  border: 2px solid var(--brown);
   border-radius: 8px;
   font-size: 10px;
   cursor: pointer;
@@ -85,8 +84,9 @@
 }
 
 .search-button:hover:not(:disabled) {
+  background: var(--white);
+  border-color: var(--brown-light);
   transform: translateY(-2px);
-  box-shadow: 0 6px 12px var(--sombra);
 }
 
 .search-button:disabled {
@@ -96,7 +96,7 @@
 
 .search-results h3 {
   font-size: 14px;
-  color: var(--creme);
+  color: var(--offwhite);
   margin-bottom: 20px;
 }
 
@@ -107,11 +107,11 @@
 }
 
 .result-card {
-  background: var(--creme);
+  background: var(--offwhite);
   border-radius: 15px;
   padding: 20px;
-  border: 3px solid var(--verde-escuro);
-  box-shadow: 0 8px 16px var(--sombra);
+  border: 3px solid var(--brown);
+  box-shadow: 0 8px 16px var(--shadow);
   transition: all 0.3s ease;
   display: flex;
   flex-direction: column;
@@ -120,7 +120,7 @@
 
 .result-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 15px 30px rgba(45, 80, 22, 0.4);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
 }
 
 .result-cover {
@@ -128,35 +128,35 @@
   height: 200px;
   object-fit: cover;
   border-radius: 8px;
-  border: 2px solid var(--marrom);
+  border: 2px solid var(--brown);
 }
 
 .result-info h4 {
   font-size: 12px;
-  color: var(--verde-escuro);
+  color: var(--green);
   margin-bottom: 8px;
   line-height: 1.4;
 }
 
 .result-author {
   font-size: 9px;
-  color: var(--marrom);
+  color: var(--brown);
   margin-bottom: 10px;
 }
 
 .result-description {
   font-size: 8px;
-  color: var(--texto-escuro);
+  color: var(--green);
   line-height: 1.6;
   flex: 1;
-  opacity: 0.8;
+  opacity: 0.9;
 }
 
 .add-button {
   padding: 10px 15px;
-  background: linear-gradient(45deg, var(--marrom), var(--marrom-claro));
-  color: var(--texto-claro);
-  border: none;
+  background: var(--offwhite);
+  color: var(--green);
+  border: 2px solid var(--brown);
   border-radius: 8px;
   font-size: 8px;
   cursor: pointer;
@@ -167,14 +167,15 @@
 }
 
 .add-button:hover {
-  background: linear-gradient(45deg, var(--marrom-claro), var(--marrom));
+  background: var(--white);
+  border-color: var(--brown-light);
   transform: translateY(-2px);
 }
 
 .no-results {
   text-align: center;
   padding: 40px;
-  color: var(--creme);
+  color: var(--offwhite);
   font-size: 12px;
 }
 

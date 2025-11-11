@@ -15,15 +15,14 @@
 
 .profile-header h2 {
   font-size: 18px;
-  color: var(--creme);
-  text-shadow: 2px 2px 0px var(--verde-escuro);
+  color: var(--offwhite);
 }
 
 .edit-button {
   padding: 10px 20px;
-  background: linear-gradient(45deg, var(--verde-escuro), var(--verde-claro));
-  color: var(--texto-claro);
-  border: none;
+  background: var(--offwhite);
+  color: var(--green);
+  border: 2px solid var(--brown);
   border-radius: 8px;
   font-size: 9px;
   cursor: pointer;
@@ -34,7 +33,9 @@
 
 .edit-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 12px var(--sombra);
+  background: var(--white);
+  border-color: var(--brown-light);
+  box-shadow: 0 6px 12px var(--shadow);
 }
 
 .profile-content {
@@ -54,8 +55,8 @@
   aspect-ratio: 1;
   border-radius: 15px;
   overflow: hidden;
-  border: 3px solid var(--verde-escuro);
-  background: var(--creme);
+  border: 3px solid var(--brown);
+  background: var(--offwhite);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -74,8 +75,8 @@
   align-items: center;
   justify-content: center;
   font-size: 80px;
-  color: var(--verde-escuro);
-  background: linear-gradient(135deg, var(--creme) 0%, #fff5e6 100%);
+  color: var(--brown);
+  background: var(--offwhite);
 }
 
 .profile-stats {
@@ -85,42 +86,42 @@
 }
 
 .stat-card {
-  background: var(--creme);
+  background: var(--offwhite);
   padding: 20px;
   border-radius: 15px;
-  border: 3px solid var(--verde-escuro);
+  border: 3px solid var(--brown);
   text-align: center;
-  box-shadow: 0 8px 16px var(--sombra);
+  box-shadow: 0 8px 16px var(--shadow);
 }
 
 .stat-card h3 {
   font-size: 24px;
-  color: var(--verde-escuro);
+  color: var(--green);
   margin-bottom: 8px;
 }
 
 .stat-card p {
   font-size: 10px;
-  color: var(--marrom);
+  color: var(--brown);
 }
 
 .profile-main {
-  background: var(--creme);
+  background: var(--offwhite);
   border-radius: 15px;
   padding: 30px;
-  border: 3px solid var(--verde-escuro);
-  box-shadow: 0 8px 16px var(--sombra);
+  border: 3px solid var(--brown);
+  box-shadow: 0 8px 16px var(--shadow);
 }
 
 .profile-info h3 {
   font-size: 20px;
-  color: var(--verde-escuro);
+  color: var(--green);
   margin-bottom: 10px;
 }
 
 .profile-email {
   font-size: 10px;
-  color: var(--marrom);
+  color: var(--brown);
   margin-bottom: 20px;
 }
 
@@ -130,7 +131,7 @@
 
 .profile-bio p {
   font-size: 10px;
-  color: var(--texto-escuro);
+  color: var(--green);
   line-height: 1.8;
 }
 
@@ -150,7 +151,7 @@
 .profile-form label {
   display: block;
   font-size: 10px;
-  color: var(--verde-escuro);
+  color: var(--green);
   margin-bottom: 8px;
 }
 
@@ -158,11 +159,11 @@
 .profile-form .form-textarea {
   width: 100%;
   padding: 12px;
-  border: 2px solid var(--marrom);
+  border: 2px solid var(--brown);
   border-radius: 8px;
   font-size: 10px;
-  background: var(--texto-claro);
-  color: var(--texto-escuro);
+  background: var(--white);
+  color: var(--green);
   font-family: 'Press Start 2P', monospace;
 }
 
@@ -190,30 +191,31 @@
 }
 
 .cancel-button {
-  background: var(--marrom-claro);
-  color: var(--texto-claro);
-  border: none;
+  background: var(--offwhite);
+  color: var(--green);
+  border: 2px solid var(--brown);
 }
 
 .cancel-button:hover {
-  background: var(--marrom);
+  background: var(--white);
+  border-color: var(--brown-light);
 }
 
 .save-button {
-  background: linear-gradient(45deg, var(--verde-escuro), var(--verde-claro));
-  color: var(--texto-claro);
-  border: none;
+  background: var(--offwhite);
+  color: var(--green);
+  border: 2px solid var(--brown);
 }
 
 .save-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 12px var(--sombra);
+  box-shadow: 0 6px 12px var(--shadow);
 }
 
 .loading-container {
   text-align: center;
   padding: 60px 20px;
-  color: var(--creme);
+  color: var(--offwhite);
   font-size: 12px;
 }
 

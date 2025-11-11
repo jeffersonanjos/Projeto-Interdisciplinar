@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { ratingService } from '../services/apiService';
+import { ratingService, externalApiService } from '../services/apiService';
 import './Library.css';
 
 const Library = () => {
@@ -25,25 +25,15 @@ const Library = () => {
     
     setLoading(true);
     try {
-      // Buscar livros da biblioteca do usuário
+      // Buscar livros da biblioteca do usuário (somente livros por enquanto)
       const libraryResult = await externalApiService.getUserLibrary(parseInt(user.id));
-   console.log("Library loadLibrary libraryResult:", libraryResult);
+      console.log("Library loadLibrary libraryResult:", libraryResult);
       if (libraryResult.success) {
-        const libraryItems = libraryResult.data;
-        console.log("Library loadLibrary libraryItems:", libraryItems);
-        // Filtrar por tipo (livros ou filmes)
-        const filteredItems = libraryType === 'books'
-          ? userRatings.filter(r => r.book_id)
-          : userRatings.filter(r => r.movie_id);
-        
-        setRatings(filteredRatings);
-		console.log("Library loadLibrary ratings set:", filteredRatings);
-        
-        // Aqui você normalmente buscaria os itens completos (livros/filmes)
-        // Por enquanto, usamos os dados das avaliações
-        const itemsData = libraryItems.map(item => (libraryType === 'books' ? item : item));
-        setItems(itemsData.filter(item => item !== null && item.id));
-  console.log("Library loadLibrary items set:", items);
+        const libraryItems = Array.isArray(libraryResult.data) ? libraryResult.data : [];
+        setItems(libraryItems.filter(item => item && item.id));
+        console.log("Library loadLibrary items set:", libraryItems);
+      } else {
+        setItems([]);
       }
     } catch (error) {
       console.error('Erro ao carregar biblioteca:', error);
@@ -86,7 +76,9 @@ const Library = () => {
         score: parseFloat(ratingForm.score),
         comment: ratingForm.comment || null,
         user_id: user.id,
-        [libraryType === 'books' ? 'book_id' : 'movie_id']: selectedItem.id
+        ...(libraryType === 'books'
+          ? { book_external_id: selectedItem.id }
+          : { movie_id: selectedItem.id })
       };
 	  console.log("Library handleSubmitRating ratingData:", ratingData);
 
@@ -97,7 +89,7 @@ const Library = () => {
         setShowRatingModal(false);
         loadLibrary();
       } else {
-        alert('Erro ao salvar avaliação: ' + result.error);
+        alert('Erro ao salvar avaliação: ' + (typeof result.error === 'string' ? result.error : 'Erro'));
       }
     } catch (error) {
       alert('Erro ao salvar avaliação');
@@ -140,13 +132,13 @@ const Library = () => {
             className={libraryType === 'books' ? 'active' : ''}
             onClick={() => setLibraryType('books')}
           >
-            Livros ({items.filter(i => i.rating?.book_id).length})
+            Livros ({items.length})
           </button>
           <button
             className={libraryType === 'movies' ? 'active' : ''}
             onClick={() => setLibraryType('movies')}
           >
-            Filmes ({items.filter(i => i.rating?.movie_id).length})
+            Filmes (0)
           </button>
         </div>
       </div>
@@ -157,27 +149,25 @@ const Library = () => {
           <p>Use a busca para adicionar {libraryType === 'books' ? 'livros' : 'filmes'}!</p>
         </div>
       ) : (
-        <div className="book-grid">
-          {items.map((item) => (
-            <div key={item.id} className="book-item">
-              <img src={item.image_url} alt={item.title} className="book-cover" />
-              <h3>{item.title}</h3>
-              {item.rating && (
-                <div className="library-rating">
-                  {renderStars(item.rating.score)}
-                  {item.rating.comment && (
-                    <p className="library-comment">{item.rating.comment}</p>
-                  )}
-                </div>
-              )}
-              <button
-                onClick={() => handleRateItem(item)}
-                className="rate-button"
-              >
-                {item.rating ? 'Editar Avaliação' : 'Avaliar'}
-              </button>
-            </div>
-          ))}
+        <div className="book-grid library-compact">
+          {items.map((item) => {
+            const authors = Array.isArray(item.authors)
+              ? item.authors.join(', ')
+              : (item.authors || 'Autor desconhecido');
+            return (
+              <div key={item.id} className="book-item">
+                <img src={item.image_url} alt={item.title} className="book-cover" />
+                <h3 className="book-title">{item.title || 'Sem título'}</h3>
+                {libraryType === 'books' && <p className="book-authors">Autores: {authors}</p>}
+                <button
+                  onClick={() => handleRateItem(item)}
+                  className="rate-button"
+                >
+                  {item.rating ? 'Editar Avaliação' : 'Avaliar'}
+                </button>
+              </div>
+            );
+          })}
         </div>
       )}
 

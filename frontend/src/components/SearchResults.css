@@ -2,6 +2,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  color: var(--offwhite);
 }
 
 .book-grid {
@@ -15,9 +16,20 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  border: 1px solid #ccc;
-  padding: 10px;
+  border: 3px solid var(--brown);
+  background: var(--offwhite);
+  color: var(--green);
+  padding: 16px;
   text-align: center;
+  border-radius: 10px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  cursor: pointer;
+}
+
+.book-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+  border-color: var(--brown-light);
 }
 
 .book-cover {
@@ -28,17 +40,40 @@
 }
 
 .add-to-library {
-  position: relative;
-  top: 10px;
-  right: -70px;
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  padding: 5px 10px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 16px;
-  cursor: pointer;
-  border-radius: 50%;
+  margin-top: 8px;
+  background-color: var(--offwhite);
+  color: var(--green);
+  border: 2px solid var(--brown);
+  padding: 8px 12px;
+  font-size: 12px;
+  border-radius: 8px;
+}
+
+.add-to-library:hover {
+  background: var(--white);
+  border-color: var(--brown-light);
+}
+
+.book-title {
+  margin-top: 8px;
+  color: var(--green);
+  font-weight: bold;
+}
+
+.book-authors {
+  margin-top: 6px;
+  font-size: 12px;
+}
+
+.toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: var(--offwhite);
+  color: var(--green);
+  border: 2px solid var(--brown);
+  border-radius: 8px;
+  padding: 10px 14px;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+  z-index: 1000;
 }

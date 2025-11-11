@@ -1,19 +1,31 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './SearchResults.css';
 import { externalApiService } from '../services/apiService';
 
 const SearchResults = ({ results, type }) => {
+  const navigate = useNavigate();
+  const [toast, setToast] = useState('');
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(''), 2000);
+    return () => clearTimeout(t);
+  }, [toast]);
   if (!results || results.length === 0) {
     return <p>No results found.</p>;
   }
 
   const handleAddToLibrary = async (book) => {
     try {
-      await externalApiService.addBookToLibrary(book.id);
-      alert('Book added to library!'); // Replace with a better notification
+      const res = await externalApiService.addBookToLibrary(book.id);
+      if (res.success) {
+        setToast('Adicionado à biblioteca!');
+      } else {
+        setToast(res.error || 'Erro ao adicionar livro à biblioteca');
+      }
     } catch (error) {
       console.error('Error adding book to library:', error);
-      alert('Error adding book to library.'); // Replace with a better notification
+      setToast('Erro ao adicionar livro à biblioteca.');
     }
   };
 
@@ -21,17 +33,29 @@ const SearchResults = ({ results, type }) => {
     <div className="search-results-container">
       <h2>{type === 'book' ? 'Books' : 'Movies'}</h2>
       <div className="book-grid">
-        {results.map((result) => (
-          <div key={result.id} className="book-item">
-            <img src={result.image_url} alt={result.title} className="book-cover" />
-            <div className="add-to-library" onClick={() => handleAddToLibrary(result)}>
-              +
+        {results.map((result) => {
+          const authors =
+            Array.isArray(result.authors) ? result.authors.join(', ') : (result.authors || 'Autor desconhecido');
+          return (
+            <div key={result.id} className="book-item" onClick={() => handleAddToLibrary(result)}>
+              <img src={result.image_url} alt={result.title} className="book-cover" />
+              <button
+                type="button"
+                className="add-to-library"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleAddToLibrary(result);
+                }}
+              >
+                Adicionar
+              </button>
+              <h3 className="book-title">{result.title || 'Sem título'}</h3>
+              {type === 'book' && <p className="book-authors">Autores: {authors}</p>}
             </div>
-            <h3>{result.title}</h3>
-            {type === 'book' && <p>Author: {result.authors}</p>}
-          </div>
-        ))}
+          );
+        })}
       </div>
+      {toast && <div className="toast">{toast}</div>}
     </div>
   );
 };

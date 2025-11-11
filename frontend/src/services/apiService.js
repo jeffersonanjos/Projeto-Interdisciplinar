@@ -98,7 +98,7 @@ export const movieService = {
 	  console.log("movieService.getUserMovies API response:", response);
       return { success: true, data: response.data };
     } catch (error) {
-	  console.error("movieService.getUserMovies error:", error);
+
       return { success: false, data: [] };
     }
   }
@@ -115,7 +115,18 @@ export const ratingService = {
       return { success: true, data: response.data };
     } catch (error) {
 	  console.error("ratingService.createRating error:", error);
-      return { success: false, error: error.response?.data?.detail || 'Erro ao criar avaliação' };
+      const detail = error.response?.data?.detail;
+      let message;
+      if (typeof detail === 'string') {
+        message = detail;
+      } else if (Array.isArray(detail) && detail.length) {
+        // FastAPI 422 validation errors
+        const first = detail[0];
+        message = first?.msg || first?.detail || 'Erro de validação';
+      } else {
+        message = error.message || 'Erro ao criar avaliação';
+      }
+      return { success: false, error: message };
     }
   },
   // Buscar avaliações do usuário
@@ -160,25 +171,19 @@ export const ratingService = {
 export const recommendationService = {
   // Buscar recomendações do usuário
   async getUserRecommendations(userId) {
-	console.log("recommendationService.getUserRecommendations called with:", userId);
+	console.log("recommendationService.getUserRecommendations called with:", userId)
     try {
       const response = await api.get(`/users/${userId}/recommendations`);
-	  console.log("recommendationService.getUserRecommendations API response:", response);
       return { success: true, data: response.data };
     } catch (error) {
-	  console.error("recommendationService.getUserRecommendations error:", error);
       return { success: false, data: [] };
     }
   },
-  // Gerar recomendações
   async generateRecommendations(userId) {
-	console.log("recommendationService.generateRecommendations called with:", userId);
     try {
-      const response = await api.post(`/recommendations/generate/${userId}`);
-	  console.log("recommendationService.generateRecommendations API response:", response);
+      const response = await api.post(`/users/${userId}/recommendations`);
       return { success: true, data: response.data };
     } catch (error) {
-	  console.error("recommendationService.generateRecommendations error:", error);
       return { success: false, error: error.response?.data?.detail || 'Erro ao gerar recomendações' };
     }
   }
@@ -221,80 +226,27 @@ export const externalApiService = {
   async searchBooks(query) {
 	console.log("externalApiService.searchBooks called with:", query);
     try {
-      const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=20`);
-	  console.log("externalApiService.searchBooks API response:", response);
-      const data = await response.json();
-	  console.log("externalApiService.searchBooks data:", data);
-
-      if (data.items) {
-        const books = data.items.map(item => ({
-          title: item.volumeInfo.title,
-          author: item.volumeInfo.authors?.join(', ') || 'Autor desconhecido',
-          description: item.volumeInfo.description || 'Sem descrição disponível',
-          cover_url: item.volumeInfo.imageLinks?.thumbnail || item.volumeInfo.imageLinks?.smallThumbnail || null,
-          external_id: item.id
-        }));
-		console.log("externalApiService.searchBooks books:", books);
-        return { success: true, data: books };
-      }
-      return { success: true, data: [] };
-    } catch (error) {
-	  console.error("externalApiService.searchBooks error:", error);
-      return { success: false, error: 'Erro ao buscar livros na API externa' };
-    }
-  },
-  // Buscar filmes na TMDB API (requer API key - usando exemplo)
-  async searchMovies(query) {
-	console.log("externalApiService.searchMovies called with:", query);
-    try {
-      // Nota: Para usar a TMDB API, você precisa de uma API key
-      // Por enquanto, retornamos dados mockados ou fazemos uma busca básica
-      // const API_KEY = 'sua_api_key_aqui';
-      // const response = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&query=${encodeURIComponent(query)}`);
-
-      // Por enquanto, retornamos uma estrutura vazia
-      // Em produção, você deve configurar a API key da TMDB
-	  console.log("externalApiService.searchMovies TMDB API key not configured");
-      return { success: false, error: 'Configuração da API TMDB necessária' };
-    } catch (error) {
-	  console.error("externalApiService.searchMovies error:", error);
-      return { success: false, error: 'Erro ao buscar filmes na API externa' };
-    }
-  },
-  // Buscar livros no backend usando o novo endpoint /books/search
-  async searchBooksFromBackend(query) {
-    console.log("externalApiService.searchBooksFromBackend called with:", query);
-    try {
       const response = await api.get(`/books/search?query=${encodeURIComponent(query)}`);
-      console.log("externalApiService.searchBooksFromBackend API response:", response);
+	  console.log("externalApiService.searchBooks API response:", response);
       return { success: true, data: response.data };
     } catch (error) {
-      console.error("externalApiService.searchBooksFromBackend error:", error);
-      return { success: false, error: error.response?.data?.detail || 'Erro ao buscar livros no backend' };
+      return { success: false, error: error.response?.data?.detail || 'Erro ao buscar livros (API externa)' };
     }
   },
-  // Buscar livro por ID no backend
-  async getBookByIdFromBackend(bookId) {
-    console.log("externalApiService.getBookByIdFromBackend called with:", bookId);
+  async getBooksFromBackend(query) {
     try {
-      const response = await api.get(`/books/${bookId}`);
-      console.log("externalApiService.getBookByIdFromBackend API response:", response);
+      const response = await api.get(`/books?query=${encodeURIComponent(query)}`);
       return { success: true, data: response.data };
     } catch (error) {
-      console.error("externalApiService.getBookByIdFromBackend error:", error);
-      return { success: false, error: error.response?.data?.detail || 'Erro ao buscar livro no backend' };
+      return { success: false, error: error.response?.data?.detail || 'Erro ao buscar livros (backend)' };
     }
   },
-  // Buscar filme no backend
-  async getMoviesFromBackend(query) {
-	console.log("externalApiService.getMoviesFromBackend called with:", query);
+  async getUserLibrary(userId) {
     try {
-      const response = await api.get(`/movies?query=${encodeURIComponent(query)}`);
-	  console.log("externalApiService.getMoviesFromBackend API response:", response);
+      const response = await api.get(`/users/${userId}/library`);
       return { success: true, data: response.data };
     } catch (error) {
-	  console.error("externalApiService.getMoviesFromBackend error:", error);
-      return { success: false, error: error.response?.data?.detail || 'Erro ao buscar filmes no backend' };
+      return { success: false, error: error.response?.data?.detail || 'Erro ao buscar biblioteca' };
     }
   },
   // Adicionar livro à biblioteca do usuário
@@ -306,11 +258,21 @@ export const externalApiService = {
       return { success: true, data: response.data };
     } catch (error) {
       console.error("externalApiService.addBookToLibrary error:", error);
-      return { success: false, error: error.response?.data?.detail || 'Erro ao adicionar livro à biblioteca' };
+      const detail = error.response?.data?.detail;
+      let message;
+      if (typeof detail === 'string') {
+        message = detail;
+      } else if (Array.isArray(detail) && detail.length) {
+        const first = detail[0];
+        message = first?.msg || first?.detail || 'Erro ao adicionar livro à biblioteca';
+      } else {
+        message = error.message || 'Erro ao adicionar livro à biblioteca';
+      }
+      return { success: false, error: message };
     }
   },
   // Buscar biblioteca do usuário
-  async getUserLibrary(userId) {
+  async getUserLibraryOld(userId) {
     console.log("externalApiService.getUserLibrary called with:", userId);
     try {
       const response = await api.get(`/users/${userId}/library`);
@@ -318,19 +280,7 @@ export const externalApiService = {
       return { success: true, data: response.data };
     } catch (error) {
       console.error("externalApiService.getUserLibrary error:", error);
-      return { success: false, error: error.response?.data?.detail || 'Erro ao buscar biblioteca do usuário' };
-    }
-  },
-  // Buscar filme por ID no backend
-  async getMovieByIdFromBackend(movieId) {
-    console.log("externalApiService.getMovieByIdFromBackend called with:", movieId);
-    try {
-      const response = await api.get(`/movies/${movieId}`);
-      console.log("externalApiService.getMovieByIdFromBackend API response:", response);
-      return { success: true, data: response.data };
-    } catch (error) {
-      console.error("externalApiService.getMovieByIdFromBackend error:", error);
-      return { success: false, error: error.response?.data?.detail || 'Erro ao buscar filme no backend' };
+      return { success: false, error: error.response?.data?.detail || 'Erro ao buscar biblioteca' };
     }
   }
 };

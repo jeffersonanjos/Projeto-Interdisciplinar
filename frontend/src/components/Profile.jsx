@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { profileService, ratingService } from '../services/apiService';
+import { profileService, ratingService, externalApiService } from '../services/apiService';
 import './Profile.css';
 
 const Profile = () => {
@@ -47,17 +47,23 @@ const Profile = () => {
     if (!user) return;
     
     try {
-      const ratingsResult = await ratingService.getUserRatings(user.id);
-	  console.log("Profile loadStats ratingsResult:", ratingsResult);
-      if (ratingsResult.success) {
-        const ratings = ratingsResult.data;
-        setStats({
-          books: ratings.filter(r => r.book_id).length,
-          movies: ratings.filter(r => r.movie_id).length,
-          ratings: ratings.length
-        });
-		console.log("Profile loadStats stats set:", stats);
-      }
+      const [ratingsResult, libraryResult] = await Promise.all([
+        ratingService.getUserRatings(user.id),
+        externalApiService.getUserLibrary(parseInt(user.id))
+      ]);
+      console.log("Profile loadStats ratingsResult:", ratingsResult, "libraryResult:", libraryResult);
+      const ratingsArr = ratingsResult.success ? ratingsResult.data : [];
+      const libraryArr = libraryResult.success ? libraryResult.data : [];
+      setStats({
+        books: Array.isArray(libraryArr) ? libraryArr.length : 0,
+        movies: 0,
+        ratings: ratingsArr.length
+      });
+      console.log("Profile loadStats stats set:", {
+        books: Array.isArray(libraryArr) ? libraryArr.length : 0,
+        movies: 0,
+        ratings: ratingsArr.length
+      });
     } catch (error) {
       console.error('Erro ao carregar estatísticas:', error);
     }

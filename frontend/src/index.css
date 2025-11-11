@@ -8,16 +8,15 @@
   box-sizing: border-box;
 }
 
-/* Variáveis de cores baseadas na identidade visual */
+/* Variáveis de tema */
 :root {
-  --verde-escuro: #2d5016;
-  --marrom: #8b4513;
-  --creme: #f5f5dc;
-  --verde-claro: #4a7c59;
-  --marrom-claro: #a0522d;
-  --texto-escuro: #2c2c2c;
-  --texto-claro: #ffffff;
-  --sombra: rgba(0, 0, 0, 0.1);
+  --green: #1f5a2d; /* updated to requested color */
+  --green-dark: #1f5a2d;
+  --offwhite: #FFF8E7; /* branco amarelado */
+  --white: #ffffff;
+  --brown: #8b4513; /* marrom principal */
+  --brown-light: #a0522d; /* marrom claro para hovers/bordas */
+  --shadow: rgba(0, 0, 0, 0.12);
 }
 
 /* Estilos base */
@@ -28,8 +27,8 @@ html {
 body {
   font-family: 'Press Start 2P', monospace;
   line-height: 1.6;
-  color: var(--texto-escuro);
-  background: linear-gradient(135deg, var(--verde-escuro) 0%, var(--marrom) 100%);
+  background: var(--green);
+  color: var(--offwhite);
   min-height: 100vh;
   margin: 0;
   -webkit-font-smoothing: antialiased;
@@ -44,29 +43,28 @@ h1, h2, h3, h4, h5, h6 {
 
 h1 {
   font-size: 2.5rem;
-  color: var(--verde-escuro);
-  text-shadow: 2px 2px 0px var(--marrom-claro);
+  color: var(--offwhite);
 }
 
 h2 {
   font-size: 2rem;
-  color: var(--verde-escuro);
+  color: var(--offwhite);
 }
 
 h3 {
   font-size: 1.5rem;
-  color: var(--verde-escuro);
+  color: var(--offwhite);
 }
 
 /* Estilos para links */
 a {
-  color: var(--verde-escuro);
+  color: var(--offwhite);
   text-decoration: none;
-  transition: color 0.3s ease;
+  transition: opacity 0.3s ease;
 }
 
 a:hover {
-  color: var(--verde-claro);
+  opacity: 0.85;
   text-decoration: underline;
 }
 
@@ -80,7 +78,7 @@ button {
 }
 
 button:focus {
-  outline: 2px solid var(--verde-claro);
+  outline: 2px solid var(--offwhite);
   outline-offset: 2px;
 }
 
@@ -96,7 +94,7 @@ input, textarea, select {
 }
 
 input:focus, textarea:focus, select:focus {
-  outline: 2px solid var(--verde-claro);
+  outline: 2px solid var(--offwhite);
   outline-offset: 2px;
 }
 
@@ -113,16 +111,16 @@ form {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--creme);
+  background: var(--white);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--marrom);
+  background: var(--green-dark);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--marrom-claro);
+  background: var(--green);
 }
 
 /* Animações */

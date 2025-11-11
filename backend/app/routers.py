@@ -4,7 +4,7 @@ from typing import List, Optional, Dict, Any
 from datetime import timedelta
 import logging
 
-from models import User, Book, Movie, Rating, Recommendation
+from models import User, Book as DBBook, Movie, Rating, Recommendation, UserLibrary
 from sqlmodel import Session, select
 
 from api_clients import fetch_book_data, fetch_movie_data
@@ -79,16 +79,27 @@ async def get_movie(external_id: str, session: Session = Depends(get_session)):
 @router.post("/users/", response_model=UserRead, status_code=status.HTTP_201_CREATED, tags=["users"])
 def create_user(user: UserCreate, session: Session = Depends(get_session)):
     logger.info(f"Creating user with username: {user.username}")
+    # Verifica se username já existe
     db_user = session.exec(select(User).where(User.username == user.username)).first()
     if db_user:
         raise HTTPException(status_code=400, detail="Username já existe")
+    # Verifica se email já existe
+    db_email = session.exec(select(User).where(User.email == user.email)).first()
+    if db_email:
+        raise HTTPException(status_code=400, detail="Email já existe")
     db_user = User(
         username=user.username,
         email=user.email,
         hashed_password=get_password_hash(user.password)
     )
     session.add(db_user)
-    session.commit()
+    try:
+        session.commit()
+    except Exception as exc:
+        # Em caso de violação de integridade ou outros erros, retorna 400 genérico
+        session.rollback()
+        logger.exception("Erro ao criar usuário")
+        raise HTTPException(status_code=400, detail="Não foi possível criar a conta. Verifique os dados e tente novamente.") from exc
     session.refresh(db_user)
     return db_user
 
@@ -153,18 +164,58 @@ def update_user(user_id: int, user_update: UserUpdate, session: Session = Depend
     return user
 
 @router.post("/ratings/", response_model=RatingRead, status_code=status.HTTP_201_CREATED, tags=["ratings"])
-def create_rating(
+async def create_rating(
     rating: RatingCreate, 
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_active_user)
 ):
     logger.info(f"Creating rating for user: {current_user.username}")
-    if not rating.book_id and not rating.movie_id:
-        raise HTTPException(status_code=400, detail="Uma avaliação deve estar associada a um livro ou filme.")
+    if not rating.book_id and not rating.movie_id and not getattr(rating, "book_external_id", None):
+        raise HTTPException(status_code=400, detail="Uma avaliação deve estar associada a um livro (id interno ou externo) ou filme.")
     
-    # Usar o ID do usuário autenticado
-    rating_data = rating.dict()
-    rating_data["user_id"] = current_user.id
+    # Resolver book_external_id para um registro local se necessário
+    resolved_book_id = rating.book_id
+    if not resolved_book_id and getattr(rating, "book_external_id", None):
+        external_id = rating.book_external_id
+        # verificar se já existe
+        db_book = session.exec(select(DBBook).where(DBBook.external_id == external_id)).first()
+        if not db_book:
+            # buscar detalhes do livro externo e criar registro mínimo
+            book = None
+            try:
+                book = await get_book(external_id, session)
+            except Exception:
+                logger.exception("Falha ao buscar detalhes do livro externo %s", external_id)
+            title = None
+            authors = None
+            image_url = None
+            if book:
+                title = book.title
+                # book.authors pode ser lista
+                if isinstance(book.authors, list) and book.authors:
+                    authors = ", ".join(book.authors)
+                elif isinstance(book.authors, str):
+                    authors = book.authors
+                image_url = getattr(book, "image_url", None)
+            db_book = DBBook(
+                title=title or "Sem título",
+                author=authors,
+                cover_url=image_url,
+                external_id=external_id
+            )
+            session.add(db_book)
+            session.commit()
+            session.refresh(db_book)
+        resolved_book_id = db_book.id
+
+    # Usar o ID do usuário autenticado e ids resolvidos
+    rating_data = {
+        "user_id": current_user.id,
+        "book_id": resolved_book_id,
+        "movie_id": rating.movie_id,
+        "score": rating.score,
+        "comment": rating.comment,
+    }
     
     db_rating = Rating(**rating_data)
     session.add(db_rating)
@@ -232,10 +283,16 @@ async def search_movies(query: str):
 @router.get("/users/{user_id}/library", response_model=List[BookRead], tags=["library"])
 async def get_user_library(user_id: int, session: Session = Depends(get_session)):
     logger.info(f"Getting library for user: {user_id}")
-    # For now, just return all books
-    # TODO: Implement logic to fetch books from user's library
-    # For now, return an empty list
-    return []
+    entries = session.exec(select(UserLibrary).where(UserLibrary.user_id == user_id)).all()
+    books: List[BookRead] = []
+    for entry in entries:
+        try:
+            book = await get_book(entry.book_external_id, session)
+            if book:
+                books.append(book)
+        except Exception:
+            logger.exception("Failed to fetch book details for %s", entry.book_external_id)
+    return books
 
 @router.post("/library/add", tags=["library"])
 async def add_book_to_library(book_id: Dict[str, str], current_user: User = Depends(get_current_active_user), session: Session = Depends(get_session)):
@@ -246,6 +303,16 @@ async def add_book_to_library(book_id: Dict[str, str], current_user: User = Depe
     if not book:
         raise HTTPException(status_code=404, detail="Book not found")
 
-    # Add the book to the user's library (you might need to create a Library model)
-    # For now, let's just return a success message
-    return {"message": f"Book {book_id} added to library for user {current_user.username}"}
+    # Check if already in library
+    existing = session.exec(
+        select(UserLibrary).where(
+            (UserLibrary.user_id == current_user.id) & (UserLibrary.book_external_id == book_id_str)
+        )
+    ).first()
+    if existing:
+        return {"message": "Book already in library"}
+    entry = UserLibrary(user_id=current_user.id, book_external_id=book_id_str)
+    session.add(entry)
+    session.commit()
+    session.refresh(entry)
+    return {"message": "Book added to library", "book_id": book_id_str}

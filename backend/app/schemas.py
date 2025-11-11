@@ -136,6 +136,9 @@ class RatingBase(SQLModel):
     user_id: int
     book_id: Optional[int] = None
     movie_id: Optional[int] = None
+    # Permitir enviar IDs externos quando não houver ID interno
+    book_external_id: Optional[str] = None
+    movie_external_id: Optional[str] = None
     score: float
     comment: Optional[str] = None
 

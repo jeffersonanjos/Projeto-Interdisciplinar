@@ -15,8 +15,7 @@
 
 .library-header h2 {
   font-size: 18px;
-  color: var(--creme);
-  text-shadow: 2px 2px 0px var(--verde-escuro);
+  color: var(--offwhite);
 }
 
 .library-type-toggle {
@@ -28,33 +27,61 @@
   padding: 10px 20px;
   border-radius: 8px;
   font-size: 9px;
-  background: var(--creme);
-  color: var(--verde-escuro);
-  border: 2px solid var(--verde-escuro);
+  background: var(--offwhite);
+  color: var(--green);
+  border: 2px solid var(--brown);
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .library-type-toggle button:hover {
-  background: var(--verde-claro);
-  color: var(--texto-claro);
+  background: var(--white);
+  border-color: var(--brown-light);
 }
 
 .library-type-toggle button.active {
-  background: linear-gradient(45deg, var(--verde-escuro), var(--verde-claro));
-  color: var(--texto-claro);
-  border-color: var(--verde-escuro);
+  background: var(--white);
+  color: var(--green);
+  border-color: var(--brown);
 }
 
 .empty-library {
   text-align: center;
   padding: 60px 20px;
-  color: var(--creme);
+  color: var(--offwhite);
   font-size: 12px;
 }
 
 .empty-library p {
   margin-bottom: 10px;
+}
+
+/* Compact layout similar to search results */
+.library-compact {
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  justify-items: center;
+}
+
+.library-compact .book-item {
+  padding: 12px;
+  width: 180px;
+}
+
+.library-compact .book-cover {
+  width: 120px;
+  height: 160px;
+}
+
+.library-compact .book-title {
+  margin-top: 8px;
+  color: var(--green);
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.library-compact .book-authors {
+  margin-top: 6px;
+  font-size: 11px;
 }
 
 .library-grid {
@@ -64,22 +91,22 @@
 }
 
 .library-card {
-  background: var(--creme);
+  background: var(--offwhite);
   border-radius: 15px;
   padding: 25px;
-  border: 3px solid var(--verde-escuro);
-  box-shadow: 0 8px 16px var(--sombra);
+  border: 3px solid var(--brown);
+  box-shadow: 0 8px 16px var(--shadow);
   transition: all 0.3s ease;
 }
 
 .library-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 15px 30px rgba(45, 80, 22, 0.4);
+  box-shadow: 0 15px 30px rgba(0,0,0,0.2);
 }
 
 .library-card-header h3 {
   font-size: 14px;
-  color: var(--verde-escuro);
+  color: var(--brown);
   margin-bottom: 15px;
 }
 
@@ -96,7 +123,7 @@
 
 .star {
   font-size: 18px;
-  color: var(--marrom-claro);
+  color: var(--brown-light);
 }
 
 .star.filled {
@@ -104,31 +131,31 @@
 }
 
 .star.half {
-  background: linear-gradient(90deg, #ffd700 50%, var(--marrom-claro) 50%);
+  background: linear-gradient(90deg, #ffd700 50%, var(--brown-light) 50%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .score-number {
   font-size: 10px;
-  color: var(--marrom);
+  color: var(--brown);
   margin-left: 10px;
 }
 
 .library-comment {
   font-size: 9px;
-  color: var(--texto-escuro);
+  color: var(--green);
   line-height: 1.6;
-  opacity: 0.8;
+  opacity: 0.9;
   margin-top: 10px;
 }
 
 .rate-button {
   width: 100%;
-  padding: 12px;
-  background: linear-gradient(45deg, var(--marrom), var(--marrom-claro));
-  color: var(--texto-claro);
-  border: none;
+  padding: 10px;
+  background: var(--offwhite);
+  color: var(--green);
+  border: 2px solid var(--brown);
   border-radius: 8px;
   font-size: 9px;
   cursor: pointer;
@@ -138,7 +165,8 @@
 }
 
 .rate-button:hover {
-  background: linear-gradient(45deg, var(--marrom-claro), var(--marrom));
+  background: var(--white);
+  border-color: var(--brown-light);
   transform: translateY(-2px);
 }
 
@@ -158,18 +186,18 @@
 }
 
 .modal-content {
-  background: var(--creme);
+  background: var(--offwhite);
   border-radius: 15px;
   padding: 30px;
   max-width: 500px;
   width: 100%;
-  border: 3px solid var(--verde-escuro);
-  box-shadow: 0 10px 30px var(--sombra);
+  border: 3px solid var(--brown);
+  box-shadow: 0 10px 30px var(--shadow);
 }
 
 .modal-content h3 {
   font-size: 16px;
-  color: var(--verde-escuro);
+  color: var(--brown);
   margin-bottom: 20px;
 }
 
@@ -180,7 +208,7 @@
 .modal-content .form-group label {
   display: block;
   font-size: 10px;
-  color: var(--verde-escuro);
+  color: var(--green);
   margin-bottom: 8px;
 }
 
@@ -188,11 +216,11 @@
 .modal-content .form-textarea {
   width: 100%;
   padding: 12px;
-  border: 2px solid var(--marrom);
+  border: 2px solid var(--brown);
   border-radius: 8px;
   font-size: 10px;
-  background: var(--texto-claro);
-  color: var(--texto-escuro);
+  background: var(--white);
+  color: var(--green);
   font-family: 'Press Start 2P', monospace;
 }
 
@@ -220,30 +248,31 @@
 }
 
 .cancel-button {
-  background: var(--marrom-claro);
-  color: var(--texto-claro);
-  border: none;
+  background: var(--offwhite);
+  color: var(--green);
+  border: 2px solid var(--brown);
 }
 
 .cancel-button:hover {
-  background: var(--marrom);
+  background: var(--white);
+  border-color: var(--brown-light);
 }
 
 .submit-button {
-  background: linear-gradient(45deg, var(--verde-escuro), var(--verde-claro));
-  color: var(--texto-claro);
-  border: none;
+  background: var(--offwhite);
+  color: var(--green);
+  border: 2px solid var(--brown);
 }
 
 .submit-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 12px var(--sombra);
+  box-shadow: 0 6px 12px var(--shadow);
 }
 
 .loading-container {
   text-align: center;
   padding: 60px 20px;
-  color: var(--creme);
+  color: var(--offwhite);
   font-size: 12px;
 }
 

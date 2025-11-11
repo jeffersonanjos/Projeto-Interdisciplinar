@@ -1,40 +1,40 @@
 /* Importar a fonte Press Start 2P */
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
-/* Variáveis de cores baseadas na identidade visual */
+/* Variáveis de tema (herdadas de index.css) */
 :root {
-  --verde-escuro: #2d5016;
-  --marrom: #8b4513;
-  --creme: #f5f5dc;
-  --verde-claro: #4a7c59;
-  --marrom-claro: #a0522d;
-  --texto-escuro: #2c2c2c;
-  --texto-claro: #ffffff;
-  --sombra: rgba(0, 0, 0, 0.1);
+  --green: #1f5a2d;
+  --green-dark: #1f5a2d;
+  --offwhite: #FFF8E7;
+  --white: #ffffff;
+  --brown: #8b4513;
+  --brown-light: #a0522d;
+  --shadow: rgba(0, 0, 0, 0.12);
 }
 
 /* Container principal do dashboard */
 .dashboard-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, var(--verde-escuro) 0%, var(--marrom) 100%);
+  background: var(--green);
+  color: var(--offwhite);
   font-family: 'Press Start 2P', monospace;
 }
 
 /* Cabeçalho do dashboard */
 .dashboard-header {
-  background: var(--creme);
+  background: var(--offwhite);
+  color: var(--green);
   padding: 20px 40px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 3px solid var(--verde-escuro);
-  box-shadow: 0 4px 8px var(--sombra);
+  border-bottom: 3px solid var(--brown);
+  box-shadow: 0 4px 8px var(--shadow);
 }
 
 .dashboard-title {
   font-size: 24px;
-  color: var(--verde-escuro);
-  text-shadow: 2px 2px 0px var(--marrom-claro);
+  color: var(--brown);
 }
 
 .user-info {
@@ -45,13 +45,13 @@
 
 .welcome-text {
   font-size: 10px;
-  color: var(--marrom);
+  color: var(--brown);
 }
 
 .logout-button {
-  background: linear-gradient(45deg, var(--marrom), var(--marrom-claro));
-  color: var(--texto-claro);
-  border: none;
+  background: var(--green);
+  color: var(--offwhite);
+  border: 2px solid var(--green);
   padding: 10px 20px;
   border-radius: 8px;
   font-family: 'Press Start 2P', monospace;
@@ -60,25 +60,27 @@
   transition: all 0.3s ease;
   text-transform: uppercase;
   letter-spacing: 1px;
-  box-shadow: 0 4px 8px var(--sombra);
+  box-shadow: 0 4px 8px var(--shadow);
 }
 
 .logout-button:hover {
-  background: linear-gradient(45deg, var(--marrom-claro), var(--marrom));
+  background: var(--green-dark);
+  border-color: var(--green-dark);
   transform: translateY(-2px);
-  box-shadow: 0 6px 12px var(--sombra);
+  box-shadow: 0 6px 12px var(--shadow);
 }
 
 .logout-button:active {
   transform: translateY(0);
-  box-shadow: 0 2px 4px var(--sombra);
+  box-shadow: 0 2px 4px var(--shadow);
 }
 
 /* Navegação */
 .dashboard-nav {
-  background: var(--creme);
+  background: var(--offwhite);
+  color: var(--green);
   padding: 0 40px;
-  border-bottom: 3px solid var(--verde-escuro);
+  border-bottom: 3px solid var(--brown);
   display: flex;
   gap: 10px;
   overflow-x: auto;
@@ -87,7 +89,7 @@
 .nav-button {
   padding: 15px 20px;
   background: transparent;
-  color: var(--verde-escuro);
+  color: var(--brown);
   border: none;
   border-bottom: 3px solid transparent;
   font-size: 9px;
@@ -99,13 +101,13 @@
 }
 
 .nav-button:hover {
-  background: rgba(45, 80, 22, 0.1);
-  border-bottom-color: var(--verde-claro);
+  background: rgba(255, 255, 255, 0.4);
+  border-bottom-color: var(--brown-light);
 }
 
 .nav-button.active {
-  background: rgba(45, 80, 22, 0.1);
-  border-bottom-color: var(--verde-escuro);
+  background: rgba(255, 255, 255, 0.4);
+  border-bottom-color: var(--brown);
   font-weight: bold;
 }
 
@@ -119,14 +121,13 @@
 
 .dashboard-home h2 {
   font-size: 20px;
-  color: var(--creme);
+  color: var(--offwhite);
   margin-bottom: 10px;
-  text-shadow: 2px 2px 0px var(--verde-escuro);
 }
 
 .dashboard-home p {
   font-size: 12px;
-  color: var(--creme);
+  color: var(--offwhite);
   margin-bottom: 30px;
   opacity: 0.9;
 }
@@ -140,11 +141,12 @@
 }
 
 .dashboard-card {
-  background: var(--creme);
+  background: var(--offwhite);
+  color: var(--green);
   padding: 30px;
   border-radius: 15px;
-  border: 3px solid var(--verde-escuro);
-  box-shadow: 0 8px 16px var(--sombra);
+  border: 3px solid var(--brown);
+  box-shadow: 0 8px 16px var(--shadow);
   text-align: center;
   transition: all 0.3s ease;
   cursor: pointer;
@@ -152,21 +154,19 @@
 
 .dashboard-card:hover {
   transform: translateY(-5px) scale(1.02);
-  box-shadow: 0 15px 30px rgba(45, 80, 22, 0.4);
-  border-color: var(--marrom);
-  background: linear-gradient(135deg, var(--creme) 0%, #fff5e6 100%);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+  border-color: var(--brown-light);
 }
 
 .dashboard-card h3 {
   font-size: 14px;
-  color: var(--verde-escuro);
+  color: var(--brown);
   margin-bottom: 15px;
-  text-shadow: 1px 1px 0px var(--marrom-claro);
 }
 
 .dashboard-card p {
   font-size: 10px;
-  color: var(--marrom);
+  color: var(--green);
   margin: 0;
   opacity: 1;
 }
@@ -177,13 +177,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--verde-escuro) 0%, var(--marrom) 100%);
+  background: var(--green);
+  color: var(--offwhite);
 }
 
 .loading-spinner {
   font-family: 'Press Start 2P', monospace;
   font-size: 12px;
-  color: var(--creme);
+  color: var(--offwhite);
   text-align: center;
   animation: pulse 1.5s ease-in-out infinite;
 }
