@@ -1,4 +1,35 @@
+# ---- Ambiente / Configurações ----
+.env
+*.env
+.env.*
 .venv/
+venv/
+ENV/
+
+# ---- Python ----
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# ---- Banco de Dados (SQLite) ----
+*.db
+*.sqlite3
 backend/app/database.db
-backend/__pycache__/
-backend/app/__pycache__/
+
+# ---- Logs ----
+*.log
+logs/
+
+# ---- Editor / IDE ----
+.vscode/
+.idea/
+
+# ---- Sistema ----
+.DS_Store
+Thumbs.db
+
+# ---- Node ----
+node_modules/
+dist/
+build/
