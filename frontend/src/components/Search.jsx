@@ -22,8 +22,8 @@ const Search = () => {
     setError('');
 
     try {
-      const bookResponse = await externalApiService.searchBooksFromBackend(query);
-   console.log("Search handleSearch bookResponse:", bookResponse);
+      const bookResponse = await externalApiService.getBooksFromBackend(query);
+ console.log("Search handleSearch bookResponse:", bookResponse);
       if (bookResponse.success) {
         setBookResults(bookResponse.data);
      console.log("Search handleSearch bookResults set:", bookResponse.data);

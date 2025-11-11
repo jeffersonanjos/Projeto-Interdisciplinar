@@ -50,7 +50,6 @@ const SearchResults = ({ results, type }) => {
                 Adicionar
               </button>
               <h3 className="book-title">{result.title || 'Sem título'}</h3>
-              {type === 'book' && <p className="book-authors">Autores: {authors}</p>}
             </div>
           );
         })}
