@@ -4,8 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import Search from './Search';
 import Library from './Library';
 import Recommendations from './Recommendations';
+import UserReviews from './UserReviews';
 import Profile from './Profile';
-import { ratingService } from '../services/apiService';
+import { ratingService, reviewService } from '../services/apiService';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -25,16 +26,20 @@ const Dashboard = () => {
     if (!user) return;
     
     try {
-      const ratingsResult = await ratingService.getUserRatings(user.id);
-	  console.log("Dashboard loadStats ratingsResult:", ratingsResult);
-      if (ratingsResult.success) {
-        const ratings = ratingsResult.data;
+      //const ratingsResult = await ratingService.getUserRatings(user.id);
+      const reviewsResult = await reviewService.getUserReviews(user.id);
+   //console.log("Dashboard loadStats ratingsResult:", ratingsResult);
+      if (/*ratingsResult.success &&*/ reviewsResult.success) {
+        //const ratings = ratingsResult.data;
+        const reviews = reviewsResult.data;
         setStats({
-          books: ratings.filter(r => r.book_id).length,
-          movies: ratings.filter(r => r.movie_id).length,
-          ratings: ratings.length
-        });
-		console.log("Dashboard loadStats stats set:", stats);
+          books: 0, //ratings.filter(r => r.book_id).length,
+          movies: 0, //ratings.filter(r => r.movie_id).length,
+          ratings: reviews.length,
+       });
+  //console.log("Dashboard loadStats stats set:", stats);
+      } else {
+        console.error('Erro ao carregar estatísticas:', ratingsResult.error || reviewsResult.error);
       }
     } catch (error) {
       console.error('Erro ao carregar estatísticas:', error);
@@ -56,6 +61,8 @@ const Dashboard = () => {
         return <Library />;
       case 'recommendations':
         return <Recommendations />;
+      case 'userReviews':
+        return <UserReviews />;
       case 'profile':
         return <Profile />;
       default:
@@ -122,6 +129,12 @@ const Dashboard = () => {
           onClick={() => setActiveView('library')}
         >
           Biblioteca
+        </button>
+        <button
+          className={activeView === 'userReviews' ? 'nav-button active' : 'nav-button'}
+          onClick={() => setActiveView('userReviews')}
+        >
+          Avaliações
         </button>
         <button
           className={activeView === 'recommendations' ? 'nav-button active' : 'nav-button'}

@@ -12,17 +12,6 @@ class User(SQLModel, table=True):
 
     ratings: List["Rating"] = Relationship(back_populates="user")
     recommendations: List["Recommendation"] = Relationship(back_populates="user")
-    profile: Optional["UserProfile"] = Relationship(back_populates="user", sa_relationship_kwargs={"uselist": False})
-
-    reviews_given: List["UserReview"] = Relationship(
-        back_populates="author_user",
-        sa_relationship_kwargs={"foreign_keys": "[UserReview.author_user_id]"}
-    )
-
-    reviews_received: List["UserReview"] = Relationship(
-        back_populates="target_user",
-        sa_relationship_kwargs={"foreign_keys": "[UserReview.target_user_id]"}
-    )
 
 class Book(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -73,34 +62,6 @@ class Recommendation(SQLModel, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     user: "User" = Relationship(back_populates="recommendations")
-
-
-class UserProfile(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    user_id: int = Field(foreign_key="user.id")
-    bio: Optional[str] = None
-    avatar_url: Optional[str] = None
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-
-    user: "User" = Relationship(back_populates="profile")
-
-
-class UserReview(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    author_user_id: int = Field(foreign_key="user.id")
-    target_user_id: int = Field(foreign_key="user.id")
-    rating: float
-    comment: Optional[str] = None
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-
-    author_user: "User" = Relationship(
-        back_populates="reviews_given",
-        sa_relationship_kwargs={"foreign_keys": "[UserReview.author_user_id]"}
-    )
-    target_user: "User" = Relationship(
-        back_populates="reviews_received",
-        sa_relationship_kwargs={"foreign_keys": "[UserReview.target_user_id]"}
-    )
 
 class UserLibrary(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)

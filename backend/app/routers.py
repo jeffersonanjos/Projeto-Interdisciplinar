@@ -223,20 +223,11 @@ async def create_rating(
     session.refresh(db_rating)
     return db_rating
 
-@router.get("/users/{user_id}/ratings", response_model=List[Dict[str, Any]], tags=["ratings"])
+@router.get("/users/{user_id}/ratings", response_model=List[RatingRead], tags=["ratings"])
 async def get_user_ratings(user_id: int, session: Session = Depends(get_session)):
     logger.info(f"Getting ratings for user: {user_id}")
     ratings = session.exec(select(Rating).where(Rating.user_id == user_id)).all()
-    # Fetch book data for each rating
-    ratings_with_book_data = []
-    for rating in ratings:
-        if rating.book_id:
-            book = await get_book(rating.book_id, session)
-            if book:
-                # Combine rating and book data
-                rating_with_book_data = {"rating": rating.__dict__, "book": book}
-                ratings_with_book_data.append(rating_with_book_data)
-    return ratings_with_book_data
+    return ratings
 
 @router.get("/books", response_model=List[Book])
 async def search_books(query: str):
@@ -293,6 +284,13 @@ async def get_user_library(user_id: int, session: Session = Depends(get_session)
         except Exception:
             logger.exception("Failed to fetch book details for %s", entry.book_external_id)
     return books
+
+@router.get("/users/{user_id}/reviews", response_model=List[RatingRead], tags=["reviews"])
+async def get_user_reviews(user_id: int, session: Session = Depends(get_session)):
+    logger.info(f"Getting reviews for user: {user_id}")
+    # Fetch ratings for the user
+    reviews = session.exec(select(Rating).where(Rating.user_id == user_id)).all()
+    return reviews
 
 @router.post("/library/add", tags=["library"])
 async def add_book_to_library(book_id: Dict[str, str], current_user: User = Depends(get_current_active_user), session: Session = Depends(get_session)):
