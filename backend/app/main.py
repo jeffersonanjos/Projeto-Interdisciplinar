@@ -36,9 +36,11 @@ app.add_middleware(
 
 @app.on_event("startup")
 def on_startup():
-    logger.info("Starting up the application")
+    logger.info("Starting up the application - on_startup")
     create_db_and_tables()
     logger.info("Database and tables created")
+    import os
+    logger.info(f"Environment variables: {os.environ}")
 
 
 #  Inclui as rotas principais e as novas funcionalidades
@@ -51,4 +53,8 @@ logger.info("Routers included")
 @app.get("/")
 def root():
     logger.info("Root endpoint called")
+    import uvicorn
+    port = int(os.environ.get("PORT", 8001))  # Default port is 8000
+    logger.info(f"The port being used is: {port}")
+    logger.info(f"Application running on port: {port}")
     return {"message": "Bem-vindo ao Sistema de Recomendação de Livros e Filmes"}

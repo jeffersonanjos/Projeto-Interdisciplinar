@@ -31,17 +31,20 @@ const SearchResults = ({ results, type }) => {
 
   return (
     <div className="search-results-container">
-      <h2>{type === 'book' ? 'Books' : 'Movies'}</h2>
-      <div className="book-grid">
+      <div className="book-grid library-compact">
         {results.map((result) => {
           const authors =
             Array.isArray(result.authors) ? result.authors.join(', ') : (result.authors || 'Autor desconhecido');
           return (
-            <div key={result.id} className="book-item" onClick={() => handleAddToLibrary(result)}>
+            <div key={result.id} className="book-item">
               <img src={result.image_url} alt={result.title} className="book-cover" />
+              <div className="book-content">
+                <h3 className="book-title">{result.title || 'Sem título'}</h3>
+                {type === 'book' && <p className="book-authors">Autores: {authors}</p>}
+              </div>
               <button
                 type="button"
-                className="add-to-library"
+                className="rate-button"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleAddToLibrary(result);
@@ -49,7 +52,6 @@ const SearchResults = ({ results, type }) => {
               >
                 Adicionar
               </button>
-              <h3 className="book-title">{result.title || 'Sem título'}</h3>
             </div>
           );
         })}

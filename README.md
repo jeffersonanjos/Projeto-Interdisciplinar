@@ -29,7 +29,7 @@ O sistema **só funciona corretamente** quando você inicia o servidor **dentro 
 No terminal, estando na raiz do projeto, execute:
 ```bash
 cd app
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
+uvicorn main:app --reload --port 8001
 ```
 ---
 

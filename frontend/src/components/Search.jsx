@@ -9,6 +9,7 @@ const Search = () => {
   const [bookResults, setBookResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [searchType, setSearchType] = useState('books'); // 'books' ou 'movies'
 
   useEffect(() => {
  console.log("Search useEffect called");
@@ -42,21 +43,42 @@ const Search = () => {
  
   return (
     <div className="search-container">
-      <input
-        type="text"
-        placeholder="Search for books..."
-        className="search-input"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-      />
-      <button className="search-button" onClick={handleSearch} disabled={loading}>
-        {loading ? 'Searching...' : 'Search'}
-      </button>
+      <div className="search-form">
+        <input
+          type="text"
+          placeholder="Search for books..."
+          className="search-input"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+        <button className="search-button" onClick={handleSearch} disabled={loading}>
+          {loading ? 'Searching...' : 'Search'}
+        </button>
+      </div>
 
       {error && <div className="error-message">{error}</div>}
 
       {bookResults.length > 0 && (
-        <SearchResults results={bookResults} type="book" />
+        <>
+          <div className="search-header">
+            <h2>Books</h2>
+            <div className="search-type-toggle">
+              <button
+                className={searchType === 'books' ? 'active' : ''}
+                onClick={() => setSearchType('books')}
+              >
+                Livros ({bookResults.length})
+              </button>
+              <button
+                className={searchType === 'movies' ? 'active' : ''}
+                onClick={() => setSearchType('movies')}
+              >
+                Filmes (0)
+              </button>
+            </div>
+          </div>
+          <SearchResults results={bookResults} type="book" />
+        </>
       )}
     </div>
   );

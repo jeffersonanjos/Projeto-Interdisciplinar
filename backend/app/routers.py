@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends, status
+from fastapi import APIRouter, HTTPException, Depends, status, Response
 from fastapi.security import OAuth2PasswordRequestForm
 from typing import List, Optional, Dict, Any
 from datetime import timedelta
@@ -14,7 +14,7 @@ from schemas import (
     UserCreate, UserRead, UserUpdate,
     BookCreate, BookRead, BookUpdate,
     MovieCreate, MovieRead, MovieUpdate,
-    RatingCreate, RatingRead,
+    RatingCreate, RatingRead, RatingUpdate,
     RecommendationRead, UserLogin, Token
 )
 from auth import (
@@ -66,19 +66,48 @@ async def get_book(book_id: str, session: Session = Depends(get_session)):
 
 @router.get("/movies/search", response_model=List[MovieRead], tags=["movies"])
 async def search_movies(query: str, session: Session = Depends(get_session)):
+    logger.info(f"search_movies called with query: {query}")
     logger.info(f"Searching for movies with query: {query}")
-    # Implement search logic using TMDB API
-    pass
+    movie_data = fetch_movie_data(query)
+    if not movie_data or "results" not in movie_data:
+        raise HTTPException(status_code=404, detail="No movies found")
+
+    movies = []
+    for item in movie_data["results"]:
+        movie = MovieRead(
+            id=str(item["id"]),  # Convert id to string
+            title=item["title"],
+            overview=item.get("overview", "N/A"),
+            poster_path=item.get("poster_path", None),
+            release_date=item.get("release_date", "N/A"),
+        )
+        movies.append(movie)
+    return movies
 
 @router.get("/movies/{external_id}", response_model=MovieRead, tags=["movies"])
 async def get_movie(external_id: str, session: Session = Depends(get_session)):
+    logger.info(f"get_movie called with external_id: {external_id}")
     logger.info(f"Getting movie with external_id: {external_id}")
-    # Implement logic to fetch movie details using TMDB API
-    pass
+    # Fetch movie details using TMDB API
+    movie_data = fetch_movie_data(external_id)  # Assuming external_id is the movie title
+    if not movie_data or "results" not in movie_data:
+        raise HTTPException(status_code=404, detail="Movie not found")
+
+    # Assuming the first result is the correct movie
+    movie = movie_data["results"][0]
+    movie_data = MovieRead(
+        id=str(movie["id"]),  # Convert id to string
+        title=movie["title"],
+        overview=movie.get("overview", "N/A"),
+        poster_path=movie.get("poster_path", None),
+        release_date=movie.get("release_date", "N/A"),
+    )
+    return movie_data
 
 @router.post("/users/", response_model=UserRead, status_code=status.HTTP_201_CREATED, tags=["users"])
 def create_user(user: UserCreate, session: Session = Depends(get_session)):
     logger.info(f"Creating user with username: {user.username}")
+    logger.info(f"User creation attempt: {user.username}, {user.email}")
     # Verifica se username já existe
     db_user = session.exec(select(User).where(User.username == user.username)).first()
     if db_user:
@@ -92,15 +121,19 @@ def create_user(user: UserCreate, session: Session = Depends(get_session)):
         email=user.email,
         hashed_password=get_password_hash(user.password)
     )
+    logger.info(f"Adding user to session: {user.username}")
     session.add(db_user)
     try:
+        logger.info(f"Committing user to database: {user.username}")
         session.commit()
     except Exception as exc:
         # Em caso de violação de integridade ou outros erros, retorna 400 genérico
         session.rollback()
-        logger.exception("Erro ao criar usuário")
+        logger.exception(f"Error creating user: {user.username}", exc_info=True)
         raise HTTPException(status_code=400, detail="Não foi possível criar a conta. Verifique os dados e tente novamente.") from exc
+    logger.info(f"Refreshing user: {user.username}")
     session.refresh(db_user)
+    logger.info(f"User created successfully: {user.username}")
     return db_user
 
 @router.post("/token", response_model=Token, tags=["auth"])
@@ -222,6 +255,49 @@ async def create_rating(
     session.commit()
     session.refresh(db_rating)
     return db_rating
+
+
+@router.put("/ratings/{rating_id}", response_model=RatingRead, tags=["ratings"])
+async def update_rating(
+    rating_id: int,
+    rating_update: RatingUpdate,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_active_user)
+):
+    logger.info(f"Updating rating {rating_id} for user: {current_user.username}")
+    db_rating = session.get(Rating, rating_id)
+    if not db_rating:
+        raise HTTPException(status_code=404, detail="Avaliação não encontrada.")
+    if db_rating.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Você não tem permissão para editar esta avaliação.")
+
+    if rating_update.score is not None:
+        db_rating.score = rating_update.score
+    if rating_update.comment is not None:
+        db_rating.comment = rating_update.comment or None
+
+    session.add(db_rating)
+    session.commit()
+    session.refresh(db_rating)
+    return db_rating
+
+
+@router.delete("/ratings/{rating_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["ratings"])
+async def delete_rating(
+    rating_id: int,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_active_user)
+):
+    logger.info(f"Deleting rating {rating_id} for user: {current_user.username}")
+    db_rating = session.get(Rating, rating_id)
+    if not db_rating:
+        raise HTTPException(status_code=404, detail="Avaliação não encontrada.")
+    if db_rating.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Você não tem permissão para excluir esta avaliação.")
+
+    session.delete(db_rating)
+    session.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 @router.get("/users/{user_id}/ratings", response_model=List[Dict[str, Any]], tags=["ratings"])
 async def get_user_ratings(user_id: int, session: Session = Depends(get_session)):

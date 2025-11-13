@@ -15,13 +15,16 @@ def fetch_book_data(query: str) -> Dict[str, Any]:
 
 def fetch_movie_data(query: str) -> Dict[str, Any]:
     """Fetches movie data from the TMDB API based on a search query."""
+    logger.info(f"fetch_movie_data called with query: {query}")
     try:
-        # Replace 'YOUR_TMDB_API_KEY' with your actual TMDB API key
-        api_key = "YOUR_TMDB_API_KEY"
+        # Replace 'YOUR_TMDB_BEARER_TOKEN' with your actual TMDB bearer token
+        bearer_token = "YOUR_TMDB_BEARER_TOKEN"
+        headers = {"Authorization": f"Bearer {bearer_token}"}
         response = requests.get(
-            f"https://api.themoviedb.org/3/search/movie?api_key={api_key}&query={query}"
+            f"https://api.themoviedb.org/3/search/movie?query={query}",
+            headers=headers
         )
-        response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
+        response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:
         print(f"Error fetching movie data: {e}")

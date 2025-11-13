@@ -4,111 +4,258 @@ import { ratingService, externalApiService } from '../services/apiService';
 import './Library.css';
 
 const Library = () => {
-  console.log("Library component loaded");
   const { user } = useAuth();
   const [libraryType, setLibraryType] = useState('books'); // 'books' ou 'movies'
   const [items, setItems] = useState([]);
-  const [ratings, setRatings] = useState([]);
+  const [ratings, setRatings] = useState({});
   const [loading, setLoading] = useState(true);
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
-  const [ratingForm, setRatingForm] = useState({ score: 5, comment: '' });
+  const [selectedRating, setSelectedRating] = useState(null);
+  const [ratingForm, setRatingForm] = useState({ score: 0, comment: '' });
+  const [hoverRating, setHoverRating] = useState(0);
+  const [isEditingRating, setIsEditingRating] = useState(false);
+  const [feedbackMessage, setFeedbackMessage] = useState('');
+  const [isSubmittingRating, setIsSubmittingRating] = useState(false);
+  const [isDeletingRating, setIsDeletingRating] = useState(false);
 
   useEffect(() => {
-	console.log("Library useEffect called");
     loadLibrary();
   }, [libraryType, user]);
 
+  const resetModalState = () => {
+    setSelectedItem(null);
+    setSelectedRating(null);
+    setRatingForm({ score: 0, comment: '' });
+    setHoverRating(0);
+    setIsEditingRating(false);
+    setFeedbackMessage('');
+    setIsSubmittingRating(false);
+    setIsDeletingRating(false);
+  };
+
+  const closeModal = () => {
+    setShowRatingModal(false);
+    resetModalState();
+  };
+
   const loadLibrary = async () => {
-	console.log("Library loadLibrary called");
     if (!user) return;
-    
+
     setLoading(true);
     try {
-      // Buscar livros da biblioteca do usuário (somente livros por enquanto)
-      const libraryResult = await externalApiService.getUserLibrary(parseInt(user.id));
-      console.log("Library loadLibrary libraryResult:", libraryResult);
-      if (libraryResult.success) {
-        const libraryItems = Array.isArray(libraryResult.data) ? libraryResult.data : [];
-        setItems(libraryItems.filter(item => item && item.id));
-        console.log("Library loadLibrary items set:", libraryItems);
-      } else {
-        setItems([]);
+      const userId = parseInt(user.id, 10);
+      const [libraryResult, ratingsResult] = await Promise.all([
+        externalApiService.getUserLibrary(userId),
+        ratingService.getUserRatings(userId)
+      ]);
+
+      const ratingsMap = {};
+      if (ratingsResult.success && Array.isArray(ratingsResult.data)) {
+        ratingsResult.data.forEach((entry) => {
+          const ratingData = entry?.rating;
+          const bookData = entry?.book;
+          if (ratingData && bookData?.id) {
+            ratingsMap[bookData.id] = {
+              id: ratingData.id,
+              score: ratingData.score,
+              comment: ratingData.comment || '',
+              created_at: ratingData.created_at,
+            };
+          }
+        });
       }
+
+      const libraryItems = libraryResult.success && Array.isArray(libraryResult.data)
+        ? libraryResult.data
+        : [];
+
+      const filteredItems = libraryItems.filter((item) => item && item.id);
+      const itemsWithRatings = filteredItems.map((item) => ({
+        ...item,
+        rating: ratingsMap[item.id] || null,
+      }));
+
+      setItems(itemsWithRatings);
+      setRatings(ratingsMap);
     } catch (error) {
       console.error('Erro ao carregar biblioteca:', error);
+      setItems([]);
+      setRatings({});
     } finally {
       setLoading(false);
-	  console.log("Library loadLibrary loading set to false");
     }
   };
-  console.log("Library items:", items);
+
+  const updateItemRating = (itemId, ratingData) => {
+    setItems((prevItems) =>
+      prevItems.map((item) =>
+        item.id === itemId ? { ...item, rating: ratingData } : item
+      )
+    );
+    setRatings((prevRatings) => {
+      const updated = { ...prevRatings };
+      if (ratingData) {
+        updated[itemId] = ratingData;
+      } else {
+        delete updated[itemId];
+      }
+      return updated;
+    });
+    setSelectedItem((prev) =>
+      prev && prev.id === itemId ? { ...prev, rating: ratingData } : prev
+    );
+  };
 
   const handleRateItem = (item) => {
-	console.log("Library handleRateItem called with:", item);
+    const existingRating = ratings[item.id] || null;
     setSelectedItem(item);
-    const existingRating = ratings.find(r => 
-      (libraryType === 'books' ? r.book_id : r.movie_id) === item.id
-    );
-    
-    if (existingRating) {
-      setRatingForm({
-        score: existingRating.score,
-        comment: existingRating.comment || ''
-      });
-	  console.log("Library handleRateItem existing rating found, ratingForm set:", ratingForm);
-    } else {
-      setRatingForm({ score: 5, comment: '' });
-	  console.log("Library handleRateItem no existing rating found, ratingForm set:", ratingForm);
-    }
-    
+    setSelectedRating(existingRating);
+    setRatingForm({
+      score: existingRating ? Number(existingRating.score) : 0,
+      comment: existingRating?.comment || '',
+    });
+    setHoverRating(0);
+    setFeedbackMessage('');
+    setIsEditingRating(!existingRating);
+    setIsSubmittingRating(false);
+    setIsDeletingRating(false);
     setShowRatingModal(true);
-	console.log("Library handleRateItem showRatingModal set to true");
   };
 
-  const handleSubmitRating = async (e) => {
-	console.log("Library handleSubmitRating called");
-    e.preventDefault();
-    if (!selectedItem || !user) return;
+  const handleStartEditing = () => {
+    setRatingForm({
+      score: selectedRating ? Number(selectedRating.score) : 0,
+      comment: selectedRating?.comment || '',
+    });
+    setHoverRating(0);
+    setFeedbackMessage('');
+    setIsEditingRating(true);
+  };
+
+  const handleCancelEditing = () => {
+    if (selectedRating) {
+      setRatingForm({
+        score: Number(selectedRating.score),
+        comment: selectedRating.comment || '',
+      });
+      setIsEditingRating(false);
+      setHoverRating(0);
+      setFeedbackMessage('');
+    } else {
+      closeModal();
+    }
+  };
+
+  const handleStarClick = (value) => {
+    setRatingForm((prev) => ({ ...prev, score: value }));
+    setHoverRating(0);
+  };
+
+  const handleSubmitRating = async (event) => {
+    event.preventDefault();
+    if (!selectedItem || !user || ratingForm.score === 0) {
+      setFeedbackMessage('Selecione uma nota de 1 a 5 para continuar.');
+      return;
+    }
+
+    setIsSubmittingRating(true);
+    setFeedbackMessage('');
+
+    const normalizedComment = ratingForm.comment?.trim() || null;
+    const normalizedScore = Number(ratingForm.score);
 
     try {
-      const ratingData = {
-        score: parseFloat(ratingForm.score),
-        comment: ratingForm.comment || null,
-        user_id: user.id,
-        ...(libraryType === 'books'
-          ? { book_external_id: selectedItem.id }
-          : { movie_id: selectedItem.id })
-      };
-	  console.log("Library handleSubmitRating ratingData:", ratingData);
-
-      const result = await ratingService.createRating(ratingData);
-	  console.log("Library handleSubmitRating createRating result:", result);
-      if (result.success) {
-        alert('Avaliação salva com sucesso!');
-        setShowRatingModal(false);
-        loadLibrary();
+      if (selectedRating) {
+        const updatePayload = {
+          score: normalizedScore,
+          comment: normalizedComment,
+        };
+        const result = await ratingService.updateRating(selectedRating.id, updatePayload);
+        if (result.success) {
+          const updatedRating = {
+            id: result.data.id,
+            score: result.data.score,
+            comment: result.data.comment || '',
+            created_at: result.data.created_at,
+          };
+          updateItemRating(selectedItem.id, updatedRating);
+          setSelectedRating(updatedRating);
+          setIsEditingRating(false);
+          setFeedbackMessage('Avaliação atualizada!');
+        } else {
+          setFeedbackMessage(result.error || 'Erro ao atualizar avaliação.');
+        }
       } else {
-        alert('Erro ao salvar avaliação: ' + (typeof result.error === 'string' ? result.error : 'Erro'));
+        const createPayload = {
+          score: normalizedScore,
+          comment: normalizedComment,
+          user_id: user.id,
+          ...(libraryType === 'books'
+            ? { book_external_id: selectedItem.id }
+            : { movie_id: selectedItem.id }),
+        };
+        const result = await ratingService.createRating(createPayload);
+        if (result.success) {
+          const newRating = {
+            id: result.data.id,
+            score: result.data.score,
+            comment: result.data.comment || '',
+            created_at: result.data.created_at,
+          };
+          updateItemRating(selectedItem.id, newRating);
+          setSelectedRating(newRating);
+          setIsEditingRating(false);
+          setFeedbackMessage('Avaliação salva!');
+        } else {
+          setFeedbackMessage(result.error || 'Erro ao salvar avaliação.');
+        }
       }
     } catch (error) {
-      alert('Erro ao salvar avaliação');
-	  console.error("Library handleSubmitRating error:", error);
+      console.error('Erro ao salvar avaliação:', error);
+      setFeedbackMessage('Erro ao salvar avaliação.');
+    } finally {
+      setIsSubmittingRating(false);
+    }
+  };
+
+  const handleDeleteRating = async () => {
+    if (!selectedRating) return;
+
+    setIsDeletingRating(true);
+    setFeedbackMessage('');
+    try {
+      const result = await ratingService.deleteRating(selectedRating.id);
+      if (result.success) {
+        updateItemRating(selectedItem.id, null);
+        setSelectedRating(null);
+        setRatingForm({ score: 0, comment: '' });
+        setIsEditingRating(true);
+        setFeedbackMessage('Avaliação removida.');
+      } else {
+        setFeedbackMessage(result.error || 'Erro ao remover avaliação.');
+      }
+    } catch (error) {
+      console.error('Erro ao remover avaliação:', error);
+      setFeedbackMessage('Erro ao remover avaliação.');
+    } finally {
+      setIsDeletingRating(false);
     }
   };
 
   const renderStars = (score) => {
-    const fullStars = Math.floor(score);
-    const hasHalfStar = score % 1 >= 0.5;
-    
+    const roundedScore = Math.round(score || 0);
     return (
-      <div className="stars">
-        {[...Array(5)].map((_, i) => (
-          <span key={i} className={i < fullStars ? 'star filled' : i === fullStars && hasHalfStar ? 'star half' : 'star'}>
+      <div className="static-stars">
+        {[1, 2, 3, 4, 5].map((value) => (
+          <span
+            key={value}
+            className={`static-star ${value <= roundedScore ? 'filled' : ''}`}
+          >
             ★
           </span>
         ))}
-        <span className="score-number">{score.toFixed(1)}</span>
+        <span className="score-number">{(score || 0).toFixed(1)}</span>
       </div>
     );
   };
@@ -153,12 +300,14 @@ const Library = () => {
           {items.map((item) => {
             const authors = Array.isArray(item.authors)
               ? item.authors.join(', ')
-              : (item.authors || 'Autor desconhecido');
+              : item.authors || 'Autor desconhecido';
             return (
               <div key={item.id} className="book-item">
                 <img src={item.image_url} alt={item.title} className="book-cover" />
-                <h3 className="book-title">{item.title || 'Sem título'}</h3>
-                {libraryType === 'books' && <p className="book-authors">Autores: {authors}</p>}
+                <div className="book-content">
+                  <h3 className="book-title">{item.title || 'Sem título'}</h3>
+                  {libraryType === 'books' && <p className="book-authors">Autores: {authors}</p>}
+                </div>
                 <button
                   onClick={() => handleRateItem(item)}
                   className="rate-button"
@@ -172,42 +321,144 @@ const Library = () => {
       )}
 
       {showRatingModal && (
-        <div className="modal-overlay" onClick={() => setShowRatingModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-overlay" onClick={closeModal}>
+          <div className="modal-content rating-modal" onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              className="modal-close-button"
+              onClick={closeModal}
+              aria-label="Fechar modal"
+            >
+              ×
+            </button>
             <h3>Avaliar {selectedItem?.title}</h3>
-            <form onSubmit={handleSubmitRating}>
-              <div className="form-group">
-                <label>Nota (1-5)</label>
-                <input
-                  type="number"
-                  min="1"
-                  max="5"
-                  step="0.5"
-                  value={ratingForm.score}
-                  onChange={(e) => setRatingForm({ ...ratingForm, score: e.target.value })}
-                  className="form-input"
-                  required
-                />
+            {feedbackMessage && (
+              <div className="modal-feedback">
+                {feedbackMessage}
               </div>
-              <div className="form-group">
-                <label>Comentário (opcional)</label>
-                <textarea
-                  value={ratingForm.comment}
-                  onChange={(e) => setRatingForm({ ...ratingForm, comment: e.target.value })}
-                  className="form-textarea"
-                  rows="4"
-                  placeholder="Digite seu comentário..."
-                />
-              </div>
-              <div className="modal-actions">
-                <button type="button" onClick={() => setShowRatingModal(false)} className="cancel-button">
-                  Cancelar
+            )}
+
+            {isEditingRating ? (
+              <form onSubmit={handleSubmitRating} className="rating-form">
+                <div
+                  className="star-rating"
+                  onMouseLeave={() => setHoverRating(0)}
+                >
+                  {[1, 2, 3, 4, 5].map((value) => (
+                    <button
+                      type="button"
+                      key={value}
+                      className={`star-button ${
+                        (hoverRating || ratingForm.score) >= value ? 'active' : ''
+                      }`}
+                      onMouseEnter={() => setHoverRating(value)}
+                      onFocus={() => setHoverRating(value)}
+                      onBlur={() => setHoverRating(0)}
+                      onClick={() => handleStarClick(value)}
+                      aria-label={`${value} ${value === 1 ? 'estrela' : 'estrelas'}`}
+                    >
+                      ★
+                    </button>
+                  ))}
+                </div>
+                <p className="rating-hint">
+                  Nota selecionada: {ratingForm.score || '-'} / 5
+                </p>
+                <div className="form-group">
+                  <label>Comentário (opcional)</label>
+                  <textarea
+                    value={ratingForm.comment}
+                    onChange={(e) =>
+                      setRatingForm((prev) => ({ ...prev, comment: e.target.value }))
+                    }
+                    className="form-textarea"
+                    rows="4"
+                    placeholder="Compartilhe o que achou do livro..."
+                  />
+                </div>
+                <div className="modal-actions">
+                  <button
+                    type="button"
+                    className="cancel-button"
+                    onClick={handleCancelEditing}
+                  >
+                    {selectedRating ? 'Voltar' : 'Cancelar'}
+                  </button>
+                  <button
+                    type="submit"
+                    className="submit-button"
+                    disabled={isSubmittingRating || ratingForm.score === 0}
+                  >
+                    {isSubmittingRating ? 'Salvando...' : 'Confirmar'}
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <div className="rating-summary">
+                <div className="rating-summary-stars">
+                  {renderStars(selectedRating?.score || 0)}
+                </div>
+                <div className="rating-summary-comment">
+                  {selectedRating?.comment ? (
+                    <p>{selectedRating.comment}</p>
+                  ) : (
+                    <p className="empty-comment">Nenhum comentário adicionado.</p>
+                  )}
+                </div>
+                <div className="rating-summary-actions">
+                  <button
+                    type="button"
+                    className="icon-button edit"
+                    onClick={handleStartEditing}
+                    title="Editar avaliação"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      width="18"
+                      height="18"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M12 20h9" />
+                      <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    className="icon-button delete"
+                    onClick={handleDeleteRating}
+                    disabled={isDeletingRating}
+                    title="Excluir avaliação"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      width="18"
+                      height="18"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M18 6 6 18" />
+                      <path d="m6 6 12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  className="close-button"
+                  onClick={closeModal}
+                >
+                  Fechar
                 </button>
-                <button type="submit" className="submit-button">
-                  Salvar Avaliação
-                </button>
               </div>
-            </form>
+            )}
           </div>
         </div>
       )}

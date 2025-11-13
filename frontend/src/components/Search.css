@@ -47,6 +47,8 @@
 
 .search-form {
   margin-bottom: 30px;
+  display: flex;
+  gap: 10px;
 }
 
 .search-input-group {

@@ -1,68 +1,93 @@
 .search-results-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  width: 100%;
   color: var(--offwhite);
 }
 
-.book-grid {
+/* Compact layout similar to library */
+.book-grid.library-compact {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   gap: 20px;
-  padding: 20px;
+  padding: 0;
+  justify-items: center;
+  width: 100%;
 }
 
-.book-item {
+.library-compact .book-item {
+  padding: 12px;
+  width: 180px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: space-between;
   border: 3px solid var(--brown);
   background: var(--offwhite);
   color: var(--green);
-  padding: 16px;
   text-align: center;
   border-radius: 10px;
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-  cursor: pointer;
+  min-height: 320px;
 }
 
-.book-item:hover {
+.library-compact .book-item:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 12px rgba(0,0,0,0.15);
   border-color: var(--brown-light);
 }
 
-.book-cover {
-  width: 150px;
-  height: 200px;
+.library-compact .book-cover {
+  width: 120px;
+  height: 160px;
   object-fit: cover;
   margin-bottom: 10px;
 }
 
-.add-to-library {
-  margin-top: 8px;
-  background-color: var(--offwhite);
-  color: var(--green);
-  border: 2px solid var(--brown);
-  padding: 8px 12px;
-  font-size: 12px;
-  border-radius: 8px;
+.library-compact .book-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  width: 100%;
+  text-align: center;
 }
 
-.add-to-library:hover {
-  background: var(--white);
-  border-color: var(--brown-light);
-}
-
-.book-title {
+.library-compact .book-title {
   margin-top: 8px;
   color: var(--green);
   font-weight: bold;
+  font-size: 12px;
+  text-align: center;
+  width: 100%;
 }
 
-.book-authors {
+.library-compact .book-authors {
   margin-top: 6px;
-  font-size: 12px;
+  font-size: 11px;
+  color: var(--green);
+  text-align: center;
+  width: 100%;
+}
+
+.library-compact .rate-button {
+  width: 100%;
+  padding: 10px;
+  background: var(--offwhite);
+  color: var(--green);
+  border: 2px solid var(--brown);
+  border-radius: 8px;
+  font-size: 9px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: auto;
+}
+
+.library-compact .rate-button:hover {
+  background: var(--white);
+  border-color: var(--brown-light);
+  transform: translateY(-2px);
 }
 
 .toast {

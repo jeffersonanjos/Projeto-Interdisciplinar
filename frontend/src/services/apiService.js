@@ -129,6 +129,35 @@ export const ratingService = {
       return { success: false, error: message };
     }
   },
+  async updateRating(ratingId, ratingData) {
+	console.log("ratingService.updateRating called with:", ratingId, ratingData);
+    try {
+      const response = await api.put(`/ratings/${ratingId}`, ratingData);
+	  console.log("ratingService.updateRating API response:", response);
+      return { success: true, data: response.data };
+    } catch (error) {
+	  console.error("ratingService.updateRating error:", error);
+      const detail = error.response?.data?.detail;
+      const message = typeof detail === 'string'
+        ? detail
+        : error.message || 'Erro ao atualizar avaliação';
+      return { success: false, error: message };
+    }
+  },
+  async deleteRating(ratingId) {
+	console.log("ratingService.deleteRating called with:", ratingId);
+    try {
+      await api.delete(`/ratings/${ratingId}`);
+      return { success: true };
+    } catch (error) {
+	  console.error("ratingService.deleteRating error:", error);
+      const detail = error.response?.data?.detail;
+      const message = typeof detail === 'string'
+        ? detail
+        : error.message || 'Erro ao excluir avaliação';
+      return { success: false, error: message };
+    }
+  },
   // Buscar avaliações do usuário
   async getUserRatings(userId) {
 	console.log("ratingService.getUserRatings called with:", userId);

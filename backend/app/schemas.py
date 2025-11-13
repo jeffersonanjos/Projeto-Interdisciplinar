@@ -114,6 +114,11 @@ class RatingRead(RatingBase):
     class Config:
         orm_mode = True
 
+
+class RatingUpdate(SQLModel):
+    score: Optional[float] = None
+    comment: Optional[str] = None
+
 class RecommendationBase(SQLModel):
     user_id: int
 
