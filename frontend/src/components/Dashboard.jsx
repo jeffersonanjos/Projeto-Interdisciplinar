@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import Search from './Search';
 import Library from './Library';
 import Recommendations from './Recommendations';
-import UserReviews from './UserReviews';
 import Profile from './Profile';
 import { ratingService, reviewService } from '../services/apiService';
 import './Dashboard.css';
@@ -61,8 +60,6 @@ const Dashboard = () => {
         return <Library />;
       case 'recommendations':
         return <Recommendations />;
-      case 'userReviews':
-        return <UserReviews />;
       case 'profile':
         return <Profile />;
       default:
@@ -129,12 +126,6 @@ const Dashboard = () => {
           onClick={() => setActiveView('library')}
         >
           Biblioteca
-        </button>
-        <button
-          className={activeView === 'userReviews' ? 'nav-button active' : 'nav-button'}
-          onClick={() => setActiveView('userReviews')}
-        >
-          Avaliações
         </button>
         <button
           className={activeView === 'recommendations' ? 'nav-button active' : 'nav-button'}

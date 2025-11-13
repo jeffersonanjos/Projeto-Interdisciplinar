@@ -52,15 +52,13 @@ const Library = () => {
 
       const ratingsMap = {};
       if (ratingsResult.success && Array.isArray(ratingsResult.data)) {
-        ratingsResult.data.forEach((entry) => {
-          const ratingData = entry?.rating;
-          const bookData = entry?.book;
-          if (ratingData && bookData?.id) {
-            ratingsMap[bookData.id] = {
-              id: ratingData.id,
-              score: ratingData.score,
-              comment: ratingData.comment || '',
-              created_at: ratingData.created_at,
+        ratingsResult.data.forEach((rating) => {
+          if (rating && rating.book_external_id) {
+            ratingsMap[rating.book_external_id] = {
+              id: rating.id,
+              score: rating.score,
+              comment: rating.comment || '',
+              created_at: rating.created_at,
             };
           }
         });

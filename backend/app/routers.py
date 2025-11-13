@@ -303,7 +303,24 @@ async def delete_rating(
 async def get_user_ratings(user_id: int, session: Session = Depends(get_session)):
     logger.info(f"Getting ratings for user: {user_id}")
     ratings = session.exec(select(Rating).where(Rating.user_id == user_id)).all()
-    return ratings
+    ratings_with_external_id = []
+    for rating in ratings:
+        rating_dict = {
+            "id": rating.id,
+            "user_id": rating.user_id,
+            "book_id": rating.book_id,
+            "movie_id": rating.movie_id,
+            "score": rating.score,
+            "comment": rating.comment,
+            "created_at": rating.created_at,
+            "book_external_id": None
+        }
+        if rating.book_id:
+            db_book = session.get(DBBook, rating.book_id)
+            if db_book and db_book.external_id:
+                rating_dict["book_external_id"] = db_book.external_id
+        ratings_with_external_id.append(rating_dict)
+    return ratings_with_external_id
 
 @router.get("/books", response_model=List[Book])
 async def search_books(query: str):
