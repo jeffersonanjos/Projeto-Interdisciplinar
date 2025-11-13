@@ -89,16 +89,3 @@
   border-color: var(--brown-light);
   transform: translateY(-2px);
 }
-
-.toast {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background: var(--offwhite);
-  color: var(--green);
-  border: 2px solid var(--brown);
-  border-radius: 8px;
-  padding: 10px 14px;
-  box-shadow: 0 6px 12px rgba(0,0,0,0.2);
-  z-index: 1000;
-}

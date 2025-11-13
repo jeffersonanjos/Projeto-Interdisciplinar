@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { ratingService, externalApiService } from '../services/apiService';
+import { useToast } from '../hooks/useToast';
+import Toast from './Toast';
 import './Library.css';
 
 const Library = () => {
@@ -18,6 +20,7 @@ const Library = () => {
   const [feedbackMessage, setFeedbackMessage] = useState('');
   const [isSubmittingRating, setIsSubmittingRating] = useState(false);
   const [isDeletingRating, setIsDeletingRating] = useState(false);
+  const { toast, showToast } = useToast();
 
   useEffect(() => {
     loadLibrary();
@@ -241,6 +244,34 @@ const Library = () => {
     }
   };
 
+  const handleRemoveBook = async (item) => {
+    if (!item || !item.id) return;
+    
+    if (!window.confirm(`Tem certeza que deseja remover "${item.title}" da sua biblioteca?`)) {
+      return;
+    }
+
+    try {
+      const result = await externalApiService.removeBookFromLibrary(item.id);
+      if (result.success) {
+        // Remover o item da lista
+        setItems((prevItems) => prevItems.filter((i) => i.id !== item.id));
+        // Remover a avaliação associada se existir
+        setRatings((prevRatings) => {
+          const updated = { ...prevRatings };
+          delete updated[item.id];
+          return updated;
+        });
+        showToast('Livro removido da biblioteca!');
+      } else {
+        showToast(result.error || 'Erro ao remover livro da biblioteca');
+      }
+    } catch (error) {
+      console.error('Erro ao remover livro:', error);
+      showToast('Erro ao remover livro da biblioteca');
+    }
+  };
+
   const renderStars = (score) => {
     const roundedScore = Math.round(score || 0);
     return (
@@ -299,9 +330,20 @@ const Library = () => {
             const authors = Array.isArray(item.authors)
               ? item.authors.join(', ')
               : item.authors || 'Autor desconhecido';
+            // Imagem padrão SVG para livros sem capa
+            const defaultBookCover = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjE2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTIwIiBoZWlnaHQ9IjE2MCIgZmlsbD0iIzhCNzM1NSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiNGRkZGRkYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5TZW0gQ2FwYTwvdGV4dD48L3N2Zz4=';
+            const coverImage = item.image_url || defaultBookCover;
             return (
               <div key={item.id} className="book-item">
-                <img src={item.image_url} alt={item.title} className="book-cover" />
+                <img 
+                  src={coverImage} 
+                  alt={item.title} 
+                  className="book-cover"
+                  onError={(e) => {
+                    // Se a imagem falhar ao carregar, usar a imagem padrão
+                    e.target.src = defaultBookCover;
+                  }}
+                />
                 <div className="book-content">
                   <h3 className="book-title">{item.title || 'Sem título'}</h3>
                   {libraryType === 'books' && <p className="book-authors">Autores: {authors}</p>}
@@ -311,6 +353,12 @@ const Library = () => {
                   className="rate-button"
                 >
                   {item.rating ? 'Editar Avaliação' : 'Avaliar'}
+                </button>
+                <button
+                  onClick={() => handleRemoveBook(item)}
+                  className="remove-button"
+                >
+                  Remover
                 </button>
               </div>
             );
@@ -460,6 +508,8 @@ const Library = () => {
           </div>
         </div>
       )}
+
+      <Toast message={toast} />
     </div>
   );
 };

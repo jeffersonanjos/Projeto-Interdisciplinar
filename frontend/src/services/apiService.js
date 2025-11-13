@@ -215,6 +215,33 @@ export const recommendationService = {
     } catch (error) {
       return { success: false, error: error.response?.data?.detail || 'Erro ao gerar recomendações' };
     }
+  },
+  // Buscar recomendações de livros baseadas na biblioteca do usuário
+  async getBookRecommendations(userId) {
+    console.log("recommendationService.getBookRecommendations called with:", userId);
+    try {
+      const response = await api.get(`/users/${userId}/recommendations/books`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error("Error fetching book recommendations:", error);
+      return { success: false, data: [], error: error.response?.data?.detail || 'Erro ao buscar recomendações de livros' };
+    }
+  }
+};
+
+// Serviço para usuários
+export const userService = {
+  // Atualizar dados do usuário
+  async updateUser(userId, userData) {
+    console.log("userService.updateUser called with:", userId, userData);
+    try {
+      const response = await api.put(`/users/${userId}`, userData);
+      console.log("userService.updateUser API response:", response);
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error("userService.updateUser error:", error);
+      return { success: false, error: error.response?.data?.detail || 'Erro ao atualizar dados do usuário' };
+    }
   }
 };
 
@@ -245,6 +272,48 @@ export const profileService = {
     } catch (error) {
 	  console.error("profileService.createOrUpdateProfile error:", error);
       return { success: false, error: error.response?.data?.detail || 'Erro ao salvar perfil' };
+    }
+  },
+  // Upload de avatar
+  async uploadAvatar(userId, file) {
+    console.log("profileService.uploadAvatar called with:", userId, file);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const response = await api.post(`/profiles/${userId}/upload-avatar`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      console.log("profileService.uploadAvatar API response:", response);
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error("profileService.uploadAvatar error:", error);
+      return { success: false, error: error.response?.data?.detail || 'Erro ao fazer upload do avatar' };
+    }
+  },
+  // Deletar perfil
+  async deleteProfile(userId) {
+    console.log("profileService.deleteProfile called with:", userId);
+    try {
+      const response = await api.delete(`/profiles/${userId}`);
+      console.log("profileService.deleteProfile API response:", response);
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error("profileService.deleteProfile error:", error);
+      return { success: false, error: error.response?.data?.detail || 'Erro ao deletar perfil' };
+    }
+  },
+  // Remover avatar
+  async removeAvatar(userId) {
+    console.log("profileService.removeAvatar called with:", userId);
+    try {
+      const response = await api.delete(`/profiles/${userId}/avatar`);
+      console.log("profileService.removeAvatar API response:", response);
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error("profileService.removeAvatar error:", error);
+      return { success: false, error: error.response?.data?.detail || 'Erro ao remover avatar' };
     }
   }
 };
@@ -296,6 +365,28 @@ export const externalApiService = {
         message = first?.msg || first?.detail || 'Erro ao adicionar livro à biblioteca';
       } else {
         message = error.message || 'Erro ao adicionar livro à biblioteca';
+      }
+      return { success: false, error: message };
+    }
+  },
+  // Remover livro da biblioteca do usuário
+  async removeBookFromLibrary(bookId) {
+    console.log("externalApiService.removeBookFromLibrary called with:", bookId);
+    try {
+      const response = await api.delete(`/library/remove?book_id=${encodeURIComponent(bookId)}`);
+      console.log("externalApiService.removeBookFromLibrary API response:", response);
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error("externalApiService.removeBookFromLibrary error:", error);
+      const detail = error.response?.data?.detail;
+      let message;
+      if (typeof detail === 'string') {
+        message = detail;
+      } else if (Array.isArray(detail) && detail.length) {
+        const first = detail[0];
+        message = first?.msg || first?.detail || 'Erro ao remover livro da biblioteca';
+      } else {
+        message = error.message || 'Erro ao remover livro da biblioteca';
       }
       return { success: false, error: message };
     }

@@ -1,62 +1,41 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { recommendationService, bookService, movieService } from '../services/apiService';
+import { recommendationService } from '../services/apiService';
+import SearchResults from './SearchResults';
 import './Recommendations.css';
 
 const Recommendations = () => {
   console.log("Recommendations component loaded");
   const { user } = useAuth();
-  const [recommendations, setRecommendations] = useState(null);
+  const [bookRecommendations, setBookRecommendations] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [generating, setGenerating] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-	console.log("Recommendations useEffect called");
-    loadRecommendations();
+    console.log("Recommendations useEffect called");
+    loadBookRecommendations();
   }, [user]);
 
-  const loadRecommendations = async () => {
-	console.log("Recommendations loadRecommendations called");
+  const loadBookRecommendations = async () => {
+    console.log("Recommendations loadBookRecommendations called");
     if (!user) return;
     
     setLoading(true);
+    setError('');
     try {
-      const result = await recommendationService.getUserRecommendations(user.id);
-	  console.log("Recommendations loadRecommendations result:", result);
-      if (result.success && result.data.length > 0) {
-        // Pegar a recomendação mais recente
-        const latest = result.data[result.data.length - 1];
-        setRecommendations(latest);
-		console.log("Recommendations loadRecommendations recommendations set:", latest);
+      const result = await recommendationService.getBookRecommendations(user.id);
+      console.log("Recommendations loadBookRecommendations result:", result);
+      if (result.success) {
+        setBookRecommendations(result.data || []);
+      } else {
+        setError(result.error || 'Erro ao carregar recomendações');
       }
     } catch (error) {
       console.error('Erro ao carregar recomendações:', error);
+      setError('Erro ao carregar recomendações');
     } finally {
       setLoading(false);
-	  console.log("Recommendations loadRecommendations loading set to false");
-    }
-  };
-
-  const handleGenerateRecommendations = async () => {
-	console.log("Recommendations handleGenerateRecommendations called");
-    if (!user) return;
-    
-    setGenerating(true);
-    try {
-      const result = await recommendationService.generateRecommendations(user.id);
-	  console.log("Recommendations handleGenerateRecommendations result:", result);
-      if (result.success) {
-        alert('Recomendações geradas com sucesso!');
-        loadRecommendations();
-      } else {
-        alert('Erro ao gerar recomendações: ' + result.error);
-      }
-    } catch (error) {
-      alert('Erro ao gerar recomendações');
-	  console.error("Recommendations handleGenerateRecommendations error:", error);
-    } finally {
-      setGenerating(false);
-	  console.log("Recommendations handleGenerateRecommendations generating set to false");
+      console.log("Recommendations loadBookRecommendations loading set to false");
     }
   };
 
@@ -74,60 +53,29 @@ const Recommendations = () => {
     <div className="recommendations-container">
       <div className="recommendations-header">
         <h2>Recomendações para Você</h2>
-        <button
-          onClick={handleGenerateRecommendations}
-          className="generate-button"
-          disabled={generating}
-        >
-          {generating ? 'Gerando...' : 'Gerar Recomendações'}
-        </button>
+        <p className="recommendations-subtitle">
+          Livros recomendados com base nos gêneros e autores dos livros da sua biblioteca
+        </p>
       </div>
 
-      {!recommendations ? (
+      {error && (
+        <div className="error-message">
+          {error}
+        </div>
+      )}
+
+      {bookRecommendations.length === 0 && !error ? (
         <div className="no-recommendations">
-          <p>Você ainda não tem recomendações personalizadas.</p>
-          <p>Clique em "Gerar Recomendações" para receber sugestões baseadas no seu histórico!</p>
+          <p>Não há recomendações disponíveis no momento.</p>
+          <p>Adicione livros à sua biblioteca para receber recomendações personalizadas!</p>
         </div>
       ) : (
         <div className="recommendations-content">
           <div className="recommendations-section">
-            {recommendations.recommended_books && recommendations.recommended_books.length > 0 && (
+            {bookRecommendations.length > 0 && (
               <div className="recommendations-group">
-                <h3>Livros Recomendados</h3>
-                <div className="recommendations-grid">
-                  {recommendations.recommended_books.map((bookId, index) => (
-                    <div key={index} className="recommendation-card">
-                      <div className="recommendation-placeholder">
-                        <p>Livro ID: {bookId}</p>
-                        <p className="recommendation-note">Carregando detalhes...</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {recommendations.recommended_movies && recommendations.recommended_movies.length > 0 && (
-              <div className="recommendations-group">
-                <h3>Filmes Recomendados</h3>
-                <div className="recommendations-grid">
-                  {recommendations.recommended_movies.map((movieId, index) => (
-                    <div key={index} className="recommendation-card">
-                      <div className="recommendation-placeholder">
-                        <p>Filme ID: {movieId}</p>
-                        <p className="recommendation-note">Carregando detalhes...</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {(!recommendations.recommended_books || recommendations.recommended_books.length === 0) &&
-             (!recommendations.recommended_movies || recommendations.recommended_movies.length === 0) && (
-              <div className="no-recommendations">
-                <p>Não há recomendações disponíveis no momento.</p>
-                <p>Faça mais avaliações para receber recomendações personalizadas!</p>
+                <h3>Livros Recomendados ({bookRecommendations.length})</h3>
+                <SearchResults results={bookRecommendations} type="book" />
               </div>
             )}
           </div>

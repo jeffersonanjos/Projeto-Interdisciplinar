@@ -28,6 +28,7 @@ class UserUpdate(SQLModel):
     username: Optional[str] = None
     email: Optional[str] = None
     password: Optional[str] = None
+    current_password: Optional[str] = None  # Senha atual para confirmação
 
 class UserLogin(SQLModel):
     username: str

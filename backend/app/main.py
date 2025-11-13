@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from routers import router as api_router
 from database import create_db_and_tables
@@ -8,6 +9,7 @@ from database import create_db_and_tables
 from profile import router as profile_router
 from user_reviews import router as user_reviews_router
 import logging
+import os
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -48,6 +50,10 @@ app.include_router(api_router)
 app.include_router(profile_router)
 app.include_router(user_reviews_router)
 logger.info("Routers included")
+
+# Servir arquivos estáticos (avatares)
+if os.path.exists("uploads/avatars"):
+    app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 
 @app.get("/")

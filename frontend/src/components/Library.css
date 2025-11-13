@@ -363,6 +363,32 @@
   transform: translateY(-2px);
 }
 
+.remove-button {
+  width: 100%;
+  padding: 10px;
+  background: var(--offwhite);
+  color: #c62828;
+  border: 2px solid #c62828;
+  border-radius: 8px;
+  font-size: 9px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 8px;
+}
+
+.library-compact .remove-button {
+  margin-top: 8px;
+}
+
+.remove-button:hover {
+  background: #c62828;
+  color: var(--offwhite);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(198, 40, 40, 0.3);
+}
+
 /* Modal */
 .modal-overlay {
   position: fixed;
