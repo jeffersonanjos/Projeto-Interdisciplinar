@@ -16,6 +16,9 @@ def create_user_review(
     comment: Optional[str] = None,
     session: Session = Depends(get_session)
 ):
+    print(f"Criando avaliação: author_user_id={author_user_id}, target_user_id={target_user_id}, rating={rating}, comment={comment}")
+    if not 1 <= rating <= 5:
+        raise HTTPException(status_code=400, detail="Avaliação deve estar entre 1 e 5")
     if author_user_id == target_user_id:
         raise HTTPException(status_code=400, detail="Usuário não pode avaliar a si mesmo")
 

@@ -1,4 +1,4 @@
-import api from './authService';
+import api from './authService.js';
 
 // Serviço para livros
 export const bookService = {
@@ -300,11 +300,14 @@ export const externalApiService = {
       return { success: false, error: message };
     }
   },
-  // Buscar biblioteca do usuário
-  async getUserLibraryOld(userId) {
-    console.log("externalApiService.getUserLibrary called with:", userId);
+};
+
+// Serviço para avaliações
+export const reviewService = {
+  async getUserReviews(userId) {
+    console.log("reviewService.getUserReviews called with:", userId);
     try {
-      const response = await api.get(`/users/${userId}/library`);
+      const response = await api.get(`/users/${userId}/reviews`);
       console.log("externalApiService.getUserLibrary API response:", response);
       return { success: true, data: response.data };
     } catch (error) {
