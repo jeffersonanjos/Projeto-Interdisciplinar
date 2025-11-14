@@ -8,6 +8,8 @@
   color: var(--text-primary);
   font-family: 'Press Start 2P', monospace;
   transition: background-color 0.3s ease, color 0.3s ease;
+  position: relative;
+  z-index: 5; /* Acima das pilastras, mas permite que header e nav fiquem acima */
 }
 
 /* Cabeçalho do dashboard */
@@ -21,6 +23,8 @@
   border-bottom: 3px solid var(--border-color);
   box-shadow: 0 4px 8px var(--shadow);
   transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  position: relative;
+  z-index: 10; /* Acima das pilastras */
 }
 
 .dashboard-title {
@@ -78,6 +82,8 @@
   gap: 10px;
   overflow-x: auto;
   transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  position: relative;
+  z-index: 10; /* Acima das pilastras */
 }
 
 .nav-button {

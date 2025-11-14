@@ -19,6 +19,8 @@
 
 .App {
   min-height: 100vh;
+  position: relative;
+  z-index: 2; /* Acima das pilastras */
 }
 
 /* Estilos para links */

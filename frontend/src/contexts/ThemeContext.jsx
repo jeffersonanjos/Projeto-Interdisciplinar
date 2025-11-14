@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import backgroundLight from '../assets/background-light.jpeg';
-import backgroundDark from '../assets/background-dark.jpeg';
+import backgroundLight from '../assets/background-light.bmp';
+import backgroundDark from '../assets/background-dark.bmp';
 
 const ThemeContext = createContext();
 
@@ -34,12 +34,18 @@ export const ThemeProvider = ({ children }) => {
       // Definir background image para dark mode
       root.style.setProperty('--bg-image', `url(${backgroundDark})`);
       body.style.backgroundImage = `url(${backgroundDark})`;
+      body.style.backgroundSize = 'contain';
+      body.style.backgroundPosition = 'center center';
+      body.style.backgroundRepeat = 'no-repeat';
     } else {
       root.classList.add('light-mode');
       root.classList.remove('dark-mode');
       // Definir background image para light mode
       root.style.setProperty('--bg-image', `url(${backgroundLight})`);
       body.style.backgroundImage = `url(${backgroundLight})`;
+      body.style.backgroundSize = 'contain';
+      body.style.backgroundPosition = 'center center';
+      body.style.backgroundRepeat = 'no-repeat';
     }
     
     // Salvar preferência

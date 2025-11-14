@@ -1,0 +1,80 @@
+/* Componente de Pilastras com efeito parallax */
+
+.pilaster {
+  position: fixed;
+  top: 0;
+  width: 300px; /* Largura suficiente para cobrir as áreas verdes */
+  height: 100vh;
+  min-height: 100vh;
+  max-height: 100vh;
+  z-index: 0; /* Abaixo de todo o conteúdo, incluindo navegação */
+  pointer-events: none; /* Não interfere com cliques */
+  will-change: transform; /* Otimização de performance */
+  background-size: cover; /* Cobre toda a área, pode cortar a imagem */
+  background-repeat: no-repeat;
+  filter: drop-shadow(6px 0 12px rgba(0, 0, 0, 0.4)) 
+          drop-shadow(-2px 0 4px rgba(0, 0, 0, 0.2));
+  image-rendering: pixelated; /* Mantém o estilo pixel art */
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  overflow: hidden; /* Garante que não ultrapasse os limites */
+}
+
+.pilaster-left {
+  left: 0;
+  transform-origin: left top;
+  background-position: right bottom; /* Mostra a parte direita (interna) e inferior da pilastra */
+}
+
+.pilaster-right {
+  right: 0;
+  transform-origin: right top;
+  background-position: left bottom; /* Mostra a parte esquerda (interna) e inferior da pilastra */
+}
+
+/* Efeito 3D com sombras e profundidade */
+.pilaster-left::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0.2) 0%,
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+.pilaster-right::before {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to left,
+    rgba(0, 0, 0, 0.2) 0%,
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Responsividade - mantém largura automática baseada na imagem */
+@media (max-width: 768px) {
+  .pilaster img {
+    max-width: 80px;
+  }
+}
+
+@media (max-width: 480px) {
+  .pilaster img {
+    max-width: 60px;
+  }
+}
+
