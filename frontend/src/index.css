@@ -8,7 +8,7 @@
   box-sizing: border-box;
 }
 
-/* Variáveis de tema */
+/* Variáveis de tema - Light Mode (padrão) */
 :root {
   --green: #1f5a2d; /* updated to requested color */
   --green-dark: #1f5a2d;
@@ -17,6 +17,50 @@
   --brown: #8b4513; /* marrom principal */
   --brown-light: #a0522d; /* marrom claro para hovers/bordas */
   --shadow: rgba(0, 0, 0, 0.12);
+  
+  /* Cores de fundo e texto */
+  --bg-primary: #1f5a2d;
+  --bg-secondary: #FFF8E7;
+  --bg-tertiary: #ffffff;
+  --text-primary: #FFF8E7;
+  --text-secondary: #1f5a2d;
+  --text-tertiary: #8b4513;
+  --border-color: #8b4513;
+  --border-color-light: #a0522d;
+  --error-bg: #ffebee;
+  --error-text: #c62828;
+  --error-border: #ffcdd2;
+  --modal-overlay: rgba(0, 0, 0, 0.7);
+  
+  /* Background images - será definido via JavaScript */
+  --bg-image: none;
+}
+
+/* Variáveis de tema - Dark Mode */
+:root.dark-mode {
+  --green: #4a9f63; /* verde mais claro para dark mode */
+  --green-dark: #2d7c3f;
+  --offwhite: #1a1a1a; /* quase preto */
+  --white: #2d2d2d; /* cinza escuro */
+  --brown: #b8860b; /* dourado escuro */
+  --brown-light: #daa520; /* dourado claro */
+  --shadow: rgba(0, 0, 0, 0.5);
+  
+  /* Cores de fundo e texto para dark mode */
+  --bg-primary: #0f1f15; /* verde muito escuro */
+  --bg-secondary: #1a1a1a; /* quase preto */
+  --bg-tertiary: #2d2d2d; /* cinza escuro */
+  --text-primary: #e8e8e8; /* quase branco */
+  --text-secondary: #4a9f63; /* verde claro */
+  --text-tertiary: #daa520; /* dourado claro */
+  --border-color: #b8860b; /* dourado escuro */
+  --border-color-light: #daa520; /* dourado claro */
+  --error-bg: #3d1f1f;
+  --error-text: #ff6b6b;
+  --error-border: #5a2a2a;
+  --modal-overlay: rgba(0, 0, 0, 0.85);
+  
+  /* Background image para dark mode - será definido via JavaScript */
 }
 
 /* Estilos base */
@@ -27,12 +71,23 @@ html {
 body {
   font-family: 'Press Start 2P', monospace;
   line-height: 1.6;
-  background: var(--green);
-  color: var(--offwhite);
+  background-image: var(--bg-image);
+  background-color: transparent;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  color: var(--text-primary);
   min-height: 100vh;
   margin: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s ease, color 0.3s ease, background-image 0.3s ease;
+}
+
+/* Fallback para quando a imagem não carregar */
+body:not([style*="background-image"]) {
+  background-color: var(--bg-primary);
 }
 
 /* Estilos para elementos de texto */
@@ -43,24 +98,27 @@ h1, h2, h3, h4, h5, h6 {
 
 h1 {
   font-size: 2.5rem;
-  color: var(--offwhite);
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 h2 {
   font-size: 2rem;
-  color: var(--offwhite);
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 h3 {
   font-size: 1.5rem;
-  color: var(--offwhite);
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 /* Estilos para links */
 a {
-  color: var(--offwhite);
+  color: var(--text-primary);
   text-decoration: none;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.3s ease, color 0.3s ease;
 }
 
 a:hover {
@@ -78,7 +136,7 @@ button {
 }
 
 button:focus {
-  outline: 2px solid var(--offwhite);
+  outline: 2px solid var(--text-primary);
   outline-offset: 2px;
 }
 
@@ -94,7 +152,7 @@ input, textarea, select {
 }
 
 input:focus, textarea:focus, select:focus {
-  outline: 2px solid var(--offwhite);
+  outline: 2px solid var(--text-primary);
   outline-offset: 2px;
 }
 
@@ -111,16 +169,29 @@ form {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--white);
+  background: var(--bg-tertiary);
+  transition: background 0.3s ease;
 }
 
 ::-webkit-scrollbar-thumb {
   background: var(--green-dark);
   border-radius: 4px;
+  transition: background 0.3s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--green);
+  transition: background 0.3s ease;
+}
+
+/* Transições globais para mudança de tema - aplicadas apenas a elementos que mudam de cor */
+html, body, 
+h1, h2, h3, h4, h5, h6,
+a, button, input, textarea, select,
+.dashboard-container, .auth-container,
+.dashboard-header, .dashboard-nav, .dashboard-card,
+.auth-card, .form-input, .auth-button {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 /* Animações */

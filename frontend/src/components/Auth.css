@@ -1,16 +1,7 @@
 /* Importar a fonte Press Start 2P */
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
-/* Variáveis de tema (herdadas de index.css) */
-:root {
-  --green: #1f5a2d;
-  --green-dark: #1f5a2d;
-  --offwhite: #FFF8E7;
-  --white: #ffffff;
-  --brown: #8b4513;
-  --brown-light: #a0522d;
-  --shadow: rgba(0, 0, 0, 0.12);
-}
+/* Variáveis de tema são herdadas de index.css */
 
 /* Reset e estilos base */
 * {
@@ -21,9 +12,10 @@
 
 body {
   font-family: 'Press Start 2P', monospace;
-  background: var(--green);
+  background: var(--bg-primary);
   min-height: 100vh;
-  color: var(--offwhite);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Container principal de autenticação */
@@ -33,19 +25,21 @@ body {
   align-items: center;
   justify-content: center;
   padding: 20px;
-  background: var(--green);
+  background: transparent;
+  transition: background-color 0.3s ease;
 }
 
 /* Card de autenticação */
 .auth-card {
-  background: var(--offwhite);
-  color: var(--green);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
   border-radius: 15px;
   padding: 40px;
   box-shadow: 0 10px 30px var(--shadow);
   width: 100%;
   max-width: 400px;
-  border: 3px solid var(--brown);
+  border: 3px solid var(--border-color);
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
 /* Cabeçalho */
@@ -56,14 +50,16 @@ body {
 
 .auth-title {
   font-size: 24px;
-  color: var(--green-dark);
+  color: var(--text-secondary);
   margin-bottom: 10px;
+  transition: color 0.3s ease;
 }
 
 .auth-subtitle {
   font-size: 12px;
-  color: var(--brown);
+  color: var(--text-tertiary);
   font-weight: normal;
+  transition: color 0.3s ease;
 }
 
 /* Formulário */
@@ -81,36 +77,38 @@ body {
 
 .form-label {
   font-size: 10px;
-  color: var(--green-dark);
+  color: var(--text-secondary);
   font-weight: bold;
+  transition: color 0.3s ease;
 }
 
 .form-input {
   padding: 12px;
-  border: 2px solid var(--brown);
+  border: 2px solid var(--border-color);
   border-radius: 8px;
   font-family: 'Press Start 2P', monospace;
   font-size: 10px;
-  background: var(--white);
-  color: var(--green-dark);
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
   transition: all 0.3s ease;
 }
 
 .form-input:focus {
   outline: none;
-  border-color: var(--brown-light);
+  border-color: var(--border-color-light);
   box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.12);
 }
 
 .form-input::placeholder {
-  color: var(--brown-light);
+  color: var(--text-tertiary);
   font-size: 9px;
+  opacity: 0.7;
 }
 
 /* Botão de autenticação */
 .auth-button {
   background: var(--green);
-  color: var(--offwhite);
+  color: var(--text-primary);
   border: 2px solid var(--green);
   padding: 15px;
   border-radius: 8px;
@@ -143,14 +141,15 @@ body {
 
 /* Mensagem de erro */
 .error-message {
-  background: #ffebee;
-  color: #c62828;
+  background: var(--error-bg);
+  color: var(--error-text);
   padding: 10px;
   border-radius: 8px;
   font-size: 9px;
   text-align: center;
-  border: 2px solid #ffcdd2;
+  border: 2px solid var(--error-border);
   animation: shake 0.5s ease-in-out;
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
 @keyframes shake {
@@ -167,14 +166,14 @@ body {
 }
 
 .auth-link {
-  color: var(--brown);
+  color: var(--text-tertiary);
   text-decoration: none;
   font-weight: bold;
   transition: color 0.3s ease;
 }
 
 .auth-link:hover {
-  color: var(--brown-light);
+  color: var(--border-color-light);
   text-decoration: underline;
 }
 

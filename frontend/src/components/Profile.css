@@ -15,14 +15,18 @@
 
 .profile-header h2 {
   font-size: 18px;
-  color: var(--offwhite);
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 .edit-button {
   padding: 10px 20px;
-  background: var(--offwhite);
-  color: var(--green);
-  border: 2px solid var(--brown);
+  background: var(--bg-secondary);
+  transition: background-color 0.3s ease;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
+  border: 2px solid var(--border-color);
+  transition: border-color 0.3s ease;
   border-radius: 8px;
   font-size: 9px;
   cursor: pointer;
@@ -33,8 +37,9 @@
 
 .edit-button:hover {
   transform: translateY(-2px);
-  background: var(--white);
-  border-color: var(--brown-light);
+  background: var(--bg-tertiary);
+  transition: background-color 0.3s ease;
+  border-color: var(--border-color-light);
   box-shadow: 0 6px 12px var(--shadow);
 }
 
@@ -55,8 +60,10 @@
   aspect-ratio: 1;
   border-radius: 15px;
   overflow: hidden;
-  border: 3px solid var(--brown);
-  background: var(--offwhite);
+  border: 3px solid var(--border-color);
+  transition: border-color 0.3s ease;
+  background: var(--bg-secondary);
+  transition: background-color 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -75,8 +82,10 @@
   align-items: center;
   justify-content: center;
   font-size: 80px;
-  color: var(--brown);
-  background: var(--offwhite);
+  color: var(--text-tertiary);
+  transition: color 0.3s ease;
+  background: var(--bg-secondary);
+  transition: background-color 0.3s ease;
 }
 
 .profile-stats {
@@ -86,42 +95,50 @@
 }
 
 .stat-card {
-  background: var(--offwhite);
+  background: var(--bg-secondary);
+  transition: background-color 0.3s ease;
   padding: 20px;
   border-radius: 15px;
-  border: 3px solid var(--brown);
+  border: 3px solid var(--border-color);
+  transition: border-color 0.3s ease;
   text-align: center;
   box-shadow: 0 8px 16px var(--shadow);
 }
 
 .stat-card h3 {
   font-size: 24px;
-  color: var(--green);
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
   margin-bottom: 8px;
 }
 
 .stat-card p {
   font-size: 10px;
-  color: var(--brown);
+  color: var(--text-tertiary);
+  transition: color 0.3s ease;
 }
 
 .profile-main {
-  background: var(--offwhite);
+  background: var(--bg-secondary);
+  transition: background-color 0.3s ease;
   border-radius: 15px;
   padding: 30px;
-  border: 3px solid var(--brown);
+  border: 3px solid var(--border-color);
+  transition: border-color 0.3s ease;
   box-shadow: 0 8px 16px var(--shadow);
 }
 
 .profile-info h3 {
   font-size: 20px;
-  color: var(--green);
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
   margin-bottom: 10px;
 }
 
 .profile-email {
   font-size: 10px;
-  color: var(--brown);
+  color: var(--text-tertiary);
+  transition: color 0.3s ease;
   margin-bottom: 20px;
 }
 
@@ -131,7 +148,8 @@
 
 .profile-bio p {
   font-size: 10px;
-  color: var(--green);
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
   line-height: 1.8;
 }
 
@@ -151,7 +169,8 @@
 .profile-form label {
   display: block;
   font-size: 10px;
-  color: var(--green);
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
   margin-bottom: 8px;
 }
 
@@ -159,11 +178,14 @@
 .profile-form .form-textarea {
   width: 100%;
   padding: 12px;
-  border: 2px solid var(--brown);
+  border: 2px solid var(--border-color);
+  transition: border-color 0.3s ease;
   border-radius: 8px;
   font-size: 10px;
-  background: var(--white);
-  color: var(--green);
+  background: var(--bg-tertiary);
+  transition: background-color 0.3s ease;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
   font-family: 'Press Start 2P', monospace;
 }
 
@@ -191,20 +213,27 @@
 }
 
 .cancel-button {
-  background: var(--offwhite);
-  color: var(--green);
-  border: 2px solid var(--brown);
+  background: var(--bg-secondary);
+  transition: background-color 0.3s ease;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
+  border: 2px solid var(--border-color);
+  transition: border-color 0.3s ease;
 }
 
 .cancel-button:hover {
-  background: var(--white);
-  border-color: var(--brown-light);
+  background: var(--bg-tertiary);
+  transition: background-color 0.3s ease;
+  border-color: var(--border-color-light);
 }
 
 .save-button {
-  background: var(--offwhite);
-  color: var(--green);
-  border: 2px solid var(--brown);
+  background: var(--bg-secondary);
+  transition: background-color 0.3s ease;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
+  border: 2px solid var(--border-color);
+  transition: border-color 0.3s ease;
 }
 
 .save-button:hover {
@@ -215,7 +244,8 @@
 .loading-container {
   text-align: center;
   padding: 60px 20px;
-  color: var(--offwhite);
+  color: var(--text-primary);
+  transition: color 0.3s ease;
   font-size: 12px;
 }
 
@@ -226,12 +256,14 @@
   align-items: center;
   justify-content: center;
   font-size: 12px;
-  color: var(--brown);
-  background: var(--offwhite);
+  color: var(--text-tertiary);
+  transition: color 0.3s ease;
+  background: var(--bg-secondary);
+  transition: background-color 0.3s ease;
 }
 
 .profile-avatar:hover {
-  border-color: var(--brown-light);
+  border-color: var(--border-color-light);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
@@ -293,7 +325,8 @@
 .delete-profile-button {
   width: 100%;
   padding: 12px;
-  background: var(--offwhite);
+  background: var(--bg-secondary);
+  transition: background-color 0.3s ease;
   color: #c62828;
   border: 2px solid #c62828;
   border-radius: 8px;
@@ -306,7 +339,8 @@
 
 .delete-profile-button:hover {
   background: #c62828;
-  color: var(--offwhite);
+  color: var(--text-primary);
+  transition: color 0.3s ease;
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(198, 40, 40, 0.3);
 }
@@ -314,9 +348,12 @@
 .edit-account-button {
   width: 100%;
   padding: 12px;
-  background: var(--offwhite);
-  color: var(--green);
-  border: 2px solid var(--brown);
+  background: var(--bg-secondary);
+  transition: background-color 0.3s ease;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
+  border: 2px solid var(--border-color);
+  transition: border-color 0.3s ease;
   border-radius: 8px;
   font-size: 9px;
   cursor: pointer;
@@ -327,8 +364,9 @@
 }
 
 .edit-account-button:hover {
-  background: var(--white);
-  border-color: var(--brown-light);
+  background: var(--bg-tertiary);
+  transition: background-color 0.3s ease;
+  border-color: var(--border-color-light);
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
@@ -344,24 +382,29 @@
 .account-edit-form label {
   display: block;
   font-size: 10px;
-  color: var(--green);
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
   margin-bottom: 8px;
 }
 
 .account-edit-form .form-input {
   width: 100%;
   padding: 12px;
-  border: 2px solid var(--brown);
+  border: 2px solid var(--border-color);
+  transition: border-color 0.3s ease;
   border-radius: 8px;
   font-size: 10px;
-  background: var(--white);
-  color: var(--green);
+  background: var(--bg-tertiary);
+  transition: background-color 0.3s ease;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
   font-family: 'Press Start 2P', monospace;
 }
 
 .modal-description {
   font-size: 9px;
-  color: var(--brown);
+  color: var(--text-tertiary);
+  transition: color 0.3s ease;
   margin-bottom: 20px;
   line-height: 1.6;
 }
@@ -379,7 +422,8 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: var(--modal-overlay);
+  transition: background-color 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -388,19 +432,22 @@
 }
 
 .modal-content {
-  background: var(--offwhite);
+  background: var(--bg-secondary);
+  transition: background-color 0.3s ease;
   border-radius: 15px;
   padding: 30px;
   max-width: 500px;
   width: 100%;
-  border: 3px solid var(--brown);
+  border: 3px solid var(--border-color);
+  transition: border-color 0.3s ease;
   box-shadow: 0 10px 30px var(--shadow);
   position: relative;
 }
 
 .modal-content h3 {
   font-size: 16px;
-  color: var(--brown);
+  color: var(--text-tertiary);
+  transition: color 0.3s ease;
   margin-bottom: 20px;
 }
 
@@ -411,9 +458,12 @@
   width: 32px;
   height: 32px;
   border-radius: 8px;
-  border: 2px solid var(--brown);
-  background: var(--offwhite);
-  color: var(--brown);
+  border: 2px solid var(--border-color);
+  transition: border-color 0.3s ease;
+  background: var(--bg-secondary);
+  transition: background-color 0.3s ease;
+  color: var(--text-tertiary);
+  transition: color 0.3s ease;
   font-size: 18px;
   line-height: 1;
   display: flex;
@@ -424,17 +474,21 @@
 }
 
 .modal-close-button:hover {
-  background: var(--white);
-  border-color: var(--brown-light);
+  background: var(--bg-tertiary);
+  transition: background-color 0.3s ease;
+  border-color: var(--border-color-light);
 }
 
 .modal-feedback {
-  background: var(--white);
-  border: 2px solid var(--brown);
+  background: var(--bg-tertiary);
+  transition: background-color 0.3s ease;
+  border: 2px solid var(--border-color);
+  transition: border-color 0.3s ease;
   border-radius: 10px;
   padding: 12px;
   font-size: 10px;
-  color: var(--green);
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
   text-align: center;
   margin-bottom: 20px;
 }
@@ -456,9 +510,12 @@
   transition: all 0.3s ease;
   text-transform: uppercase;
   letter-spacing: 1px;
-  background: var(--offwhite);
-  color: var(--green);
-  border: 2px solid var(--brown);
+  background: var(--bg-secondary);
+  transition: background-color 0.3s ease;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
+  border: 2px solid var(--border-color);
+  transition: border-color 0.3s ease;
 }
 
 .submit-button:hover {

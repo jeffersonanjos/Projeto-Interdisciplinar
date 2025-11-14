@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import ThemeToggle from './ThemeToggle';
 console.log("Login component loaded");
 import './Auth.css';
 
@@ -58,6 +59,9 @@ const Login = () => {
 
   return (
     <div className="auth-container">
+      <div style={{ position: 'absolute', top: '20px', right: '20px' }}>
+        <ThemeToggle />
+      </div>
       <div className="auth-card">
         <div className="auth-header">
           <h1 className="auth-title">Alexandria</h1>

@@ -5,6 +5,7 @@ import Search from './Search';
 import Library from './Library';
 import Recommendations from './Recommendations';
 import Profile from './Profile';
+import ThemeToggle from './ThemeToggle';
 import { ratingService, reviewService } from '../services/apiService';
 import './Dashboard.css';
 
@@ -101,6 +102,7 @@ const Dashboard = () => {
           Alexandria
         </h1>
         <div className="user-info">
+          <ThemeToggle />
           <span className="welcome-text">Bem-vindo, {user?.username}!</span>
           <button onClick={handleLogout} className="logout-button">
             Sair

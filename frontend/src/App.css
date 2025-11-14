@@ -8,21 +8,13 @@
   box-sizing: border-box;
 }
 
-/* Variáveis de tema (herdadas de index.css) */
-:root {
-  --green: #2d7c3f;
-  --green-dark: #1f5a2d;
-  --offwhite: #FFF8E7;
-  --white: #ffffff;
-  --shadow: rgba(0, 0, 0, 0.12);
-}
-
 /* Estilos base da aplicação */
 #root {
   min-height: 100vh;
   font-family: 'Press Start 2P', monospace;
-  background: var(--green);
-  color: var(--offwhite);
+  background: transparent;
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .App {
@@ -31,9 +23,9 @@
 
 /* Estilos para links */
 a {
-  color: var(--offwhite);
+  color: var(--text-primary);
   text-decoration: none;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.3s ease, color 0.3s ease;
 }
 
 a:hover {
@@ -49,7 +41,7 @@ button {
 }
 
 button:focus {
-  outline: 2px solid var(--offwhite);
+  outline: 2px solid var(--text-primary);
   outline-offset: 2px;
 }
 
@@ -59,7 +51,7 @@ input {
 }
 
 input:focus {
-  outline: 2px solid var(--offwhite);
+  outline: 2px solid var(--text-primary);
   outline-offset: 2px;
 }
 
@@ -69,14 +61,17 @@ input:focus {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--white);
+  background: var(--bg-tertiary);
+  transition: background 0.3s ease;
 }
 
 ::-webkit-scrollbar-thumb {
   background: var(--green-dark);
   border-radius: 4px;
+  transition: background 0.3s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--green);
+  transition: background 0.3s ease;
 }

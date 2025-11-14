@@ -15,7 +15,8 @@
 
 .search-header h2 {
   font-size: 18px;
-  color: var(--offwhite);
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 .search-type-toggle {
@@ -27,21 +28,27 @@
   padding: 10px 20px;
   border-radius: 8px;
   font-size: 9px;
-  background: var(--offwhite);
-  color: var(--green);
-  border: 2px solid var(--brown);
+  background: var(--bg-secondary);
+  transition: background-color 0.3s ease;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
+  border: 2px solid var(--border-color);
+  transition: border-color 0.3s ease;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .search-type-toggle button:hover {
-  background: var(--white);
-  border-color: var(--brown-light);
+  background: var(--bg-tertiary);
+  transition: background-color 0.3s ease;
+  border-color: var(--border-color-light);
 }
 
 .search-type-toggle button.active {
-  background: var(--white);
-  color: var(--green);
+  background: var(--bg-tertiary);
+  transition: background-color 0.3s ease;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
   border-color: var(--brown);
 }
 
@@ -59,24 +66,30 @@
 .search-input {
   flex: 1;
   padding: 15px;
-  border: 2px solid var(--brown);
+  border: 2px solid var(--border-color);
+  transition: border-color 0.3s ease;
   border-radius: 8px;
   font-size: 10px;
-  background: var(--offwhite);
-  color: var(--green);
+  background: var(--bg-secondary);
+  transition: background-color 0.3s ease;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
 }
 
 .search-input:focus {
   outline: none;
-  border-color: var(--brown-light);
+  border-color: var(--border-color-light);
   box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.12);
 }
 
 .search-button {
   padding: 15px 30px;
-  background: var(--offwhite);
-  color: var(--green);
-  border: 2px solid var(--brown);
+  background: var(--bg-secondary);
+  transition: background-color 0.3s ease;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
+  border: 2px solid var(--border-color);
+  transition: border-color 0.3s ease;
   border-radius: 8px;
   font-size: 10px;
   cursor: pointer;
@@ -86,8 +99,9 @@
 }
 
 .search-button:hover:not(:disabled) {
-  background: var(--white);
-  border-color: var(--brown-light);
+  background: var(--bg-tertiary);
+  transition: background-color 0.3s ease;
+  border-color: var(--border-color-light);
   transform: translateY(-2px);
 }
 
@@ -98,7 +112,8 @@
 
 .search-results h3 {
   font-size: 14px;
-  color: var(--offwhite);
+  color: var(--text-primary);
+  transition: color 0.3s ease;
   margin-bottom: 20px;
 }
 
@@ -109,10 +124,12 @@
 }
 
 .result-card {
-  background: var(--offwhite);
+  background: var(--bg-secondary);
+  transition: background-color 0.3s ease;
   border-radius: 15px;
   padding: 20px;
-  border: 3px solid var(--brown);
+  border: 3px solid var(--border-color);
+  transition: border-color 0.3s ease;
   box-shadow: 0 8px 16px var(--shadow);
   transition: all 0.3s ease;
   display: flex;
@@ -130,25 +147,29 @@
   height: 200px;
   object-fit: cover;
   border-radius: 8px;
-  border: 2px solid var(--brown);
+  border: 2px solid var(--border-color);
+  transition: border-color 0.3s ease;
 }
 
 .result-info h4 {
   font-size: 12px;
-  color: var(--green);
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
   margin-bottom: 8px;
   line-height: 1.4;
 }
 
 .result-author {
   font-size: 9px;
-  color: var(--brown);
+  color: var(--text-tertiary);
+  transition: color 0.3s ease;
   margin-bottom: 10px;
 }
 
 .result-description {
   font-size: 8px;
-  color: var(--green);
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
   line-height: 1.6;
   flex: 1;
   opacity: 0.9;
@@ -156,9 +177,12 @@
 
 .add-button {
   padding: 10px 15px;
-  background: var(--offwhite);
-  color: var(--green);
-  border: 2px solid var(--brown);
+  background: var(--bg-secondary);
+  transition: background-color 0.3s ease;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
+  border: 2px solid var(--border-color);
+  transition: border-color 0.3s ease;
   border-radius: 8px;
   font-size: 8px;
   cursor: pointer;
@@ -169,15 +193,17 @@
 }
 
 .add-button:hover {
-  background: var(--white);
-  border-color: var(--brown-light);
+  background: var(--bg-tertiary);
+  transition: background-color 0.3s ease;
+  border-color: var(--border-color-light);
   transform: translateY(-2px);
 }
 
 .no-results {
   text-align: center;
   padding: 40px;
-  color: var(--offwhite);
+  color: var(--text-primary);
+  transition: color 0.3s ease;
   font-size: 12px;
 }
 

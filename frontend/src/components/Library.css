@@ -15,7 +15,8 @@
 
 .library-header h2 {
   font-size: 18px;
-  color: var(--offwhite);
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 .library-type-toggle {
@@ -27,28 +28,35 @@
   padding: 10px 20px;
   border-radius: 8px;
   font-size: 9px;
-  background: var(--offwhite);
-  color: var(--green);
-  border: 2px solid var(--brown);
+  background: var(--bg-secondary);
+  transition: background-color 0.3s ease;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
+  border: 2px solid var(--border-color);
+  transition: border-color 0.3s ease;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .library-type-toggle button:hover {
-  background: var(--white);
-  border-color: var(--brown-light);
+  background: var(--bg-tertiary);
+  transition: background-color 0.3s ease;
+  border-color: var(--border-color-light);
 }
 
 .library-type-toggle button.active {
-  background: var(--white);
-  color: var(--green);
+  background: var(--bg-tertiary);
+  transition: background-color 0.3s ease;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
   border-color: var(--brown);
 }
 
 .empty-library {
   text-align: center;
   padding: 60px 20px;
-  color: var(--offwhite);
+  color: var(--text-primary);
+  transition: color 0.3s ease;
   font-size: 12px;
 }
 
@@ -95,7 +103,8 @@
 
 .library-compact .book-title {
   margin-top: 8px;
-  color: var(--green);
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
   font-weight: bold;
   font-size: 12px;
   text-align: center;
@@ -116,10 +125,12 @@
 }
 
 .library-card {
-  background: var(--offwhite);
+  background: var(--bg-secondary);
+  transition: background-color 0.3s ease;
   border-radius: 15px;
   padding: 25px;
-  border: 3px solid var(--brown);
+  border: 3px solid var(--border-color);
+  transition: border-color 0.3s ease;
   box-shadow: 0 8px 16px var(--shadow);
   transition: all 0.3s ease;
 }
@@ -131,7 +142,8 @@
 
 .library-card-header h3 {
   font-size: 14px;
-  color: var(--brown);
+  color: var(--text-tertiary);
+  transition: color 0.3s ease;
   margin-bottom: 15px;
 }
 
@@ -147,7 +159,8 @@
 
 .static-star {
   font-size: 20px;
-  color: var(--brown-light);
+  color: var(--border-color-light);
+  transition: color 0.3s ease;
 }
 
 .static-star.filled {
@@ -156,7 +169,8 @@
 
 .score-number {
   font-size: 10px;
-  color: var(--brown);
+  color: var(--text-tertiary);
+  transition: color 0.3s ease;
 }
 
 .rating-modal {
@@ -171,9 +185,12 @@
   width: 32px;
   height: 32px;
   border-radius: 8px;
-  border: 2px solid var(--brown);
-  background: var(--offwhite);
-  color: var(--brown);
+  border: 2px solid var(--border-color);
+  transition: border-color 0.3s ease;
+  background: var(--bg-secondary);
+  transition: background-color 0.3s ease;
+  color: var(--text-tertiary);
+  transition: color 0.3s ease;
   font-size: 18px;
   line-height: 1;
   display: flex;
@@ -184,8 +201,9 @@
 }
 
 .modal-close-button:hover {
-  background: var(--white);
-  border-color: var(--brown-light);
+  background: var(--bg-tertiary);
+  transition: background-color 0.3s ease;
+  border-color: var(--border-color-light);
 }
 
 .modal-close-button:focus {
@@ -194,12 +212,15 @@
 }
 
 .modal-feedback {
-  background: var(--white);
-  border: 2px solid var(--brown);
+  background: var(--bg-tertiary);
+  transition: background-color 0.3s ease;
+  border: 2px solid var(--border-color);
+  transition: border-color 0.3s ease;
   border-radius: 10px;
   padding: 12px;
   font-size: 10px;
-  color: var(--green);
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
   text-align: center;
   margin-bottom: 20px;
 }
@@ -222,8 +243,10 @@
   height: 42px;
   border-radius: 10px;
   border: 2px solid transparent;
-  background: var(--offwhite);
-  color: var(--brown-light);
+  background: var(--bg-secondary);
+  transition: background-color 0.3s ease;
+  color: var(--border-color-light);
+  transition: color 0.3s ease;
   font-size: 22px;
   display: flex;
   align-items: center;
@@ -237,8 +260,9 @@
 .star-button.active {
   color: #ffd700;
   transform: translateY(-2px);
-  border-color: var(--brown-light);
-  background: var(--white);
+  border-color: var(--border-color-light);
+  background: var(--bg-tertiary);
+  transition: background-color 0.3s ease;
 }
 
 .star-button:focus {
@@ -249,7 +273,8 @@
 .rating-hint {
   text-align: center;
   font-size: 9px;
-  color: var(--green);
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
 }
 
 .rating-summary {
@@ -269,12 +294,14 @@
 
 .rating-summary-comment p {
   font-size: 10px;
-  color: var(--green);
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
   line-height: 1.6;
 }
 
 .rating-summary-comment .empty-comment {
-  color: var(--brown);
+  color: var(--text-tertiary);
+  transition: color 0.3s ease;
   opacity: 0.7;
 }
 
@@ -287,8 +314,10 @@
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  border: 2px solid var(--brown);
-  background: var(--offwhite);
+  border: 2px solid var(--border-color);
+  transition: border-color 0.3s ease;
+  background: var(--bg-secondary);
+  transition: background-color 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -302,7 +331,8 @@
 
 .icon-button.edit {
   border-color: var(--green);
-  color: var(--green);
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
 }
 
 .icon-button.delete {
@@ -311,7 +341,8 @@
 }
 
 .icon-button:hover {
-  background: var(--white);
+  background: var(--bg-tertiary);
+  transition: background-color 0.3s ease;
   transform: translateY(-2px);
 }
 
@@ -325,9 +356,12 @@
   width: 100%;
   padding: 12px;
   border-radius: 8px;
-  border: 2px solid var(--brown);
-  background: var(--offwhite);
-  color: var(--green);
+  border: 2px solid var(--border-color);
+  transition: border-color 0.3s ease;
+  background: var(--bg-secondary);
+  transition: background-color 0.3s ease;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
   font-size: 9px;
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -335,16 +369,20 @@
 }
 
 .close-button:hover {
-  background: var(--white);
-  border-color: var(--brown-light);
+  background: var(--bg-tertiary);
+  transition: background-color 0.3s ease;
+  border-color: var(--border-color-light);
   transform: translateY(-2px);
 }
 .rate-button {
   width: 100%;
   padding: 10px;
-  background: var(--offwhite);
-  color: var(--green);
-  border: 2px solid var(--brown);
+  background: var(--bg-secondary);
+  transition: background-color 0.3s ease;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
+  border: 2px solid var(--border-color);
+  transition: border-color 0.3s ease;
   border-radius: 8px;
   font-size: 9px;
   cursor: pointer;
@@ -358,15 +396,17 @@
 }
 
 .rate-button:hover {
-  background: var(--white);
-  border-color: var(--brown-light);
+  background: var(--bg-tertiary);
+  transition: background-color 0.3s ease;
+  border-color: var(--border-color-light);
   transform: translateY(-2px);
 }
 
 .remove-button {
   width: 100%;
   padding: 10px;
-  background: var(--offwhite);
+  background: var(--bg-secondary);
+  transition: background-color 0.3s ease;
   color: #c62828;
   border: 2px solid #c62828;
   border-radius: 8px;
@@ -384,7 +424,8 @@
 
 .remove-button:hover {
   background: #c62828;
-  color: var(--offwhite);
+  color: var(--text-primary);
+  transition: color 0.3s ease;
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(198, 40, 40, 0.3);
 }
@@ -396,7 +437,8 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: var(--modal-overlay);
+  transition: background-color 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -405,18 +447,21 @@
 }
 
 .modal-content {
-  background: var(--offwhite);
+  background: var(--bg-secondary);
+  transition: background-color 0.3s ease;
   border-radius: 15px;
   padding: 30px;
   max-width: 500px;
   width: 100%;
-  border: 3px solid var(--brown);
+  border: 3px solid var(--border-color);
+  transition: border-color 0.3s ease;
   box-shadow: 0 10px 30px var(--shadow);
 }
 
 .modal-content h3 {
   font-size: 16px;
-  color: var(--brown);
+  color: var(--text-tertiary);
+  transition: color 0.3s ease;
   margin-bottom: 20px;
 }
 
@@ -427,7 +472,8 @@
 .modal-content .form-group label {
   display: block;
   font-size: 10px;
-  color: var(--green);
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
   margin-bottom: 8px;
 }
 
@@ -435,11 +481,14 @@
 .modal-content .form-textarea {
   width: 100%;
   padding: 12px;
-  border: 2px solid var(--brown);
+  border: 2px solid var(--border-color);
+  transition: border-color 0.3s ease;
   border-radius: 8px;
   font-size: 10px;
-  background: var(--white);
-  color: var(--green);
+  background: var(--bg-tertiary);
+  transition: background-color 0.3s ease;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
   font-family: 'Press Start 2P', monospace;
 }
 
@@ -469,20 +518,27 @@
 }
 
 .cancel-button {
-  background: var(--offwhite);
-  color: var(--green);
-  border: 2px solid var(--brown);
+  background: var(--bg-secondary);
+  transition: background-color 0.3s ease;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
+  border: 2px solid var(--border-color);
+  transition: border-color 0.3s ease;
 }
 
 .cancel-button:hover {
-  background: var(--white);
-  border-color: var(--brown-light);
+  background: var(--bg-tertiary);
+  transition: background-color 0.3s ease;
+  border-color: var(--border-color-light);
 }
 
 .submit-button {
-  background: var(--offwhite);
-  color: var(--green);
-  border: 2px solid var(--brown);
+  background: var(--bg-secondary);
+  transition: background-color 0.3s ease;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
+  border: 2px solid var(--border-color);
+  transition: border-color 0.3s ease;
 }
 
 .submit-button:hover {
@@ -500,7 +556,8 @@
 .loading-container {
   text-align: center;
   padding: 60px 20px;
-  color: var(--offwhite);
+  color: var(--text-primary);
+  transition: color 0.3s ease;
   font-size: 12px;
 }
 
