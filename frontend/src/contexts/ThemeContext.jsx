@@ -24,29 +24,46 @@ export const ThemeProvider = ({ children }) => {
   });
 
   useEffect(() => {
+    // Remover qualquer overlay existente de tentativas anteriores
+    const existingOverlay = document.getElementById('background-overlay');
+    if (existingOverlay) {
+      existingOverlay.remove();
+    }
+    
     // Aplicar tema ao documento
     const root = document.documentElement;
     const body = document.body;
     
-    if (isDarkMode) {
-      root.classList.add('dark-mode');
-      root.classList.remove('light-mode');
-      // Definir background image para dark mode
-      root.style.setProperty('--bg-image', `url(${backgroundDark})`);
-      body.style.backgroundImage = `url(${backgroundDark})`;
-      body.style.backgroundSize = 'contain';
-      body.style.backgroundPosition = 'center center';
-      body.style.backgroundRepeat = 'no-repeat';
-    } else {
-      root.classList.add('light-mode');
-      root.classList.remove('dark-mode');
-      // Definir background image para light mode
-      root.style.setProperty('--bg-image', `url(${backgroundLight})`);
-      body.style.backgroundImage = `url(${backgroundLight})`;
-      body.style.backgroundSize = 'contain';
-      body.style.backgroundPosition = 'center center';
-      body.style.backgroundRepeat = 'no-repeat';
-    }
+    // Adicionar classe de transição para suavizar a mudança
+    root.classList.add('theme-transitioning');
+    
+    // Usar requestAnimationFrame para garantir que a transição seja suave
+    requestAnimationFrame(() => {
+      if (isDarkMode) {
+        root.classList.add('dark-mode');
+        root.classList.remove('light-mode');
+        // Definir background image para dark mode
+        root.style.setProperty('--bg-image', `url(${backgroundDark})`);
+        body.style.backgroundImage = `url(${backgroundDark})`;
+        body.style.backgroundSize = '130%';
+        body.style.backgroundPosition = 'center center';
+        body.style.backgroundRepeat = 'no-repeat';
+      } else {
+        root.classList.add('light-mode');
+        root.classList.remove('dark-mode');
+        // Definir background image para light mode
+        root.style.setProperty('--bg-image', `url(${backgroundLight})`);
+        body.style.backgroundImage = `url(${backgroundLight})`;
+        body.style.backgroundSize = '130%';
+        body.style.backgroundPosition = 'center center';
+        body.style.backgroundRepeat = 'no-repeat';
+      }
+      
+      // Remover classe de transição após a animação
+      setTimeout(() => {
+        root.classList.remove('theme-transitioning');
+      }, 600);
+    });
     
     // Salvar preferência
     localStorage.setItem('darkMode', isDarkMode.toString());

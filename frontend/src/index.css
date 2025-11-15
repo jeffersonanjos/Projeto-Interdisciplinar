@@ -73,7 +73,7 @@ body {
   line-height: 1.6;
   background-image: var(--bg-image);
   background-color: transparent;
-  background-size: contain;
+  background-size: 130%;
   background-position: center center;
   background-repeat: no-repeat;
   background-attachment: fixed;
@@ -82,7 +82,7 @@ body {
   margin: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  transition: background-color 0.3s ease, color 0.3s ease, background-image 0.3s ease;
+  transition: background-color 0.6s ease-in-out, color 0.6s ease-in-out, background-size 0.6s ease-in-out;
 }
 
 /* Fallback para quando a imagem não carregar */
@@ -99,26 +99,26 @@ h1, h2, h3, h4, h5, h6 {
 h1 {
   font-size: 2.5rem;
   color: var(--text-primary);
-  transition: color 0.3s ease;
+  transition: color 0.6s ease-in-out;
 }
 
 h2 {
   font-size: 2rem;
   color: var(--text-primary);
-  transition: color 0.3s ease;
+  transition: color 0.6s ease-in-out;
 }
 
 h3 {
   font-size: 1.5rem;
   color: var(--text-primary);
-  transition: color 0.3s ease;
+  transition: color 0.6s ease-in-out;
 }
 
 /* Estilos para links */
 a {
   color: var(--text-primary);
   text-decoration: none;
-  transition: opacity 0.3s ease, color 0.3s ease;
+  transition: opacity 0.6s ease-in-out, color 0.6s ease-in-out;
 }
 
 a:hover {
@@ -170,18 +170,18 @@ form {
 
 ::-webkit-scrollbar-track {
   background: var(--bg-tertiary);
-  transition: background 0.3s ease;
+  transition: background 0.6s ease-in-out;
 }
 
 ::-webkit-scrollbar-thumb {
   background: var(--green-dark);
   border-radius: 4px;
-  transition: background 0.3s ease;
+  transition: background 0.6s ease-in-out;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--green);
-  transition: background 0.3s ease;
+  transition: background 0.6s ease-in-out;
 }
 
 /* Transições globais para mudança de tema - aplicadas apenas a elementos que mudam de cor */
@@ -191,7 +191,12 @@ a, button, input, textarea, select,
 .dashboard-container, .auth-container,
 .dashboard-header, .dashboard-nav, .dashboard-card,
 .auth-card, .form-input, .auth-button {
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  transition: background-color 0.6s ease-in-out, color 0.6s ease-in-out, border-color 0.6s ease-in-out, box-shadow 0.6s ease-in-out;
+}
+
+/* Classe para garantir transição suave durante mudança de tema */
+.theme-transitioning * {
+  transition: background-color 0.6s ease-in-out, color 0.6s ease-in-out, border-color 0.6s ease-in-out, box-shadow 0.6s ease-in-out !important;
 }
 
 /* Animações */

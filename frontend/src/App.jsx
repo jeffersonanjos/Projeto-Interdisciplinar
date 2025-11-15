@@ -6,7 +6,6 @@ import Login from './components/Login';
 import Register from './components/Register';
 import Dashboard from './components/Dashboard';
 import ProtectedRoute from './components/ProtectedRoute';
-import Pilasters from './components/Pilasters';
 import './App.css';
 
 function App() {
@@ -15,7 +14,6 @@ function App() {
       <AuthProvider>
         <Router>
           <div className="App">
-            <Pilasters />
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />

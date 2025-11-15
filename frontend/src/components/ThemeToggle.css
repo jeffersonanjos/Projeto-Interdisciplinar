@@ -1,16 +1,15 @@
 .theme-toggle {
   width: 44px;
   height: 44px;
-  border-radius: 50%;
+  border-radius: 8px;
   border: 2px solid var(--border-color);
   background: var(--bg-secondary);
   color: var(--text-secondary);
-  font-size: 20px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
+  transition: all 0.6s ease-in-out;
   box-shadow: 0 2px 8px var(--shadow);
   padding: 0;
 }
@@ -31,7 +30,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.3s ease;
+  transition: transform 0.6s ease-in-out;
+  width: 24px;
+  height: 24px;
+  position: relative;
 }
 
 .theme-toggle:hover .theme-toggle-icon {
@@ -40,5 +42,127 @@
 
 .theme-toggle:active .theme-toggle-icon {
   transform: rotate(0deg);
+}
+
+/* Ícone pixelart do Sol */
+.pixel-sun {
+  width: 20px;
+  height: 20px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sun-center {
+  width: 8px;
+  height: 8px;
+  background: var(--text-tertiary);
+  position: absolute;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}
+
+.sun-ray {
+  position: absolute;
+  background: var(--text-tertiary);
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}
+
+.sun-ray.ray-1 {
+  width: 2px;
+  height: 3px;
+  top: -1px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.sun-ray.ray-2 {
+  width: 2px;
+  height: 3px;
+  bottom: -1px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.sun-ray.ray-3 {
+  width: 3px;
+  height: 2px;
+  left: -1px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.sun-ray.ray-4 {
+  width: 3px;
+  height: 2px;
+  right: -1px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.sun-ray.ray-5 {
+  width: 2px;
+  height: 2px;
+  top: 1px;
+  right: 1px;
+}
+
+.sun-ray.ray-6 {
+  width: 2px;
+  height: 2px;
+  bottom: 1px;
+  right: 1px;
+}
+
+.sun-ray.ray-7 {
+  width: 2px;
+  height: 2px;
+  top: 1px;
+  left: 1px;
+}
+
+.sun-ray.ray-8 {
+  width: 2px;
+  height: 2px;
+  bottom: 1px;
+  left: 1px;
+}
+
+/* Ícone pixelart da Lua Minguante */
+.pixel-moon {
+  width: 20px;
+  height: 20px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.moon-outer {
+  width: 14px;
+  height: 14px;
+  background: var(--text-tertiary);
+  border-radius: 50%;
+  position: absolute;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}
+
+.moon-inner {
+  width: 12px;
+  height: 12px;
+  background: var(--bg-secondary);
+  border-radius: 50%;
+  position: absolute;
+  left: 1px;
+  top: 1px;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
 }
 
