@@ -226,6 +226,17 @@ export const recommendationService = {
       console.error("Error fetching book recommendations:", error);
       return { success: false, data: [], error: error.response?.data?.detail || 'Erro ao buscar recomendações de livros' };
     }
+  },
+  // Buscar recomendações de filmes baseadas na biblioteca do usuário
+  async getMovieRecommendations(userId) {
+    console.log("recommendationService.getMovieRecommendations called with:", userId);
+    try {
+      const response = await api.get(`/users/${userId}/recommendations/movies`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error("Error fetching movie recommendations:", error);
+      return { success: false, data: [], error: error.response?.data?.detail || 'Erro ao buscar recomendações de filmes' };
+    }
   }
 };
 
@@ -364,6 +375,14 @@ export const externalApiService = {
       return { success: false, error: error.response?.data?.detail || 'Erro ao buscar biblioteca' };
     }
   },
+  async getUserMovieLibrary(userId) {
+    try {
+      const response = await api.get(`/users/${userId}/library/movies`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.detail || 'Erro ao buscar biblioteca de filmes' };
+    }
+  },
   // Adicionar livro à biblioteca do usuário
   async addBookToLibrary(bookId) {
     console.log("externalApiService.addBookToLibrary called with:", bookId);
@@ -404,6 +423,50 @@ export const externalApiService = {
         message = first?.msg || first?.detail || 'Erro ao remover livro da biblioteca';
       } else {
         message = error.message || 'Erro ao remover livro da biblioteca';
+      }
+      return { success: false, error: message };
+    }
+  },
+  // Adicionar filme à biblioteca do usuário
+  async addMovieToLibrary(movieId) {
+    console.log("externalApiService.addMovieToLibrary called with:", movieId);
+    try {
+      const response = await api.post(`/library/movies/add`, { movie_id: movieId });
+      console.log("externalApiService.addMovieToLibrary API response:", response);
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error("externalApiService.addMovieToLibrary error:", error);
+      const detail = error.response?.data?.detail;
+      let message;
+      if (typeof detail === 'string') {
+        message = detail;
+      } else if (Array.isArray(detail) && detail.length) {
+        const first = detail[0];
+        message = first?.msg || first?.detail || 'Erro ao adicionar filme à biblioteca';
+      } else {
+        message = error.message || 'Erro ao adicionar filme à biblioteca';
+      }
+      return { success: false, error: message };
+    }
+  },
+  // Remover filme da biblioteca do usuário
+  async removeMovieFromLibrary(movieId) {
+    console.log("externalApiService.removeMovieFromLibrary called with:", movieId);
+    try {
+      const response = await api.delete(`/library/movies/remove?movie_id=${encodeURIComponent(movieId)}`);
+      console.log("externalApiService.removeMovieFromLibrary API response:", response);
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error("externalApiService.removeMovieFromLibrary error:", error);
+      const detail = error.response?.data?.detail;
+      let message;
+      if (typeof detail === 'string') {
+        message = detail;
+      } else if (Array.isArray(detail) && detail.length) {
+        const first = detail[0];
+        message = first?.msg || first?.detail || 'Erro ao remover filme da biblioteca';
+      } else {
+        message = error.message || 'Erro ao remover filme da biblioteca';
       }
       return { success: false, error: message };
     }

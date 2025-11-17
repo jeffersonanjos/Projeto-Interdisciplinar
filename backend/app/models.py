@@ -122,3 +122,10 @@ class UserLibrary(SQLModel, table=True):
     user_id: int = Field(foreign_key="user.id", index=True)
     book_external_id: str = Field(index=True)
     created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class UserMovieLibrary(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="user.id", index=True)
+    movie_external_id: str = Field(index=True)
+    created_at: datetime = Field(default_factory=datetime.utcnow)

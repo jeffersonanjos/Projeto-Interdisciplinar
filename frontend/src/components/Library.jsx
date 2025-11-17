@@ -9,6 +9,7 @@ const Library = () => {
   const { user } = useAuth();
   const [libraryType, setLibraryType] = useState('books'); // 'books' ou 'movies'
   const [items, setItems] = useState([]);
+  const [allItems, setAllItems] = useState([]); // Todos os itens (livros + filmes) para contagem
   const [ratings, setRatings] = useState({});
   const [loading, setLoading] = useState(true);
   const [showRatingModal, setShowRatingModal] = useState(false);
@@ -48,16 +49,20 @@ const Library = () => {
     setLoading(true);
     try {
       const userId = parseInt(user.id, 10);
-      const [libraryResult, ratingsResult] = await Promise.all([
+      
+      // Carregar livros e filmes em paralelo
+      const [booksResult, moviesResult, ratingsResult] = await Promise.all([
         externalApiService.getUserLibrary(userId),
+        externalApiService.getUserMovieLibrary(userId),
         ratingService.getUserRatings(userId)
       ]);
 
       const ratingsMap = {};
       if (ratingsResult.success && Array.isArray(ratingsResult.data)) {
         ratingsResult.data.forEach((rating) => {
-          if (rating && rating.book_external_id) {
-            ratingsMap[rating.book_external_id] = {
+          const externalId = rating.book_external_id || rating.movie_external_id;
+          if (externalId) {
+            ratingsMap[externalId] = {
               id: rating.id,
               score: rating.score,
               comment: rating.comment || '',
@@ -67,17 +72,38 @@ const Library = () => {
         });
       }
 
-      const libraryItems = libraryResult.success && Array.isArray(libraryResult.data)
-        ? libraryResult.data
+      // Processar livros
+      const libraryBooks = booksResult.success && Array.isArray(booksResult.data)
+        ? booksResult.data
         : [];
-
-      const filteredItems = libraryItems.filter((item) => item && item.id);
-      const itemsWithRatings = filteredItems.map((item) => ({
+      const filteredBooks = libraryBooks.filter((item) => item && item.id);
+      const booksWithRatings = filteredBooks.map((item) => ({
         ...item,
         rating: ratingsMap[item.id] || null,
+        type: 'book',
       }));
 
-      setItems(itemsWithRatings);
+      // Processar filmes
+      const libraryMovies = moviesResult.success && Array.isArray(moviesResult.data)
+        ? moviesResult.data
+        : [];
+      const filteredMovies = libraryMovies.filter((item) => item && item.id);
+      const moviesWithRatings = filteredMovies.map((item) => ({
+        ...item,
+        rating: ratingsMap[item.id] || null,
+        type: 'movie',
+      }));
+
+      // Combinar todos os itens
+      const allItems = [...booksWithRatings, ...moviesWithRatings];
+      
+      // Filtrar por tipo selecionado
+      const filteredItems = libraryType === 'books' 
+        ? allItems.filter(item => item.type === 'book')
+        : allItems.filter(item => item.type === 'movie');
+
+      setItems(filteredItems);
+      setAllItems(allItems); // Manter todos os itens para contagem
       setRatings(ratingsMap);
     } catch (error) {
       console.error('Erro ao carregar biblioteca:', error);
@@ -188,13 +214,14 @@ const Library = () => {
           setFeedbackMessage(result.error || 'Erro ao atualizar avaliação.');
         }
       } else {
+        const itemType = selectedItem.type || libraryType;
         const createPayload = {
           score: normalizedScore,
           comment: normalizedComment,
           user_id: user.id,
-          ...(libraryType === 'books'
+          ...(itemType === 'book'
             ? { book_external_id: selectedItem.id }
-            : { movie_id: selectedItem.id }),
+            : { movie_external_id: selectedItem.id }),
         };
         const result = await ratingService.createRating(createPayload);
         if (result.success) {
@@ -244,31 +271,39 @@ const Library = () => {
     }
   };
 
-  const handleRemoveBook = async (item) => {
+  const handleRemoveItem = async (item) => {
     if (!item || !item.id) return;
+    
+    const itemType = item.type || libraryType;
+    const itemName = itemType === 'book' ? 'livro' : 'filme';
     
     if (!window.confirm(`Tem certeza que deseja remover "${item.title}" da sua biblioteca?`)) {
       return;
     }
 
     try {
-      const result = await externalApiService.removeBookFromLibrary(item.id);
+      const result = itemType === 'book'
+        ? await externalApiService.removeBookFromLibrary(item.id)
+        : await externalApiService.removeMovieFromLibrary(item.id);
+      
       if (result.success) {
-        // Remover o item da lista
+        // Remover o item da lista filtrada
         setItems((prevItems) => prevItems.filter((i) => i.id !== item.id));
+        // Remover o item da lista completa
+        setAllItems((prevAllItems) => prevAllItems.filter((i) => i.id !== item.id));
         // Remover a avaliação associada se existir
         setRatings((prevRatings) => {
           const updated = { ...prevRatings };
           delete updated[item.id];
           return updated;
         });
-        showToast('Livro removido da biblioteca!');
+        showToast(`${itemType === 'book' ? 'Livro' : 'Filme'} removido da biblioteca!`);
       } else {
-        showToast(result.error || 'Erro ao remover livro da biblioteca');
+        showToast(result.error || `Erro ao remover ${itemName} da biblioteca`);
       }
     } catch (error) {
-      console.error('Erro ao remover livro:', error);
-      showToast('Erro ao remover livro da biblioteca');
+      console.error(`Erro ao remover ${itemName}:`, error);
+      showToast(`Erro ao remover ${itemName} da biblioteca`);
     }
   };
 
@@ -306,15 +341,23 @@ const Library = () => {
         <div className="library-type-toggle">
           <button
             className={libraryType === 'books' ? 'active' : ''}
-            onClick={() => setLibraryType('books')}
+            onClick={() => {
+              setLibraryType('books');
+              const filtered = allItems.filter(item => item.type === 'book');
+              setItems(filtered);
+            }}
           >
-            Livros ({items.length})
+            Livros ({allItems.filter(item => item.type === 'book').length})
           </button>
           <button
             className={libraryType === 'movies' ? 'active' : ''}
-            onClick={() => setLibraryType('movies')}
+            onClick={() => {
+              setLibraryType('movies');
+              const filtered = allItems.filter(item => item.type === 'movie');
+              setItems(filtered);
+            }}
           >
-            Filmes (0)
+            Filmes ({allItems.filter(item => item.type === 'movie').length})
           </button>
         </div>
       </div>
@@ -327,26 +370,78 @@ const Library = () => {
       ) : (
         <div className="book-grid library-compact">
           {items.map((item) => {
-            const authors = Array.isArray(item.authors)
+            const isBook = (item.type || libraryType) === 'book';
+            const authors = isBook && Array.isArray(item.authors)
               ? item.authors.join(', ')
-              : item.authors || 'Autor desconhecido';
-            // Imagem padrão SVG para livros sem capa
-            const defaultBookCover = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjE2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTIwIiBoZWlnaHQ9IjE2MCIgZmlsbD0iIzhCNzM1NSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiNGRkZGRkYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5TZW0gQ2FwYTwvdGV4dD48L3N2Zz4=';
-            const coverImage = item.image_url || defaultBookCover;
+              : (isBook ? (item.authors || 'Autor desconhecido') : null);
+            
+            // Função para criar placeholder SVG melhorado
+            const createDefaultCover = (title = 'Sem Imagem') => {
+              const svg = `
+                <svg width="200" height="300" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" style="stop-color:#4a5568;stop-opacity:1" />
+                      <stop offset="100%" style="stop-color:#2d3748;stop-opacity:1" />
+                    </linearGradient>
+                  </defs>
+                  <rect width="200" height="300" fill="url(#grad)"/>
+                  <g transform="translate(100, 120)">
+                    <path d="M-30,-20 L30,-20 L30,20 L-30,20 Z" fill="none" stroke="#cbd5e0" stroke-width="3" stroke-linecap="round"/>
+                    <circle cx="0" cy="-5" r="8" fill="none" stroke="#cbd5e0" stroke-width="2"/>
+                    <path d="M-15,10 L0,25 L15,10" fill="none" stroke="#cbd5e0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </g>
+                  <text x="100" y="200" font-family="Arial, sans-serif" font-size="14" fill="#cbd5e0" text-anchor="middle">${title.length > 20 ? title.substring(0, 20) + '...' : title}</text>
+                </svg>
+              `;
+              return `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svg)))}`;
+            };
+            const defaultCover = createDefaultCover(item.title || 'Sem Imagem');
+            const coverImage = isBook 
+              ? (item.image_url || defaultCover)
+              : (item.poster_path || defaultCover);
+            
+            const handleImageError = (e) => {
+              const img = e.target;
+              
+              // Evitar loop infinito
+              if (img.dataset.finalFallback === 'true') {
+                return;
+              }
+              
+              // Se for filme e ainda não tentou todas as fontes
+              if (!isBook && item.id) {
+                // Tentar 1: API de pôsteres do OMDb (se ainda não tentou)
+                if (!img.dataset.triedOmdb) {
+                  img.dataset.triedOmdb = 'true';
+                  const omdbPosterUrl = `http://img.omdbapi.com/?apikey=a3f0b40b&i=${item.id}`;
+                  img.src = omdbPosterUrl;
+                  return;
+                }
+              }
+              
+              // Fallback final: usar placeholder personalizado com título
+              img.dataset.finalFallback = 'true';
+              img.src = createDefaultCover(item.title || 'Sem Imagem');
+            };
+            
             return (
               <div key={item.id} className="book-item">
                 <img 
                   src={coverImage} 
                   alt={item.title} 
                   className="book-cover"
-                  onError={(e) => {
-                    // Se a imagem falhar ao carregar, usar a imagem padrão
-                    e.target.src = defaultBookCover;
-                  }}
+                  onError={handleImageError}
                 />
                 <div className="book-content">
                   <h3 className="book-title">{item.title || 'Sem título'}</h3>
-                  {libraryType === 'books' && <p className="book-authors">Autores: {authors}</p>}
+                  {isBook && <p className="book-authors">Autores: {authors}</p>}
+                  {!isBook && (
+                    <p className="book-authors">
+                      {item.release_date ? `Lançamento: ${item.release_date}` : ''}
+                      {item.rating && item.rating.score ? ` • Nota: ${item.rating.score.toFixed(1)}` : ''}
+                    </p>
+                  )}
                 </div>
                 <button
                   onClick={() => handleRateItem(item)}
@@ -355,7 +450,7 @@ const Library = () => {
                   {item.rating ? 'Editar Avaliação' : 'Avaliar'}
                 </button>
                 <button
-                  onClick={() => handleRemoveBook(item)}
+                  onClick={() => handleRemoveItem(item)}
                   className="remove-button"
                 >
                   Remover

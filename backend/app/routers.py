@@ -5,7 +5,7 @@ from datetime import timedelta
 import logging
 from urllib.parse import quote_plus
 
-from models import User, Book as DBBook, Movie, Rating, Recommendation, UserLibrary
+from models import User, Book as DBBook, Movie as DBMovie, Rating, Recommendation, UserLibrary, UserMovieLibrary
 from sqlmodel import Session, select
 
 from api_clients import fetch_book_data, fetch_movie_data, fetch_movie_details
@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-VALID_IMDB_SORT = {
+VALID_OMDB_SORT = {
     "SORT_BY_POPULARITY",
     "SORT_BY_RELEASE_DATE",
     "SORT_BY_USER_RATING",
@@ -39,38 +39,69 @@ VALID_IMDB_SORT = {
 VALID_SORT_ORDER = {"ASC", "DESC"}
 
 
-def _precision_date_to_str(data: Optional[Dict[str, Any]]) -> Optional[str]:
-    if not isinstance(data, dict):
+def _parse_omdb_rating(rating_str: Optional[str]) -> Optional[float]:
+    """Converts OMDb rating string (e.g., '8.7') to float."""
+    if not rating_str:
         return None
-    year = data.get("year")
-    month = data.get("month")
-    day = data.get("day")
-    if year and month and day:
-        return f"{year:04d}-{month:02d}-{day:02d}"
-    if year and month:
-        return f"{year:04d}-{month:02d}"
-    if year:
-        return str(year)
-    return None
+    try:
+        return float(rating_str)
+    except (ValueError, TypeError):
+        return None
 
 
-def _imdb_title_to_movie(item: Dict[str, Any]) -> Movie:
-    primary_image = item.get("primaryImage") or {}
-    rating = item.get("rating") or {}
-    release_date = _precision_date_to_str(item.get("releaseDate")) or _precision_date_to_str(
-        item.get("releaseYear")
-    )
-    if not release_date and item.get("startYear"):
-        release_date = str(item["startYear"])
+def _parse_omdb_votes(votes_str: Optional[str]) -> Optional[int]:
+    """Converts OMDb votes string (e.g., '1,900,000') to int."""
+    if not votes_str:
+        return None
+    try:
+        # Remove commas and convert to int
+        return int(votes_str.replace(",", ""))
+    except (ValueError, TypeError):
+        return None
 
+
+def _omdb_title_to_movie(item: Dict[str, Any]) -> Movie:
+    """Converts OMDb API response to Movie schema."""
+    from api_clients import fetch_movie_poster_from_tmdb
+    
+    imdb_id = item.get("imdbID") or item.get("imdbid") or ""
+    title = item.get("Title") or "N/A"
+    plot = item.get("Plot") or item.get("plot")
+    poster = item.get("Poster") or item.get("poster")
+    year = item.get("Year") or item.get("year")
+    rating_str = item.get("imdbRating")
+    votes_str = item.get("imdbVotes")
+    
+    # Estratégia de fallback para pôsteres:
+    # 1. Tentar URL original do OMDb (pode ser Amazon, pode estar quebrada)
+    # 2. Se não tiver URL original ou for inválida, tentar TMDb (mais confiável)
+    # 3. Se tudo falhar, deixar None (frontend usará placeholder)
+    poster_path = None
+    
+    # Verificar se a URL original é válida (não é "N/A" e não é vazia)
+    if poster and poster != "N/A" and poster.strip() and not poster.startswith("http://ia.media-imdb.com"):
+        # URLs do Amazon frequentemente estão quebradas, mas vamos tentar
+        # Se começar com http://ia.media-imdb.com, é provável que esteja quebrada
+        poster_path = poster
+    
+    # Se não temos URL válida e temos IMDb ID, tentar TMDb
+    if not poster_path and imdb_id:
+        tmdb_poster = fetch_movie_poster_from_tmdb(imdb_id)
+        if tmdb_poster:
+            poster_path = tmdb_poster
+    
+    # Parse rating and votes
+    rating = _parse_omdb_rating(rating_str)
+    vote_count = _parse_omdb_votes(votes_str)
+    
     return Movie(
-        id=str(item.get("id")),
-        title=item.get("primaryTitle") or item.get("originalTitle") or "N/A",
-        overview=item.get("plot"),
-        poster_path=primary_image.get("url"),
-        release_date=release_date,
-        rating=rating.get("aggregateRating"),
-        vote_count=rating.get("voteCount"),
+        id=str(imdb_id),
+        title=title,
+        overview=plot,
+        poster_path=poster_path if poster_path and poster_path != "N/A" else None,
+        release_date=year,
+        rating=rating,
+        vote_count=vote_count,
     )
 
 from google_books import search_books as google_search_books, get_book_by_id
@@ -129,9 +160,9 @@ async def search_movies(
     sort_order: Optional[str] = None,
     session: Session = Depends(get_session),
 ):
-    logger.info("IMDb search_movies called with query=%s", query)
+    logger.info("OMDb search_movies called with query=%s", query)
 
-    normalized_sort_by = sort_by if sort_by in VALID_IMDB_SORT else None
+    normalized_sort_by = sort_by if sort_by in VALID_OMDB_SORT else None
     normalized_sort_order = sort_order.upper() if sort_order and sort_order.upper() in VALID_SORT_ORDER else None
 
     movie_data = fetch_movie_data(
@@ -146,7 +177,7 @@ async def search_movies(
     if not movie_data or "results" not in movie_data:
         raise HTTPException(status_code=404, detail="No movies found")
 
-    return [_imdb_title_to_movie(item) for item in movie_data["results"]]
+    return [_omdb_title_to_movie(item) for item in movie_data["results"]]
 
 @router.get("/movies/{external_id}", response_model=Movie, tags=["movies"])
 async def get_movie(external_id: str, session: Session = Depends(get_session)):
@@ -155,7 +186,7 @@ async def get_movie(external_id: str, session: Session = Depends(get_session)):
     if not movie_data:
         raise HTTPException(status_code=404, detail="Movie not found")
 
-    return _imdb_title_to_movie(movie_data)
+    return _omdb_title_to_movie(movie_data)
 
 @router.post("/users/", response_model=UserRead, status_code=status.HTTP_201_CREATED, tags=["users"])
 def create_user(user: UserCreate, session: Session = Depends(get_session)):
@@ -289,8 +320,8 @@ async def create_rating(
     current_user: User = Depends(get_current_active_user)
 ):
     logger.info(f"Creating rating for user: {current_user.username}")
-    if not rating.book_id and not rating.movie_id and not getattr(rating, "book_external_id", None):
-        raise HTTPException(status_code=400, detail="Uma avaliação deve estar associada a um livro (id interno ou externo) ou filme.")
+    if not rating.book_id and not rating.movie_id and not getattr(rating, "book_external_id", None) and not getattr(rating, "movie_external_id", None):
+        raise HTTPException(status_code=400, detail="Uma avaliação deve estar associada a um livro (id interno ou externo) ou filme (id interno ou externo).")
     
     # Resolver book_external_id para um registro local se necessário
     resolved_book_id = rating.book_id
@@ -330,11 +361,50 @@ async def create_rating(
             session.refresh(db_book)
         resolved_book_id = db_book.id
 
+    # Resolver movie_external_id para um registro local se necessário
+    resolved_movie_id = rating.movie_id
+    if not resolved_movie_id and getattr(rating, "movie_external_id", None):
+        external_id = rating.movie_external_id
+        # verificar se já existe
+        db_movie = session.exec(select(DBMovie).where(DBMovie.external_id == external_id)).first()
+        if not db_movie:
+            # buscar detalhes do filme externo e criar registro mínimo
+            movie_data = fetch_movie_details(external_id)
+            if movie_data:
+                movie_obj = _omdb_title_to_movie(movie_data)
+                # Converter release_date de string para date se necessário
+                release_date = None
+                if movie_obj.release_date:
+                    try:
+                        # Tentar parsear como YYYY-MM-DD ou YYYY
+                        if len(movie_obj.release_date) == 4:
+                            from datetime import date
+                            release_date = date(int(movie_obj.release_date), 1, 1)
+                        elif '-' in movie_obj.release_date:
+                            from datetime import datetime
+                            release_date = datetime.strptime(movie_obj.release_date, '%Y-%m-%d').date()
+                    except (ValueError, TypeError):
+                        pass
+                
+                db_movie = DBMovie(
+                    title=movie_obj.title,
+                    description=movie_obj.overview,
+                    cover_url=movie_obj.poster_path,
+                    external_id=external_id,
+                    release_date=release_date,
+                )
+                session.add(db_movie)
+                session.commit()
+                session.refresh(db_movie)
+                resolved_movie_id = db_movie.id
+        else:
+            resolved_movie_id = db_movie.id
+
     # Usar o ID do usuário autenticado e ids resolvidos
     rating_data = {
         "user_id": current_user.id,
         "book_id": resolved_book_id,
-        "movie_id": rating.movie_id,
+        "movie_id": resolved_movie_id,
         "score": rating.score,
         "comment": rating.comment,
     }
@@ -402,12 +472,17 @@ async def get_user_ratings(user_id: int, session: Session = Depends(get_session)
             "score": rating.score,
             "comment": rating.comment,
             "created_at": rating.created_at,
-            "book_external_id": None
+            "book_external_id": None,
+            "movie_external_id": None,
         }
         if rating.book_id:
             db_book = session.get(DBBook, rating.book_id)
             if db_book and db_book.external_id:
                 rating_dict["book_external_id"] = db_book.external_id
+        if rating.movie_id:
+            db_movie = session.get(DBMovie, rating.movie_id)
+            if db_movie and db_movie.external_id:
+                rating_dict["movie_external_id"] = db_movie.external_id
         ratings_with_external_id.append(rating_dict)
     return ratings_with_external_id
 
@@ -443,8 +518,8 @@ async def search_movies_public(
     sort_by: Optional[str] = None,
     sort_order: Optional[str] = None,
 ):
-    """Public movie search using IMDb API (no authentication required)."""
-    normalized_sort_by = sort_by if sort_by in VALID_IMDB_SORT else None
+    """Public movie search using OMDb API (no authentication required)."""
+    normalized_sort_by = sort_by if sort_by in VALID_OMDB_SORT else None
     normalized_sort_order = sort_order.upper() if sort_order and sort_order.upper() in VALID_SORT_ORDER else None
 
     movie_data = fetch_movie_data(
@@ -459,11 +534,12 @@ async def search_movies_public(
     if not movie_data or "results" not in movie_data:
         raise HTTPException(status_code=404, detail="No movies found")
 
-    return [_imdb_title_to_movie(item) for item in movie_data["results"]]
+    return [_omdb_title_to_movie(item) for item in movie_data["results"]]
 
 @router.get("/users/{user_id}/library", response_model=List[BookRead], tags=["library"])
 async def get_user_library(user_id: int, session: Session = Depends(get_session)):
-    logger.info(f"Getting library for user: {user_id}")
+    """Get user's book library (kept for backward compatibility)."""
+    logger.info(f"Getting book library for user: {user_id}")
     entries = session.exec(select(UserLibrary).where(UserLibrary.user_id == user_id)).all()
     books: List[BookRead] = []
     for entry in entries:
@@ -475,12 +551,51 @@ async def get_user_library(user_id: int, session: Session = Depends(get_session)
             logger.exception("Failed to fetch book details for %s", entry.book_external_id)
     return books
 
+@router.get("/users/{user_id}/library/movies", response_model=List[Movie], tags=["library"])
+async def get_user_movie_library(user_id: int, session: Session = Depends(get_session)):
+    """Get user's movie library."""
+    logger.info(f"Getting movie library for user: {user_id}")
+    entries = session.exec(select(UserMovieLibrary).where(UserMovieLibrary.user_id == user_id)).all()
+    movies: List[Movie] = []
+    for entry in entries:
+        try:
+            movie_data = fetch_movie_details(entry.movie_external_id)
+            if movie_data:
+                movie = _omdb_title_to_movie(movie_data)
+                movies.append(movie)
+        except Exception:
+            logger.exception("Failed to fetch movie details for %s", entry.movie_external_id)
+    return movies
+
 @router.get("/users/{user_id}/reviews", response_model=List[RatingRead], tags=["reviews"])
 async def get_user_reviews(user_id: int, session: Session = Depends(get_session)):
     logger.info(f"Getting reviews for user: {user_id}")
     # Fetch ratings for the user
-    reviews = session.exec(select(Rating).where(Rating.user_id == user_id)).all()
-    return reviews
+    ratings = session.exec(select(Rating).where(Rating.user_id == user_id)).all()
+    # Enriquecer com external_ids se necessário
+    reviews_with_external = []
+    for rating in ratings:
+        review_dict = {
+            "id": rating.id,
+            "user_id": rating.user_id,
+            "book_id": rating.book_id,
+            "movie_id": rating.movie_id,
+            "score": rating.score,
+            "comment": rating.comment,
+            "created_at": rating.created_at,
+            "book_external_id": None,
+            "movie_external_id": None,
+        }
+        if rating.book_id:
+            db_book = session.get(DBBook, rating.book_id)
+            if db_book and db_book.external_id:
+                review_dict["book_external_id"] = db_book.external_id
+        if rating.movie_id:
+            db_movie = session.get(DBMovie, rating.movie_id)
+            if db_movie and db_movie.external_id:
+                review_dict["movie_external_id"] = db_movie.external_id
+        reviews_with_external.append(review_dict)
+    return reviews_with_external
 
 @router.post("/library/add", tags=["library"])
 async def add_book_to_library(book_id: Dict[str, str], current_user: User = Depends(get_current_active_user), session: Session = Depends(get_session)):
@@ -522,6 +637,47 @@ async def remove_book_from_library(book_id: str, current_user: User = Depends(ge
     session.delete(library_entry)
     session.commit()
     return {"message": "Book removed from library", "book_id": book_id}
+
+@router.post("/library/movies/add", tags=["library"])
+async def add_movie_to_library(movie_id: Dict[str, str], current_user: User = Depends(get_current_active_user), session: Session = Depends(get_session)):
+    logger.info(f"Adding movie {movie_id} to library for user {current_user.username}")
+    movie_id_str = movie_id.get("movie_id")
+    # Check if the movie exists
+    movie_data = fetch_movie_details(movie_id_str)
+    if not movie_data:
+        raise HTTPException(status_code=404, detail="Movie not found")
+
+    # Check if already in library
+    existing = session.exec(
+        select(UserMovieLibrary).where(
+            (UserMovieLibrary.user_id == current_user.id) & (UserMovieLibrary.movie_external_id == movie_id_str)
+        )
+    ).first()
+    if existing:
+        return {"message": "Movie already in library"}
+    entry = UserMovieLibrary(user_id=current_user.id, movie_external_id=movie_id_str)
+    session.add(entry)
+    session.commit()
+    session.refresh(entry)
+    return {"message": "Movie added to library", "movie_id": movie_id_str}
+
+@router.delete("/library/movies/remove", tags=["library"])
+async def remove_movie_from_library(movie_id: str, current_user: User = Depends(get_current_active_user), session: Session = Depends(get_session)):
+    logger.info(f"Removing movie {movie_id} from library for user {current_user.username}")
+    
+    # Find the library entry
+    library_entry = session.exec(
+        select(UserMovieLibrary).where(
+            (UserMovieLibrary.user_id == current_user.id) & (UserMovieLibrary.movie_external_id == movie_id)
+        )
+    ).first()
+    
+    if not library_entry:
+        raise HTTPException(status_code=404, detail="Movie not found in library")
+    
+    session.delete(library_entry)
+    session.commit()
+    return {"message": "Movie removed from library", "movie_id": movie_id}
 
 @router.put("/books/{book_id}/update-genres", tags=["books"])
 async def update_book_genres(book_id: int, session: Session = Depends(get_session)):
@@ -700,3 +856,98 @@ async def get_book_recommendations(user_id: int, session: Session = Depends(get_
     
     # Limitar e retornar recomendações
     return recommended_books[:30]
+
+@router.get("/users/{user_id}/recommendations/movies", response_model=List[Movie], tags=["recommendations"])
+async def get_movie_recommendations(user_id: int, session: Session = Depends(get_session)):
+    """
+    Busca recomendações de filmes baseadas nos filmes da biblioteca pessoal do usuário.
+    Usa os gêneros dos filmes na biblioteca para encontrar filmes similares.
+    """
+    logger.info(f"Getting movie recommendations for user: {user_id}")
+    
+    # Buscar filmes da biblioteca do usuário
+    library_entries = session.exec(select(UserMovieLibrary).where(UserMovieLibrary.user_id == user_id)).all()
+    
+    if not library_entries:
+        logger.info(f"User {user_id} has no movies in library")
+        return []
+    
+    # Coletar external_ids e buscar detalhes dos filmes
+    library_movie_ids = [entry.movie_external_id for entry in library_entries]
+    library_movies = []
+    all_genres = set()
+    
+    for external_id in library_movie_ids:
+        try:
+            movie_data = fetch_movie_details(external_id)
+            if movie_data:
+                movie_obj = _omdb_title_to_movie(movie_data)
+                library_movies.append(movie_obj)
+                # Coletar gêneros do filme
+                # OMDb retorna gêneros como string separada por vírgulas
+                genres_str = movie_data.get("Genre") or movie_data.get("genre", "")
+                if genres_str:
+                    genres_list = [g.strip() for g in genres_str.split(",") if g.strip()]
+                    all_genres.update(genres_list)
+        except Exception as e:
+            logger.exception(f"Error fetching movie {external_id} for recommendations: {e}")
+    
+    if not all_genres:
+        logger.info(f"No genres found in user {user_id} movie library")
+        return []
+    
+    # Buscar filmes similares baseado nos gêneros
+    recommended_movies = []
+    seen_movie_ids = set(library_movie_ids)  # Para evitar recomendar filmes já na biblioteca
+    
+    # Buscar por gêneros (usar o primeiro gênero mais comum)
+    # OMDb não suporta busca por gênero diretamente, então vamos buscar por títulos populares
+    # e filtrar por gênero nos resultados
+    for genre in list(all_genres)[:3]:  # Limitar a 3 gêneros
+        try:
+            # Buscar filmes populares e filtrar por gênero
+            # Usar busca genérica e depois filtrar resultados
+            search_results = fetch_movie_data(genre, limit=20)
+            if search_results and "results" in search_results:
+                for movie_item in search_results["results"][:15]:
+                    movie_id = movie_item.get("imdbID")
+                    if movie_id and movie_id not in seen_movie_ids:
+                        # Verificar se o filme tem o gênero desejado
+                        movie_genres_str = movie_item.get("Genre", "")
+                        if genre.lower() in movie_genres_str.lower():
+                            seen_movie_ids.add(movie_id)
+                            movie_obj = _omdb_title_to_movie(movie_item)
+                            recommended_movies.append(movie_obj)
+                            
+                            if len(recommended_movies) >= 30:
+                                break
+        except Exception as e:
+            logger.exception(f"Error searching movies by genre {genre}: {e}")
+        
+        if len(recommended_movies) >= 30:
+            break
+    
+    # Se ainda não tivermos muitas recomendações, buscar filmes populares em geral
+    if len(recommended_movies) < 20:
+        try:
+            # Buscar filmes populares (usar termos genéricos)
+            popular_terms = ["action", "drama", "comedy", "thriller"]
+            for term in popular_terms[:2]:
+                search_results = fetch_movie_data(term, limit=15)
+                if search_results and "results" in search_results:
+                    for movie_item in search_results["results"]:
+                        movie_id = movie_item.get("imdbID")
+                        if movie_id and movie_id not in seen_movie_ids:
+                            seen_movie_ids.add(movie_id)
+                            movie_obj = _omdb_title_to_movie(movie_item)
+                            recommended_movies.append(movie_obj)
+                            
+                            if len(recommended_movies) >= 30:
+                                break
+                if len(recommended_movies) >= 30:
+                    break
+        except Exception as e:
+            logger.exception(f"Error searching popular movies: {e}")
+    
+    # Limitar e retornar recomendações
+    return recommended_movies[:30]

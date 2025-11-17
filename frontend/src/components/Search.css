@@ -218,6 +218,28 @@
   margin-bottom: 20px;
 }
 
+.loading-indicator {
+  display: inline-block;
+  margin-left: 5px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.loading-message {
+  text-align: center;
+  padding: 40px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
 @media (max-width: 768px) {
   .search-container {
     padding: 20px;
