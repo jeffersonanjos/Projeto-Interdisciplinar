@@ -8,7 +8,7 @@ from urllib.parse import quote_plus
 from models import User, Book as DBBook, Movie, Rating, Recommendation, UserLibrary
 from sqlmodel import Session, select
 
-from api_clients import fetch_book_data, fetch_movie_data
+from api_clients import fetch_book_data, fetch_movie_data, fetch_movie_details
 from schemas import Book, Movie, BookRead
 from database import get_session
 from schemas import (
@@ -27,6 +27,51 @@ from auth import (
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+VALID_IMDB_SORT = {
+    "SORT_BY_POPULARITY",
+    "SORT_BY_RELEASE_DATE",
+    "SORT_BY_USER_RATING",
+    "SORT_BY_USER_RATING_COUNT",
+    "SORT_BY_YEAR",
+}
+
+VALID_SORT_ORDER = {"ASC", "DESC"}
+
+
+def _precision_date_to_str(data: Optional[Dict[str, Any]]) -> Optional[str]:
+    if not isinstance(data, dict):
+        return None
+    year = data.get("year")
+    month = data.get("month")
+    day = data.get("day")
+    if year and month and day:
+        return f"{year:04d}-{month:02d}-{day:02d}"
+    if year and month:
+        return f"{year:04d}-{month:02d}"
+    if year:
+        return str(year)
+    return None
+
+
+def _imdb_title_to_movie(item: Dict[str, Any]) -> Movie:
+    primary_image = item.get("primaryImage") or {}
+    rating = item.get("rating") or {}
+    release_date = _precision_date_to_str(item.get("releaseDate")) or _precision_date_to_str(
+        item.get("releaseYear")
+    )
+    if not release_date and item.get("startYear"):
+        release_date = str(item["startYear"])
+
+    return Movie(
+        id=str(item.get("id")),
+        title=item.get("primaryTitle") or item.get("originalTitle") or "N/A",
+        overview=item.get("plot"),
+        poster_path=primary_image.get("url"),
+        release_date=release_date,
+        rating=rating.get("aggregateRating"),
+        vote_count=rating.get("voteCount"),
+    )
 
 from google_books import search_books as google_search_books, get_book_by_id
 
@@ -73,45 +118,44 @@ async def get_book(book_id: str, session: Session = Depends(get_session)):
     else:
         raise HTTPException(status_code=404, detail="Book not found")
 
-@router.get("/movies/search", response_model=List[MovieRead], tags=["movies"])
-async def search_movies(query: str, session: Session = Depends(get_session)):
-    logger.info(f"search_movies called with query: {query}")
-    logger.info(f"Searching for movies with query: {query}")
-    movie_data = fetch_movie_data(query)
+@router.get("/movies/search", response_model=List[Movie], tags=["movies"])
+async def search_movies(
+    query: str,
+    limit: int = 10,
+    start_year: Optional[int] = None,
+    end_year: Optional[int] = None,
+    genre: Optional[str] = None,
+    sort_by: Optional[str] = None,
+    sort_order: Optional[str] = None,
+    session: Session = Depends(get_session),
+):
+    logger.info("IMDb search_movies called with query=%s", query)
+
+    normalized_sort_by = sort_by if sort_by in VALID_IMDB_SORT else None
+    normalized_sort_order = sort_order.upper() if sort_order and sort_order.upper() in VALID_SORT_ORDER else None
+
+    movie_data = fetch_movie_data(
+        query,
+        limit=limit,
+        start_year=start_year,
+        end_year=end_year,
+        genres=[genre] if genre else None,
+        sort_by=normalized_sort_by,
+        sort_order=normalized_sort_order,
+    )
     if not movie_data or "results" not in movie_data:
         raise HTTPException(status_code=404, detail="No movies found")
 
-    movies = []
-    for item in movie_data["results"]:
-        movie = MovieRead(
-            id=str(item["id"]),  # Convert id to string
-            title=item["title"],
-            overview=item.get("overview", "N/A"),
-            poster_path=item.get("poster_path", None),
-            release_date=item.get("release_date", "N/A"),
-        )
-        movies.append(movie)
-    return movies
+    return [_imdb_title_to_movie(item) for item in movie_data["results"]]
 
-@router.get("/movies/{external_id}", response_model=MovieRead, tags=["movies"])
+@router.get("/movies/{external_id}", response_model=Movie, tags=["movies"])
 async def get_movie(external_id: str, session: Session = Depends(get_session)):
     logger.info(f"get_movie called with external_id: {external_id}")
-    logger.info(f"Getting movie with external_id: {external_id}")
-    # Fetch movie details using TMDB API
-    movie_data = fetch_movie_data(external_id)  # Assuming external_id is the movie title
-    if not movie_data or "results" not in movie_data:
+    movie_data = fetch_movie_details(external_id)
+    if not movie_data:
         raise HTTPException(status_code=404, detail="Movie not found")
 
-    # Assuming the first result is the correct movie
-    movie = movie_data["results"][0]
-    movie_data = MovieRead(
-        id=str(movie["id"]),  # Convert id to string
-        title=movie["title"],
-        overview=movie.get("overview", "N/A"),
-        poster_path=movie.get("poster_path", None),
-        release_date=movie.get("release_date", "N/A"),
-    )
-    return movie_data
+    return _imdb_title_to_movie(movie_data)
 
 @router.post("/users/", response_model=UserRead, status_code=status.HTTP_201_CREATED, tags=["users"])
 def create_user(user: UserCreate, session: Session = Depends(get_session)):
@@ -390,24 +434,32 @@ async def search_books(query: str):
 
 
 @router.get("/movies", response_model=List[Movie])
-async def search_movies(query: str):
-    logger.info(f"Searching for movies with query: {query} (external API)")
-    """Searches for movies using the TMDB API."""
-    movie_data = fetch_movie_data(query)
+async def search_movies_public(
+    query: str,
+    limit: int = 10,
+    start_year: Optional[int] = None,
+    end_year: Optional[int] = None,
+    genre: Optional[str] = None,
+    sort_by: Optional[str] = None,
+    sort_order: Optional[str] = None,
+):
+    """Public movie search using IMDb API (no authentication required)."""
+    normalized_sort_by = sort_by if sort_by in VALID_IMDB_SORT else None
+    normalized_sort_order = sort_order.upper() if sort_order and sort_order.upper() in VALID_SORT_ORDER else None
+
+    movie_data = fetch_movie_data(
+        query,
+        limit=limit,
+        start_year=start_year,
+        end_year=end_year,
+        genres=[genre] if genre else None,
+        sort_by=normalized_sort_by,
+        sort_order=normalized_sort_order,
+    )
     if not movie_data or "results" not in movie_data:
         raise HTTPException(status_code=404, detail="No movies found")
 
-    movies = []
-    for item in movie_data["results"]:
-        movie = Movie(
-            id=item["id"],
-            title=item["title"],
-            overview=item.get("overview", "N/A"),
-            poster_path=item.get("poster_path", None),
-            release_date=item.get("release_date", "N/A"),
-        )
-        movies.append(movie)
-    return movies
+    return [_imdb_title_to_movie(item) for item in movie_data["results"]]
 
 @router.get("/users/{user_id}/library", response_model=List[BookRead], tags=["library"])
 async def get_user_library(user_id: int, session: Session = Depends(get_session)):

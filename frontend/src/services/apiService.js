@@ -339,6 +339,23 @@ export const externalApiService = {
       return { success: false, error: error.response?.data?.detail || 'Erro ao buscar livros (backend)' };
     }
   },
+  async getMoviesFromBackend(query, options = {}) {
+    try {
+      const params = new URLSearchParams();
+      params.set('query', query);
+      if (options.limit) params.set('limit', options.limit);
+      if (options.start_year) params.set('start_year', options.start_year);
+      if (options.end_year) params.set('end_year', options.end_year);
+      if (options.genre) params.set('genre', options.genre);
+      if (options.sort_by) params.set('sort_by', options.sort_by);
+      if (options.sort_order) params.set('sort_order', options.sort_order);
+
+      const response = await api.get(`/movies?${params.toString()}`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.detail || 'Erro ao buscar filmes (backend)' };
+    }
+  },
   async getUserLibrary(userId) {
     try {
       const response = await api.get(`/users/${userId}/library`);

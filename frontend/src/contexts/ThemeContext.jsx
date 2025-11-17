@@ -38,6 +38,16 @@ export const ThemeProvider = ({ children }) => {
     root.classList.add('theme-transitioning');
     
     // Usar requestAnimationFrame para garantir que a transição seja suave
+    const applyBackgroundBaseStyles = () => {
+      const rootStyles = getComputedStyle(root);
+      const bgPrimary = rootStyles.getPropertyValue('--bg-primary')?.trim() || '#1f5a2d';
+      body.style.backgroundSize = 'cover';
+      body.style.backgroundPosition = 'top center';
+      body.style.backgroundRepeat = 'no-repeat';
+      body.style.backgroundAttachment = 'fixed';
+      body.style.backgroundColor = bgPrimary;
+    };
+
     requestAnimationFrame(() => {
       if (isDarkMode) {
         root.classList.add('dark-mode');
@@ -45,18 +55,14 @@ export const ThemeProvider = ({ children }) => {
         // Definir background image para dark mode
         root.style.setProperty('--bg-image', `url(${backgroundDark})`);
         body.style.backgroundImage = `url(${backgroundDark})`;
-        body.style.backgroundSize = '130%';
-        body.style.backgroundPosition = 'center center';
-        body.style.backgroundRepeat = 'no-repeat';
+        applyBackgroundBaseStyles();
       } else {
         root.classList.add('light-mode');
         root.classList.remove('dark-mode');
         // Definir background image para light mode
         root.style.setProperty('--bg-image', `url(${backgroundLight})`);
         body.style.backgroundImage = `url(${backgroundLight})`;
-        body.style.backgroundSize = '130%';
-        body.style.backgroundPosition = 'center center';
-        body.style.backgroundRepeat = 'no-repeat';
+        applyBackgroundBaseStyles();
       }
       
       // Remover classe de transição após a animação

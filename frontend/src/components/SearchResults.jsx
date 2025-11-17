@@ -1,12 +1,10 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import './SearchResults.css';
 import { externalApiService } from '../services/apiService';
 import { useToast } from '../hooks/useToast';
 import Toast from './Toast';
 
 const SearchResults = ({ results, type }) => {
-  const navigate = useNavigate();
   const { toast, showToast } = useToast();
   if (!results || results.length === 0) {
     return <p>No results found.</p>;
@@ -26,8 +24,14 @@ const SearchResults = ({ results, type }) => {
     }
   };
 
-  // Imagem padrão SVG para livros sem capa
-  const defaultBookCover = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjE2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTIwIiBoZWlnaHQ9IjE2MCIgZmlsbD0iIzhCNzM1NSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiNGRkZGRkYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5TZW0gQ2FwYTwvdGV4dD48L3N2Zz4=';
+  const isBook = type === 'book';
+  // Imagem padrão SVG
+  const defaultCover = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjE2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTIwIiBoZWlnaHQ9IjE2MCIgZmlsbD0iIzhCNzM1NSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiNGRkZGRkYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5TZSBJbWFnZW48L3RleHQ+PC9zdmc+';
+
+  const handleMovieDetails = (movie) => {
+    if (!movie?.id) return;
+    window.open(`https://www.imdb.com/title/${movie.id}`, '_blank', 'noopener,noreferrer');
+  };
 
   return (
     <div className="search-results-container">
@@ -35,7 +39,7 @@ const SearchResults = ({ results, type }) => {
         {results.map((result) => {
           const authors =
             Array.isArray(result.authors) ? result.authors.join(', ') : (result.authors || 'Autor desconhecido');
-          const coverImage = result.image_url || defaultBookCover;
+          const coverImage = isBook ? (result.image_url || defaultCover) : (result.poster_path || defaultCover);
           return (
             <div key={result.id} className="book-item">
               <img 
@@ -49,18 +53,40 @@ const SearchResults = ({ results, type }) => {
               />
               <div className="book-content">
                 <h3 className="book-title">{result.title || 'Sem título'}</h3>
-                {type === 'book' && <p className="book-authors">Autores: {authors}</p>}
+                {isBook ? (
+                  <p className="book-authors">Autores: {authors}</p>
+                ) : (
+                  <>
+                    <p className="book-authors">
+                      Lançamento: {result.release_date || 'Sem data'} {result.rating ? `• Nota IMDb: ${result.rating}` : ''}
+                    </p>
+                    {result.overview && <p className="book-authors movie-overview">{result.overview}</p>}
+                  </>
+                )}
               </div>
-              <button
-                type="button"
-                className="rate-button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleAddToLibrary(result);
-                }}
-              >
-                Adicionar
-              </button>
+              {isBook ? (
+                <button
+                  type="button"
+                  className="rate-button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleAddToLibrary(result);
+                  }}
+                >
+                  Adicionar
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="rate-button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleMovieDetails(result);
+                  }}
+                >
+                  Ver no IMDb
+                </button>
+              )}
             </div>
           );
         })}

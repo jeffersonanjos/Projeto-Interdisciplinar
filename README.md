@@ -9,7 +9,7 @@ Desenvolver um sistema web interativo que permita aos usuários cadastrar, avali
 - Implementar sistema de cadastro e autenticação de usuários.  
 - Permitir que os usuários avaliem livros e filmes com notas e comentários.  
 - Utilizar algoritmos de similaridade ou aprendizado de máquina para gerar recomendações personalizadas.  
-- Integrar o sistema com APIs externas, como Google Books (livros) e TMDB (filmes), para buscar automaticamente informações e capas.  
+- Integrar o sistema com APIs externas, como Google Books (livros) e IMDb (filmes), para buscar automaticamente informações e capas.  
 - Disponibilizar histórico de avaliações e recomendações no perfil de cada usuário.  
 
 ## Público-Alvo  
@@ -75,7 +75,7 @@ npm run dev
 ### ❌ **PENDENTE:**
 - **Endpoints de Livros**: CRUD completo para livros
 - **Endpoints de Filmes**: CRUD completo para filmes
-- **Integração com APIs Externas**: Google Books (search implemented) and TMDB
+- **Integração com APIs Externas**: Google Books (search implemented) and IMDb
 - **Sistema de Recomendações**: Algoritmo de recomendação personalizada
 - **Frontend**: Interface web responsiva
 - **Endpoints de Histórico**: Buscar avaliações do usuário
@@ -182,7 +182,7 @@ const handleSearch = async () => {
 - **Front-end:** HTML, CSS, JavaScript, com framework como React + Vite.  
 - **Back-end:** Node.js, Python, com integração de APIs.  
 - **Banco de Dados:** MySQL para armazenamento de dados de usuários, avaliações e histórico.  
-- **Integrações:** Google Books API, TMDB API.  
+- **Integrações:** Google Books API, IMDb API.  
 - **Ferramentas de Design:** Figma ou Canva para identidade visual e protótipos.  
 
 ## Limitações e Restrições  

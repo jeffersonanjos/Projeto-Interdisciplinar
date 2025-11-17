@@ -73,8 +73,8 @@ body {
   line-height: 1.6;
   background-image: var(--bg-image);
   background-color: transparent;
-  background-size: 130%;
-  background-position: center center;
+  background-size: cover;
+  background-position: top center;
   background-repeat: no-repeat;
   background-attachment: fixed;
   color: var(--text-primary);

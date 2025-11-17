@@ -144,11 +144,13 @@ class Book(BaseModel):
 
 
 class Movie(BaseModel):
-    id: int
+    id: str
     title: str
     overview: Optional[str] = None
     poster_path: Optional[str] = None
-    release_date: str
+    release_date: Optional[str] = None
+    rating: Optional[float] = None
+    vote_count: Optional[int] = None
 
     class Config:
         orm_mode = True

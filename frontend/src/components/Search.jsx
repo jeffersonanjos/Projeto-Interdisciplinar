@@ -10,27 +10,53 @@ const Search = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [searchType, setSearchType] = useState('books'); // 'books' ou 'movies'
+  const [movieResults, setMovieResults] = useState([]);
+  const [hasSearchedBooks, setHasSearchedBooks] = useState(false);
+  const [hasSearchedMovies, setHasSearchedMovies] = useState(false);
 
   useEffect(() => {
  console.log("Search useEffect called");
     // Clear results when query changes
     setBookResults([]);
+    setMovieResults([]);
+    setHasSearchedBooks(false);
+    setHasSearchedMovies(false);
   }, [query]);
 
   const handleSearch = async () => {
  console.log("Search handleSearch called with query:", query);
+    if (!query.trim()) {
+      setError('Digite um termo para buscar.');
+      return;
+    }
     setLoading(true);
     setError('');
 
     try {
-      const bookResponse = await externalApiService.getBooksFromBackend(query);
+      if (searchType === 'books') {
+        const bookResponse = await externalApiService.getBooksFromBackend(query);
  console.log("Search handleSearch bookResponse:", bookResponse);
-      if (bookResponse.success) {
-        setBookResults(bookResponse.data);
+        if (bookResponse.success) {
+          setBookResults(bookResponse.data);
+          setHasSearchedBooks(true);
      console.log("Search handleSearch bookResults set:", bookResponse.data);
-      } else {
-        setError(bookResponse.error || 'Erro ao buscar livros');
+        } else {
+          setError(bookResponse.error || 'Erro ao buscar livros');
+          setBookResults([]);
+          setHasSearchedBooks(true);
   console.error("Search handleSearch getBooksFromBackend error:", bookResponse.error);
+        }
+      } else {
+        const movieResponse = await externalApiService.getMoviesFromBackend(query);
+        if (movieResponse.success) {
+          setMovieResults(movieResponse.data);
+          setHasSearchedMovies(true);
+        } else {
+          setError(movieResponse.error || 'Erro ao buscar filmes');
+          setMovieResults([]);
+          setHasSearchedMovies(true);
+          console.error("Search handleSearch getMoviesFromBackend error:", movieResponse.error);
+        }
       }
     } catch (error) {
       setError('Erro ao realizar a busca.');
@@ -46,7 +72,7 @@ const Search = () => {
       <div className="search-form">
         <input
           type="text"
-          placeholder="Search for books..."
+          placeholder={searchType === 'books' ? 'Search for books...' : 'Search for movies...'}
           className="search-input"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -58,10 +84,10 @@ const Search = () => {
 
       {error && <div className="error-message">{error}</div>}
 
-      {bookResults.length > 0 && (
+      {((searchType === 'books' && hasSearchedBooks) || (searchType === 'movies' && hasSearchedMovies)) && (
         <>
           <div className="search-header">
-            <h2>Books</h2>
+            <h2>{searchType === 'books' ? 'Books' : 'Movies'}</h2>
             <div className="search-type-toggle">
               <button
                 className={searchType === 'books' ? 'active' : ''}
@@ -73,11 +99,14 @@ const Search = () => {
                 className={searchType === 'movies' ? 'active' : ''}
                 onClick={() => setSearchType('movies')}
               >
-                Filmes (0)
+                Filmes ({movieResults.length})
               </button>
             </div>
           </div>
-          <SearchResults results={bookResults} type="book" />
+          <SearchResults
+            results={searchType === 'books' ? bookResults : movieResults}
+            type={searchType === 'books' ? 'book' : 'movie'}
+          />
         </>
       )}
     </div>
