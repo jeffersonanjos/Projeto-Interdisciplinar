@@ -4,10 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import Search from './Search';
 import Library from './Library';
 import Recommendations from './Recommendations';
-import Profile from './Profile';
-import ThemeToggle from './ThemeToggle';
 import Taskbar from './Taskbar';
-import { ratingService, reviewService } from '../services/apiService';
+import { ratingService, reviewService, profileService } from '../services/apiService';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -22,11 +20,51 @@ const Dashboard = () => {
     totalReviews: 0,
   });
   const [communityFeed, setCommunityFeed] = useState([]);
+  const [userWithProfile, setUserWithProfile] = useState(user);
 
   useEffect(() => {
 	console.log("Dashboard useEffect called");
     loadStats();
+    // Se user já tem avatar_url (atualizado via updateUser), usar diretamente
+    if (user && user.avatar_url !== undefined) {
+      setUserWithProfile(user);
+    } else {
+      loadUserProfile();
+    }
   }, [user]);
+
+  // Recarregar perfil quando voltar da view de perfil para sincronizar avatar
+  useEffect(() => {
+    if (activeView !== 'profile') {
+      loadUserProfile();
+    }
+  }, [activeView]);
+
+  const loadUserProfile = async () => {
+    if (!user) {
+      setUserWithProfile(null);
+      return;
+    }
+    
+    try {
+      const result = await profileService.getProfile(user.id);
+      if (result.success && result.data) {
+        const avatarUrl = result.data.avatar_url;
+        const fullAvatarUrl = avatarUrl && !avatarUrl.startsWith('http') 
+          ? `http://localhost:8001${avatarUrl}` 
+          : avatarUrl;
+        setUserWithProfile({
+          ...user,
+          avatar_url: fullAvatarUrl || null
+        });
+      } else {
+        setUserWithProfile({ ...user, avatar_url: null });
+      }
+    } catch (error) {
+      console.error('Erro ao carregar perfil do usuário:', error);
+      setUserWithProfile({ ...user, avatar_url: null });
+    }
+  };
 
   const extractGenresFromReview = (review) => {
     if (!review) return [];
@@ -221,8 +259,6 @@ const Dashboard = () => {
         return <Library />;
       case 'recommendations':
         return <Recommendations />;
-      case 'profile':
-        return <Profile />;
       default:
         return (
           <div className="dashboard-home">
@@ -245,9 +281,10 @@ const Dashboard = () => {
                 <p>Descubra conteúdos personalizados</p>
               </div>
               
-              <div className="dashboard-card" onClick={() => setActiveView('profile')}>
+              <div className="dashboard-card">
                 <h3>Meu Perfil</h3>
                 <p>{stats.ratings} avaliações feitas</p>
+                <p style={{ fontSize: '8px', marginTop: '8px', opacity: 0.8 }}>Clique no botão de perfil na taskbar</p>
               </div>
             </div>
           </div>
@@ -262,8 +299,6 @@ const Dashboard = () => {
           Alexandria
         </h1>
         <div className="user-info">
-          <ThemeToggle />
-          <span className="welcome-text">Bem-vindo, {user?.username}!</span>
           <button onClick={handleLogout} className="logout-button">
             Sair
           </button>
@@ -295,12 +330,6 @@ const Dashboard = () => {
         >
           Recomendações
         </button>
-        <button
-          className={activeView === 'profile' ? 'nav-button active' : 'nav-button'}
-          onClick={() => setActiveView('profile')}
-        >
-          Perfil
-        </button>
       </nav>
 
       <main className="dashboard-main">
@@ -308,10 +337,9 @@ const Dashboard = () => {
       </main>
 
       <Taskbar
-        user={user}
+        user={userWithProfile}
         metrics={insights}
         timeline={communityFeed}
-        onProfileClick={() => setActiveView('profile')}
       />
     </div>
   );

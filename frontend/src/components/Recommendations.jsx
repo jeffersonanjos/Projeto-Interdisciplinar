@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { recommendationService } from '../services/apiService';
 import SearchResults from './SearchResults';
+import PixelLoader from './PixelLoader';
 import './Recommendations.css';
 
 const Recommendations = () => {
@@ -9,6 +10,8 @@ const Recommendations = () => {
   const { user } = useAuth();
   const [bookRecommendations, setBookRecommendations] = useState([]);
   const [movieRecommendations, setMovieRecommendations] = useState([]);
+  const [loadedBooks, setLoadedBooks] = useState([]); // Livros carregados incrementalmente
+  const [loadedMovies, setLoadedMovies] = useState([]); // Filmes carregados incrementalmente
   const [loading, setLoading] = useState(true);
   const [loadingBooks, setLoadingBooks] = useState(true);
   const [loadingMovies, setLoadingMovies] = useState(true);
@@ -30,13 +33,23 @@ const Recommendations = () => {
     setError('');
     setBookRecommendations([]);
     setMovieRecommendations([]);
+    setLoadedBooks([]);
+    setLoadedMovies([]);
 
     // Carregar recomendações de livros e filmes em paralelo
     const bookPromise = recommendationService.getBookRecommendations(user.id)
-      .then((result) => {
+      .then(async (result) => {
         console.log("Recommendations loadRecommendations book result:", result);
-        if (result.success) {
-          setBookRecommendations(result.data || []);
+        if (result.success && Array.isArray(result.data)) {
+          const books = result.data || [];
+          setBookRecommendations(books);
+          
+          // Mostrar livros incrementalmente
+          setLoadedBooks([]);
+          for (let i = 0; i < books.length; i++) {
+            await new Promise(resolve => setTimeout(resolve, 30));
+            setLoadedBooks(prev => [...prev, books[i]]);
+          }
         } else {
           console.error("Recommendations loadRecommendations book error:", result.error);
         }
@@ -51,10 +64,18 @@ const Recommendations = () => {
       });
 
     const moviePromise = recommendationService.getMovieRecommendations(user.id)
-      .then((result) => {
+      .then(async (result) => {
         console.log("Recommendations loadRecommendations movie result:", result);
-        if (result.success) {
-          setMovieRecommendations(result.data || []);
+        if (result.success && Array.isArray(result.data)) {
+          const movies = result.data || [];
+          setMovieRecommendations(movies);
+          
+          // Mostrar filmes incrementalmente
+          setLoadedMovies([]);
+          for (let i = 0; i < movies.length; i++) {
+            await new Promise(resolve => setTimeout(resolve, 30));
+            setLoadedMovies(prev => [...prev, movies[i]]);
+          }
         } else {
           console.error("Recommendations loadRecommendations movie error:", result.error);
         }
@@ -94,7 +115,10 @@ const Recommendations = () => {
   };
 
   // Determinar qual resultado mostrar baseado no filtro
-  const currentRecommendations = recommendationType === 'books' ? bookRecommendations : movieRecommendations;
+  // Durante o carregamento, mostrar itens carregados incrementalmente
+  const currentRecommendations = recommendationType === 'books' 
+    ? (loadingBooks ? loadedBooks : bookRecommendations)
+    : (loadingMovies ? loadedMovies : movieRecommendations);
   const currentLoading = recommendationType === 'books' ? loadingBooks : loadingMovies;
   const currentType = recommendationType === 'books' ? 'book' : 'movie';
 
@@ -131,11 +155,9 @@ const Recommendations = () => {
         </div>
       )}
 
-      {currentLoading ? (
-        <div className="loading-container">
-          <p>Carregando recomendações de {recommendationType === 'books' ? 'livros' : 'filmes'}...</p>
-        </div>
-      ) : currentRecommendations.length === 0 && !error ? (
+      {currentLoading && currentRecommendations.length === 0 ? (
+        <PixelLoader message={`Carregando recomendações de ${recommendationType === 'books' ? 'livros' : 'filmes'}...`} />
+      ) : currentRecommendations.length === 0 && !error && !currentLoading ? (
         <div className="no-recommendations">
           <p>Não há recomendações de {recommendationType === 'books' ? 'livros' : 'filmes'} disponíveis no momento.</p>
           <p>Adicione {recommendationType === 'books' ? 'livros' : 'filmes'} à sua biblioteca para receber recomendações personalizadas!</p>
@@ -143,12 +165,16 @@ const Recommendations = () => {
       ) : (
         <div className="recommendations-content">
           <div className="recommendations-section">
-            {currentRecommendations.length > 0 && (
+            {(currentRecommendations.length > 0 || currentLoading) && (
               <div className="recommendations-group">
                 <h3>
-                  {recommendationType === 'books' ? 'Livros' : 'Filmes'} Recomendados ({currentRecommendations.length})
+                  {recommendationType === 'books' ? 'Livros' : 'Filmes'} Recomendados 
+                  {!currentLoading && ` (${currentRecommendations.length})`}
+                  {currentLoading && currentRecommendations.length > 0 && ` (${currentRecommendations.length}...)`}
                 </h3>
-                <SearchResults results={currentRecommendations} type={currentType} />
+                {currentRecommendations.length > 0 && (
+                  <SearchResults results={currentRecommendations} type={currentType} />
+                )}
               </div>
             )}
           </div>

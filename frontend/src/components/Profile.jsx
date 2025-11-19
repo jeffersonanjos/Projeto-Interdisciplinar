@@ -8,7 +8,7 @@ import './Profile.css';
 
 const Profile = () => {
   console.log("Profile component loaded");
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
   const [profile, setProfile] = useState(null);
@@ -139,6 +139,10 @@ const Profile = () => {
         if (profile) {
           setProfile({ ...profile, avatar_url: null });
         }
+        // Atualizar o usuário no contexto para sincronizar com taskbar
+        if (updateUser) {
+          updateUser({ ...user, avatar_url: null });
+        }
         showToast('Avatar removido com sucesso!');
       } else {
         showToast('Erro ao remover avatar: ' + result.error);
@@ -169,6 +173,10 @@ const Profile = () => {
         setFormData({ ...formData, avatar_url: fullAvatarUrl });
         if (profile) {
           setProfile({ ...profile, avatar_url: fullAvatarUrl });
+        }
+        // Atualizar o usuário no contexto para sincronizar com taskbar
+        if (updateUser) {
+          updateUser({ ...user, avatar_url: fullAvatarUrl });
         }
         showToast('Avatar atualizado com sucesso!');
       } else {

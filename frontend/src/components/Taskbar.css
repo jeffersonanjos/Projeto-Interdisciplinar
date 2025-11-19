@@ -25,7 +25,8 @@
 
 .taskbar-icons {
   display: flex;
-  gap: 16px;
+  gap: 12px;
+  align-items: center;
 }
 
 .taskbar-right {
@@ -37,12 +38,14 @@
 .taskbar-icon {
   border: none;
   border-radius: 8px;
-  padding: 6px 10px;
+  padding: 4px;
+  width: 32px;
+  height: 32px;
   background: var(--bg-secondary);
   color: var(--text-secondary);
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
   cursor: pointer;
   transition: all 0.2s ease;
   position: relative;
@@ -60,6 +63,15 @@
   transform: translateY(-1px);
 }
 
+.taskbar-icon:hover .taskbar-icon__glyph {
+  transform: rotate(15deg);
+  transition: transform 0.6s ease-in-out;
+}
+
+.taskbar-icon:active .taskbar-icon__glyph {
+  transform: rotate(0deg);
+}
+
 .taskbar-icon.active {
   box-shadow: 
     0 1px 0 rgba(0, 0, 0, 0.3),
@@ -68,10 +80,20 @@
   transform: translateY(1px);
 }
 
-.taskbar-label {
-  font-size: 8px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+.taskbar-icon__glyph {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: transform 0.6s ease-in-out;
+}
+
+.taskbar-icon__glyph i {
+  font-size: 16px;
+  color: var(--text-tertiary);
+  line-height: 1;
 }
 
 .pixel-icon {
@@ -82,43 +104,6 @@
   background: var(--bg-primary);
   display: block;
   position: relative;
-}
-
-.pixel-icon--clock::before,
-.pixel-icon--clock::after {
-  content: '';
-  position: absolute;
-  background: var(--text-primary);
-}
-
-.pixel-icon--clock::before {
-  width: 2px;
-  height: 10px;
-  left: 50%;
-  top: 4px;
-  transform: translateX(-50%);
-}
-
-.pixel-icon--clock::after {
-  width: 8px;
-  height: 2px;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.pixel-icon--star {
-  background: var(--bg-secondary);
-}
-
-.pixel-icon--star::before {
-  content: '✶';
-  position: absolute;
-  color: var(--text-tertiary);
-  font-size: 14px;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
 }
 
 .taskbar-profile {
@@ -209,21 +194,6 @@
   font-family: 'Press Start 2P', monospace;
 }
 
-.taskbar-modal::after {
-  content: '';
-  position: absolute;
-  bottom: -10px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 24px;
-  height: 10px;
-  background: inherit;
-  border-left: 2px solid var(--border-color);
-  border-right: 2px solid var(--border-color);
-  border-bottom: 2px solid var(--border-color);
-  border-bottom-left-radius: 6px;
-  border-bottom-right-radius: 6px;
-}
 
 .taskbar-modal__header {
   display: flex;
@@ -568,6 +538,247 @@
 
   .taskbar--hidden {
     transform: translateX(-50%) translateY(calc(100% + 60px));
+  }
+}
+
+/* Modal de Perfil */
+.taskbar-modal--profile {
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.taskbar-profile__loading {
+  text-align: center;
+  padding: 40px;
+  color: var(--text-secondary);
+  font-size: 10px;
+}
+
+.taskbar-profile__content {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 20px;
+  padding: 0;
+}
+
+.taskbar-profile__sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.taskbar-profile__avatar-container {
+  width: 100%;
+  aspect-ratio: 1;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+}
+
+.taskbar-profile__avatar-container .avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.taskbar-profile__avatar-container .avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+  color: var(--text-secondary);
+  background: var(--bg-tertiary);
+}
+
+.taskbar-profile__avatar-container .remove-avatar-button {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--border-color);
+  border-radius: 4px;
+  background: var(--error-bg);
+  color: var(--error-text);
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.taskbar-profile__stats {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.taskbar-profile__stats .stat-card {
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  padding: 12px;
+  background: var(--bg-tertiary);
+  text-align: center;
+}
+
+.taskbar-profile__stats .stat-card h3 {
+  font-size: 20px;
+  color: var(--text-tertiary);
+  margin: 0 0 4px 0;
+}
+
+.taskbar-profile__stats .stat-card p {
+  font-size: 9px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.taskbar-profile__main {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.taskbar-profile__info h3 {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin: 0 0 4px 0;
+}
+
+.taskbar-profile__info .profile-email {
+  font-size: 10px;
+  color: var(--text-secondary);
+  margin: 0 0 12px 0;
+  opacity: 0.8;
+}
+
+.taskbar-profile__info .edit-button,
+.taskbar-profile__info .edit-account-button {
+  border: 2px solid var(--border-color);
+  border-radius: 6px;
+  padding: 6px 12px;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  font-size: 9px;
+  cursor: pointer;
+  margin-bottom: 12px;
+  transition: all 0.2s ease;
+}
+
+.taskbar-profile__info .edit-button:hover,
+.taskbar-profile__info .edit-account-button:hover {
+  background: var(--bg-primary);
+  border-color: var(--border-color-light);
+}
+
+.taskbar-profile__info .profile-bio {
+  font-size: 10px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+
+.taskbar-profile__info .profile-bio .no-bio {
+  opacity: 0.6;
+  font-style: italic;
+}
+
+.taskbar-profile__info .profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.taskbar-profile__info .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.taskbar-profile__info .form-group label {
+  font-size: 9px;
+  color: var(--text-secondary);
+}
+
+.taskbar-profile__info .form-group .form-input,
+.taskbar-profile__info .form-group .form-textarea {
+  border: 2px solid var(--border-color);
+  border-radius: 6px;
+  padding: 6px 8px;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  font-size: 9px;
+  font-family: 'Press Start 2P', monospace;
+}
+
+.taskbar-profile__info .form-group .form-textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.taskbar-profile__info .form-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.taskbar-profile__info .cancel-button,
+.taskbar-profile__info .save-button {
+  border: 2px solid var(--border-color);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 9px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.taskbar-profile__info .cancel-button {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+}
+
+.taskbar-profile__info .save-button {
+  background: var(--bg-primary);
+  color: var(--text-tertiary);
+}
+
+.taskbar-profile__info .delete-profile-button {
+  border: 2px solid var(--error-border);
+  border-radius: 6px;
+  padding: 6px 12px;
+  background: var(--error-bg);
+  color: var(--error-text);
+  font-size: 9px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.taskbar-profile__info .delete-profile-button:hover {
+  background: var(--error-border);
+}
+
+.taskbar-profile__info .account-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+@media (max-width: 640px) {
+  .taskbar-profile__content {
+    grid-template-columns: 1fr;
+  }
+  
+  .taskbar-modal--profile {
+    max-width: 90vw;
   }
 }
 

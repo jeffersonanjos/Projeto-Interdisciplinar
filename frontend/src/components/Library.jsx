@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { ratingService, externalApiService } from '../services/apiService';
 import { useToast } from '../hooks/useToast';
 import Toast from './Toast';
+import PixelLoader from './PixelLoader';
 import './Library.css';
 
 const Library = () => {
@@ -12,6 +13,9 @@ const Library = () => {
   const [allItems, setAllItems] = useState([]); // Todos os itens (livros + filmes) para contagem
   const [ratings, setRatings] = useState({});
   const [loading, setLoading] = useState(true);
+  const [loadedItems, setLoadedItems] = useState([]); // Itens carregados incrementalmente
+  const [loadedBooks, setLoadedBooks] = useState([]); // Livros carregados incrementalmente
+  const [loadedMovies, setLoadedMovies] = useState([]); // Filmes carregados incrementalmente
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [selectedRating, setSelectedRating] = useState(null);
@@ -47,16 +51,14 @@ const Library = () => {
     if (!user) return;
 
     setLoading(true);
+    setLoadedItems([]);
+    setLoadedBooks([]);
+    setLoadedMovies([]);
     try {
       const userId = parseInt(user.id, 10);
       
-      // Carregar livros e filmes em paralelo
-      const [booksResult, moviesResult, ratingsResult] = await Promise.all([
-        externalApiService.getUserLibrary(userId),
-        externalApiService.getUserMovieLibrary(userId),
-        ratingService.getUserRatings(userId)
-      ]);
-
+      // Carregar ratings primeiro (mais rápido)
+      const ratingsResult = await ratingService.getUserRatings(userId);
       const ratingsMap = {};
       if (ratingsResult.success && Array.isArray(ratingsResult.data)) {
         ratingsResult.data.forEach((rating) => {
@@ -71,40 +73,71 @@ const Library = () => {
           }
         });
       }
+      setRatings(ratingsMap);
+
+      // Carregar livros e filmes em paralelo
+      const [booksResult, moviesResult] = await Promise.all([
+        externalApiService.getUserLibrary(userId),
+        externalApiService.getUserMovieLibrary(userId)
+      ]);
 
       // Processar livros
       const libraryBooks = booksResult.success && Array.isArray(booksResult.data)
         ? booksResult.data
         : [];
       const filteredBooks = libraryBooks.filter((item) => item && item.id);
+      
+      // Processar filmes
+      const libraryMovies = moviesResult.success && Array.isArray(moviesResult.data)
+        ? moviesResult.data
+        : [];
+      const filteredMovies = libraryMovies.filter((item) => item && item.id);
+
+      // Preparar itens com ratings
       const booksWithRatings = filteredBooks.map((item) => ({
         ...item,
         rating: ratingsMap[item.id] || null,
         type: 'book',
       }));
 
-      // Processar filmes
-      const libraryMovies = moviesResult.success && Array.isArray(moviesResult.data)
-        ? moviesResult.data
-        : [];
-      const filteredMovies = libraryMovies.filter((item) => item && item.id);
       const moviesWithRatings = filteredMovies.map((item) => ({
         ...item,
         rating: ratingsMap[item.id] || null,
         type: 'movie',
       }));
 
-      // Combinar todos os itens
       const allItems = [...booksWithRatings, ...moviesWithRatings];
-      
-      // Filtrar por tipo selecionado
+      setAllItems(allItems);
+
+      // Carregar livros e filmes incrementalmente em paralelo
+      const loadBooksIncrementally = async () => {
+        setLoadedBooks([]);
+        for (let i = 0; i < booksWithRatings.length; i++) {
+          await new Promise(resolve => setTimeout(resolve, 50));
+          setLoadedBooks(prev => [...prev, booksWithRatings[i]]);
+        }
+      };
+
+      const loadMoviesIncrementally = async () => {
+        setLoadedMovies([]);
+        for (let i = 0; i < moviesWithRatings.length; i++) {
+          await new Promise(resolve => setTimeout(resolve, 50));
+          setLoadedMovies(prev => [...prev, moviesWithRatings[i]]);
+        }
+      };
+
+      // Executar ambos em paralelo
+      await Promise.all([
+        loadBooksIncrementally(),
+        loadMoviesIncrementally()
+      ]);
+
+      // Filtrar por tipo selecionado e atualizar itens finais
       const filteredItems = libraryType === 'books' 
         ? allItems.filter(item => item.type === 'book')
         : allItems.filter(item => item.type === 'movie');
 
       setItems(filteredItems);
-      setAllItems(allItems); // Manter todos os itens para contagem
-      setRatings(ratingsMap);
     } catch (error) {
       console.error('Erro ao carregar biblioteca:', error);
       setItems([]);
@@ -324,15 +357,12 @@ const Library = () => {
     );
   };
 
-  if (loading) {
-    return (
-      <div className="library-container">
-        <div className="loading-container">
-          <p>Carregando biblioteca...</p>
-        </div>
-      </div>
-    );
-  }
+  // Usar loadedItems durante o carregamento para mostrar itens incrementalmente
+  // Se está carregando, usar os itens carregados do tipo atual
+  // Se não está carregando mas há itens carregados do tipo atual, usar eles
+  const displayItems = loading 
+    ? (libraryType === 'books' ? loadedBooks : loadedMovies)
+    : items;
 
   return (
     <div className="library-container">
@@ -345,6 +375,10 @@ const Library = () => {
               setLibraryType('books');
               const filtered = allItems.filter(item => item.type === 'book');
               setItems(filtered);
+              // Se ainda está carregando, mostrar os livros já carregados
+              if (loading && loadedBooks.length > 0) {
+                setLoadedItems(loadedBooks);
+              }
             }}
           >
             Livros ({allItems.filter(item => item.type === 'book').length})
@@ -355,6 +389,10 @@ const Library = () => {
               setLibraryType('movies');
               const filtered = allItems.filter(item => item.type === 'movie');
               setItems(filtered);
+              // Se ainda está carregando, mostrar os filmes já carregados
+              if (loading && loadedMovies.length > 0) {
+                setLoadedItems(loadedMovies);
+              }
             }}
           >
             Filmes ({allItems.filter(item => item.type === 'movie').length})
@@ -362,14 +400,16 @@ const Library = () => {
         </div>
       </div>
 
-      {items.length === 0 ? (
+      {loading && loadedItems.length === 0 ? (
+        <PixelLoader message="Carregando biblioteca..." />
+      ) : displayItems.length === 0 && !loading ? (
         <div className="empty-library">
           <p>Você ainda não tem {libraryType === 'books' ? 'livros' : 'filmes'} na sua biblioteca.</p>
           <p>Use a busca para adicionar {libraryType === 'books' ? 'livros' : 'filmes'}!</p>
         </div>
       ) : (
         <div className="book-grid library-compact">
-          {items.map((item) => {
+          {displayItems.map((item) => {
             const isBook = (item.type || libraryType) === 'book';
             const authors = isBook && Array.isArray(item.authors)
               ? item.authors.join(', ')

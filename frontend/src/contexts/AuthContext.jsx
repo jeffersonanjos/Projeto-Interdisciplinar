@@ -96,6 +96,13 @@ export const AuthProvider = ({ children }) => {
  console.log("Logout successful");
   };
 
+  const updateUser = (updatedUser) => {
+    setUser(updatedUser);
+    if (updatedUser) {
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+    }
+  };
+
   const value = {
     user,
     login,
@@ -103,6 +110,7 @@ export const AuthProvider = ({ children }) => {
     logout,
     loading,
     isAuthenticated: !!user,
+    updateUser,
   };
 
   return (
