@@ -6,6 +6,7 @@ import Library from './Library';
 import Recommendations from './Recommendations';
 import Profile from './Profile';
 import ThemeToggle from './ThemeToggle';
+import Taskbar from './Taskbar';
 import { ratingService, reviewService } from '../services/apiService';
 import './Dashboard.css';
 
@@ -15,11 +16,163 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [activeView, setActiveView] = useState('home');
   const [stats, setStats] = useState({ books: 0, movies: 0, ratings: 0 });
+  const [insights, setInsights] = useState({
+    favoriteGenres: [],
+    avgRating: null,
+    totalReviews: 0,
+  });
+  const [communityFeed, setCommunityFeed] = useState([]);
 
   useEffect(() => {
 	console.log("Dashboard useEffect called");
     loadStats();
   }, [user]);
+
+  const extractGenresFromReview = (review) => {
+    if (!review) return [];
+    const possibleGenres = [
+      review.genre,
+      review.genres,
+      review.category,
+      review.book_genre,
+      review.movie_genre,
+      review.book?.genre,
+      review.movie?.genre,
+      review.metadata?.genre,
+      review.metadata?.genres,
+    ];
+
+    return possibleGenres
+      .flatMap((value) => {
+        if (!value) return [];
+        if (Array.isArray(value)) return value;
+        if (typeof value === 'string') {
+          return value.split(/[,/|]/);
+        }
+        return [];
+      })
+      .map((genre) => genre?.trim())
+      .filter(Boolean);
+  };
+
+  const buildInsightsFromReviews = (reviews = []) => {
+    if (!reviews.length) {
+      return {
+        avgRating: null,
+        favoriteGenres: [],
+      };
+    }
+
+    const genreCounts = {};
+    let ratingSum = 0;
+    let ratingCount = 0;
+
+    reviews.forEach((review) => {
+      const ratingValue = Number(
+        review.rating ?? review.score ?? review.stars ?? review.value
+      );
+
+      if (!Number.isNaN(ratingValue)) {
+        ratingSum += ratingValue;
+        ratingCount += 1;
+      }
+
+      const genres = extractGenresFromReview(review);
+      genres.forEach((genre) => {
+        genreCounts[genre] = (genreCounts[genre] || 0) + 1;
+      });
+    });
+
+    const favoriteGenres = Object.entries(genreCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([label, count]) => ({ label, count }));
+
+    return {
+      avgRating: ratingCount ? ratingSum / ratingCount : null,
+      favoriteGenres,
+    };
+  };
+
+  const formatRelativeTime = (dateString) => {
+    if (!dateString) return 'agora mesmo';
+    const date = new Date(dateString);
+    if (Number.isNaN(date.getTime())) return 'recentemente';
+
+    const diffMs = Date.now() - date.getTime();
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+
+    if (diffMinutes < 1) return 'agora';
+    if (diffMinutes < 60) return `há ${diffMinutes} min`;
+
+    const diffHours = Math.floor(diffMinutes / 60);
+    if (diffHours < 24) return `há ${diffHours}h`;
+
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays === 1) return 'ontem';
+    if (diffDays < 7) return `há ${diffDays} dias`;
+
+    return date.toLocaleDateString('pt-BR');
+  };
+
+  const buildCommunityFeed = (reviews = []) => {
+    const derivedFeed = reviews
+      .filter((review) => review?.author_user_id && review.author_user_id !== user?.id)
+      .slice(0, 4)
+      .map((review, index) => ({
+        id: `feed-${review.id || index}`,
+        nickname:
+          review.author_username ||
+          review.author?.username ||
+          `Usuário #${review.author_user_id}`,
+        action: review.updated_at ? 'ajustou a avaliação de' : 'avaliou',
+        highlight:
+          review.book_title ||
+          review.movie_title ||
+          review.title ||
+          review.book?.title ||
+          review.movie?.title,
+        rating: review.rating ?? review.score ?? null,
+        timestamp: formatRelativeTime(review.updated_at || review.created_at),
+      }));
+
+    if (derivedFeed.length) return derivedFeed;
+
+    return [
+      {
+        id: 'fallback-1',
+        nickname: 'LunaBits',
+        action: 'avaliou',
+        highlight: 'Neuromancer',
+        rating: 4.5,
+        timestamp: 'há 3 min',
+      },
+      {
+        id: 'fallback-2',
+        nickname: 'GutoPixel',
+        action: 'ajustou a nota de',
+        highlight: 'Blade Runner',
+        rating: 5,
+        timestamp: 'há 12 min',
+      },
+      {
+        id: 'fallback-3',
+        nickname: 'MikaRetro',
+        action: 'atualizou o perfil',
+        highlight: null,
+        rating: null,
+        timestamp: 'há 25 min',
+      },
+      {
+        id: 'fallback-4',
+        nickname: 'Nara8bit',
+        action: 'comentou em',
+        highlight: 'O Nome do Vento',
+        rating: null,
+        timestamp: 'há 1h',
+      },
+    ];
+  };
 
   const loadStats = async () => {
 	console.log("Dashboard loadStats called");
@@ -38,6 +191,13 @@ const Dashboard = () => {
           ratings: reviews.length,
        });
   //console.log("Dashboard loadStats stats set:", stats);
+        const insightsResult = buildInsightsFromReviews(reviews);
+        setInsights({
+          favoriteGenres: insightsResult.favoriteGenres,
+          avgRating: insightsResult.avgRating,
+          totalReviews: reviews.length,
+        });
+        setCommunityFeed(buildCommunityFeed(reviews));
       } else {
         console.error('Erro ao carregar estatísticas:', ratingsResult.error || reviewsResult.error);
       }
@@ -146,6 +306,13 @@ const Dashboard = () => {
       <main className="dashboard-main">
         {renderContent()}
       </main>
+
+      <Taskbar
+        user={user}
+        metrics={insights}
+        timeline={communityFeed}
+        onProfileClick={() => setActiveView('profile')}
+      />
     </div>
   );
 };
