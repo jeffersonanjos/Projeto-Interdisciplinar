@@ -253,6 +253,106 @@ export const userService = {
       console.error("userService.updateUser error:", error);
       return { success: false, error: error.response?.data?.detail || 'Erro ao atualizar dados do usuário' };
     }
+  },
+  // Buscar usuários por username
+  async searchUsers(query, limit = 10) {
+    console.log("userService.searchUsers called with:", query);
+    try {
+      const response = await api.get(`/users/search?query=${encodeURIComponent(query)}&limit=${limit}`);
+      console.log("userService.searchUsers API response:", response);
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error("userService.searchUsers error:", error);
+      return { success: false, error: error.response?.data?.detail || 'Erro ao buscar usuários', data: [] };
+    }
+  },
+  // Seguir um usuário
+  async followUser(userId) {
+    console.log("userService.followUser called with:", userId);
+    try {
+      const response = await api.post(`/users/${userId}/follow`);
+      console.log("userService.followUser API response:", response);
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error("userService.followUser error:", error);
+      return { success: false, error: error.response?.data?.detail || 'Erro ao seguir usuário' };
+    }
+  },
+  // Parar de seguir um usuário
+  async unfollowUser(userId) {
+    console.log("userService.unfollowUser called with:", userId);
+    try {
+      const response = await api.delete(`/users/${userId}/follow`);
+      console.log("userService.unfollowUser API response:", response);
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error("userService.unfollowUser error:", error);
+      return { success: false, error: error.response?.data?.detail || 'Erro ao parar de seguir usuário' };
+    }
+  },
+  // Verificar status de follow
+  async checkFollowStatus(userId) {
+    console.log("userService.checkFollowStatus called with:", userId);
+    try {
+      const response = await api.get(`/users/${userId}/follow`);
+      console.log("userService.checkFollowStatus API response:", response);
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error("userService.checkFollowStatus error:", error);
+      return { success: false, error: error.response?.data?.detail || 'Erro ao verificar status', data: { following: false, can_follow: false } };
+    }
+  },
+  // Buscar atividades de um usuário
+  async getUserActivities(userId, limit = 10) {
+    console.log("userService.getUserActivities called with:", userId);
+    try {
+      const response = await api.get(`/users/${userId}/activities?limit=${limit}`);
+      console.log("userService.getUserActivities API response:", response);
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error("userService.getUserActivities error:", error);
+      return { success: false, error: error.response?.data?.detail || 'Erro ao buscar atividades', data: [] };
+    }
+  },
+  // Buscar seguidores de um usuário
+  async getFollowers(userId) {
+    console.log("userService.getFollowers called with:", userId);
+    try {
+      const response = await api.get(`/users/${userId}/followers`);
+      console.log("userService.getFollowers API response:", response);
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error("userService.getFollowers error:", error);
+      return { success: false, error: error.response?.data?.detail || 'Erro ao buscar seguidores', data: [] };
+    }
+  },
+  // Buscar usuários que um usuário está seguindo
+  async getFollowing(userId) {
+    console.log("userService.getFollowing called with:", userId);
+    try {
+      const response = await api.get(`/users/${userId}/following`);
+      console.log("userService.getFollowing API response:", response);
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error("userService.getFollowing error:", error);
+      return { success: false, error: error.response?.data?.detail || 'Erro ao buscar seguindo', data: [] };
+    }
+  }
+};
+
+// Serviço para timeline
+export const timelineService = {
+  // Buscar timeline da comunidade
+  async getCommunityTimeline(limit = 20, onlyFollowing = false) {
+    console.log("timelineService.getCommunityTimeline called with:", limit, onlyFollowing);
+    try {
+      const response = await api.get(`/timeline?limit=${limit}&only_following=${onlyFollowing}`);
+      console.log("timelineService.getCommunityTimeline API response:", response);
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error("timelineService.getCommunityTimeline error:", error);
+      return { success: false, error: error.response?.data?.detail || 'Erro ao buscar timeline', data: [] };
+    }
   }
 };
 

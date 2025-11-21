@@ -1,5 +1,5 @@
 from sqlmodel import SQLModel, Field, Relationship
-from sqlalchemy import Column, JSON
+from sqlalchemy import Column, JSON, UniqueConstraint
 from typing import List, Optional
 from datetime import datetime, date
 
@@ -129,3 +129,14 @@ class UserMovieLibrary(SQLModel, table=True):
     user_id: int = Field(foreign_key="user.id", index=True)
     movie_external_id: str = Field(index=True)
     created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class Follow(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    follower_id: int = Field(foreign_key="user.id", index=True)
+    following_id: int = Field(foreign_key="user.id", index=True)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    
+    __table_args__ = (
+        UniqueConstraint("follower_id", "following_id", name="unique_follow"),
+    )

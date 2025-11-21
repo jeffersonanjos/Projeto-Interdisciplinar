@@ -37,6 +37,7 @@
 .recommendation-type-toggle button:hover:not(:disabled) {
   background: var(--bg-tertiary);
   transition: background-color 0.3s ease;
+  color: var(--text-tertiary);
   border-color: var(--border-color-light);
 }
 
@@ -80,6 +81,7 @@
   transition: background-color 0.3s ease;
   border-color: var(--border-color-light);
   transform: translateY(-2px);
+  color: var(--text-secondary);
   box-shadow: 0 6px 12px var(--shadow);
 }
 

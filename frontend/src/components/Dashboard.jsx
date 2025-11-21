@@ -5,7 +5,7 @@ import Search from './Search';
 import Library from './Library';
 import Recommendations from './Recommendations';
 import Taskbar from './Taskbar';
-import { ratingService, reviewService, profileService } from '../services/apiService';
+import { ratingService, reviewService, profileService, timelineService, externalApiService } from '../services/apiService';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -20,11 +20,13 @@ const Dashboard = () => {
     totalReviews: 0,
   });
   const [communityFeed, setCommunityFeed] = useState([]);
+  const [followingFeed, setFollowingFeed] = useState([]);
   const [userWithProfile, setUserWithProfile] = useState(user);
 
   useEffect(() => {
 	console.log("Dashboard useEffect called");
     loadStats();
+    loadCommunityTimeline();
     // Se user já tem avatar_url (atualizado via updateUser), usar diretamente
     if (user && user.avatar_url !== undefined) {
       setUserWithProfile(user);
@@ -153,63 +155,51 @@ const Dashboard = () => {
     return date.toLocaleDateString('pt-BR');
   };
 
-  const buildCommunityFeed = (reviews = []) => {
-    const derivedFeed = reviews
-      .filter((review) => review?.author_user_id && review.author_user_id !== user?.id)
-      .slice(0, 4)
-      .map((review, index) => ({
-        id: `feed-${review.id || index}`,
-        nickname:
-          review.author_username ||
-          review.author?.username ||
-          `Usuário #${review.author_user_id}`,
-        action: review.updated_at ? 'ajustou a avaliação de' : 'avaliou',
-        highlight:
-          review.book_title ||
-          review.movie_title ||
-          review.title ||
-          review.book?.title ||
-          review.movie?.title,
-        rating: review.rating ?? review.score ?? null,
-        timestamp: formatRelativeTime(review.updated_at || review.created_at),
-      }));
-
-    if (derivedFeed.length) return derivedFeed;
-
-    return [
-      {
-        id: 'fallback-1',
-        nickname: 'LunaBits',
-        action: 'avaliou',
-        highlight: 'Neuromancer',
-        rating: 4.5,
-        timestamp: 'há 3 min',
-      },
-      {
-        id: 'fallback-2',
-        nickname: 'GutoPixel',
-        action: 'ajustou a nota de',
-        highlight: 'Blade Runner',
-        rating: 5,
-        timestamp: 'há 12 min',
-      },
-      {
-        id: 'fallback-3',
-        nickname: 'MikaRetro',
-        action: 'atualizou o perfil',
-        highlight: null,
-        rating: null,
-        timestamp: 'há 25 min',
-      },
-      {
-        id: 'fallback-4',
-        nickname: 'Nara8bit',
-        action: 'comentou em',
-        highlight: 'O Nome do Vento',
-        rating: null,
-        timestamp: 'há 1h',
-      },
-    ];
+  const loadCommunityTimeline = async () => {
+    if (!user) return;
+    
+    try {
+      const [generalResult, followingResult] = await Promise.all([
+        timelineService.getCommunityTimeline(20, false),
+        timelineService.getCommunityTimeline(20, true)
+      ]);
+      
+      const processTimeline = (data) => {
+        if (!data || !Array.isArray(data)) return [];
+        return data.map((activity) => {
+          const date = activity.created_at ? new Date(activity.created_at) : new Date();
+          return {
+            id: activity.id,
+            nickname: activity.username || `Usuário #${activity.user_id}`,
+            action: activity.action || 'avaliou',
+            highlight: activity.highlight || null,
+            rating: activity.rating || null,
+            timestamp: formatRelativeTime(date),
+            avatar: activity.avatar 
+              ? (activity.avatar.startsWith('http') 
+                  ? activity.avatar 
+                  : `http://localhost:8001${activity.avatar}`)
+              : null
+          };
+        });
+      };
+      
+      if (generalResult.success && generalResult.data) {
+        setCommunityFeed(processTimeline(generalResult.data));
+      } else {
+        setCommunityFeed([]);
+      }
+      
+      if (followingResult.success && followingResult.data) {
+        setFollowingFeed(processTimeline(followingResult.data));
+      } else {
+        setFollowingFeed([]);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar timeline:', error);
+      setCommunityFeed([]);
+      setFollowingFeed([]);
+    }
   };
 
   const loadStats = async () => {
@@ -217,27 +207,32 @@ const Dashboard = () => {
     if (!user) return;
     
     try {
-      //const ratingsResult = await ratingService.getUserRatings(user.id);
-      const reviewsResult = await reviewService.getUserReviews(user.id);
-   //console.log("Dashboard loadStats ratingsResult:", ratingsResult);
-      if (/*ratingsResult.success &&*/ reviewsResult.success) {
-        //const ratings = ratingsResult.data;
+      const userId = parseInt(user.id, 10);
+      const [reviewsResult, booksResult, moviesResult] = await Promise.all([
+        reviewService.getUserReviews(user.id),
+        externalApiService.getUserLibrary(userId),
+        externalApiService.getUserMovieLibrary(userId)
+      ]);
+      
+      if (reviewsResult.success) {
         const reviews = reviewsResult.data;
+        const books = booksResult.success && Array.isArray(booksResult.data) ? booksResult.data.length : 0;
+        const movies = moviesResult.success && Array.isArray(moviesResult.data) ? moviesResult.data.length : 0;
+        
         setStats({
-          books: 0, //ratings.filter(r => r.book_id).length,
-          movies: 0, //ratings.filter(r => r.movie_id).length,
+          books: books,
+          movies: movies,
           ratings: reviews.length,
        });
-  //console.log("Dashboard loadStats stats set:", stats);
+        
         const insightsResult = buildInsightsFromReviews(reviews);
         setInsights({
           favoriteGenres: insightsResult.favoriteGenres,
           avgRating: insightsResult.avgRating,
           totalReviews: reviews.length,
         });
-        setCommunityFeed(buildCommunityFeed(reviews));
       } else {
-        console.error('Erro ao carregar estatísticas:', ratingsResult.error || reviewsResult.error);
+        console.error('Erro ao carregar estatísticas:', reviewsResult.error);
       }
     } catch (error) {
       console.error('Erro ao carregar estatísticas:', error);
@@ -340,6 +335,7 @@ const Dashboard = () => {
         user={userWithProfile}
         metrics={insights}
         timeline={communityFeed}
+        followingTimeline={followingFeed}
       />
     </div>
   );

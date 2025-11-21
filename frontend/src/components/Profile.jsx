@@ -237,9 +237,16 @@ const Profile = () => {
   const handleAccountSave = () => {
     if (!user) return;
 
-    // Validar campos
+    // Validar campos obrigatórios
     if (!accountFormData.username || !accountFormData.email) {
       showToast('Nome de usuário e email são obrigatórios');
+      return;
+    }
+
+    // Validar formato de email básico
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(accountFormData.email)) {
+      showToast('Por favor, insira um email válido');
       return;
     }
 
@@ -249,8 +256,8 @@ const Profile = () => {
         showToast('As senhas não coincidem');
         return;
       }
-      if (accountFormData.password.length < 1) {
-        showToast('A senha deve ter pelo menos 1 caractere');
+      if (accountFormData.password.length < 6) {
+        showToast('A senha deve ter pelo menos 6 caracteres');
         return;
       }
     }
@@ -259,13 +266,14 @@ const Profile = () => {
     const updateData = {
       username: accountFormData.username !== user.username ? accountFormData.username : undefined,
       email: accountFormData.email !== user.email ? accountFormData.email : undefined,
-      password: accountFormData.password || undefined
+      password: accountFormData.password && accountFormData.password.length > 0 ? accountFormData.password : undefined
     };
 
     // Verificar se há algo para atualizar
     const hasChanges = updateData.username || updateData.email || updateData.password;
     if (!hasChanges) {
       showToast('Nenhuma alteração foi feita');
+      setEditingAccount(false);
       return;
     }
 
@@ -276,7 +284,7 @@ const Profile = () => {
   };
 
   const handlePasswordConfirm = async () => {
-    if (!passwordModalData.currentPassword) {
+    if (!passwordModalData.currentPassword || passwordModalData.currentPassword.trim() === '') {
       setPasswordModalData({ ...passwordModalData, error: 'Por favor, digite sua senha atual' });
       return;
     }
@@ -284,18 +292,18 @@ const Profile = () => {
     if (!user || !pendingUpdate) return;
 
     try {
-      // Remover campos undefined do payload
+      // Remover campos undefined do payload e construir objeto limpo
       const updatePayload = {
-        current_password: passwordModalData.currentPassword
+        current_password: passwordModalData.currentPassword.trim()
       };
       
-      if (pendingUpdate.username !== undefined) {
-        updatePayload.username = pendingUpdate.username;
+      if (pendingUpdate.username !== undefined && pendingUpdate.username !== null) {
+        updatePayload.username = pendingUpdate.username.trim();
       }
-      if (pendingUpdate.email !== undefined) {
-        updatePayload.email = pendingUpdate.email;
+      if (pendingUpdate.email !== undefined && pendingUpdate.email !== null) {
+        updatePayload.email = pendingUpdate.email.trim();
       }
-      if (pendingUpdate.password !== undefined) {
+      if (pendingUpdate.password !== undefined && pendingUpdate.password !== null && pendingUpdate.password.length > 0) {
         updatePayload.password = pendingUpdate.password;
       }
 
@@ -308,31 +316,21 @@ const Profile = () => {
         setPasswordModalData({ currentPassword: '', error: '' });
         setPendingUpdate(null);
         
-        // Atualizar dados do usuário no localStorage
-        if (result.data) {
-          localStorage.setItem('user', JSON.stringify(result.data));
+        // Atualizar dados do usuário no contexto
+        if (result.data && updateUser) {
+          updateUser(result.data);
         }
         
-        // Buscar dados atualizados do servidor
-        try {
-          const { authService } = await import('../services/authService');
-          const userResponse = await authService.getCurrentUser();
-          if (userResponse) {
-            localStorage.setItem('user', JSON.stringify(userResponse));
-          }
-          // Recarregar a página para atualizar o contexto e token se necessário
-          window.location.reload();
-        } catch (error) {
-          console.error('Erro ao atualizar dados do usuário:', error);
-          // Mesmo assim recarregar para garantir que os dados estejam atualizados
-          window.location.reload();
-        }
+        // Recarregar perfil para sincronizar dados
+        await loadProfile();
       } else {
-        setPasswordModalData({ ...passwordModalData, error: result.error || 'Erro ao atualizar dados' });
+        const errorMessage = result.error || 'Erro ao atualizar dados';
+        setPasswordModalData({ ...passwordModalData, error: errorMessage });
       }
     } catch (error) {
       console.error("Profile handlePasswordConfirm error:", error);
-      setPasswordModalData({ ...passwordModalData, error: 'Erro ao atualizar dados' });
+      const errorMessage = error.response?.data?.detail || error.message || 'Erro ao atualizar dados';
+      setPasswordModalData({ ...passwordModalData, error: errorMessage });
     }
   };
 
@@ -519,11 +517,13 @@ const Profile = () => {
                   <label htmlFor="bio">Biografia</label>
                   <textarea
                     id="bio"
-                    value={formData.bio}
+                    value={formData.bio || ''}
                     onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
                     className="form-textarea"
                     rows="6"
                     placeholder="Conte um pouco sobre você..."
+                    disabled={false}
+                    readOnly={false}
                   />
                 </div>
 

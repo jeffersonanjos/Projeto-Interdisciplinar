@@ -5,6 +5,7 @@ from sqlmodel import Session, select
 from database import get_session
 from models import User, UserProfile, Rating, UserLibrary, Recommendation
 from typing import Optional
+from pydantic import BaseModel
 import os
 import shutil
 import uuid
@@ -21,13 +22,21 @@ AVATAR_DIR = Path("uploads/avatars")
 AVATAR_DIR.mkdir(parents=True, exist_ok=True)
 
 
+class ProfileCreate(BaseModel):
+    user_id: int
+    bio: Optional[str] = None
+    avatar_url: Optional[str] = None
+
+
 @router.post("/", response_model=UserProfile)
 def create_or_update_profile(
-    user_id: int,
-    bio: Optional[str] = None,
-    avatar_url: Optional[str] = None,
+    profile_data: ProfileCreate,
     session: Session = Depends(get_session)
 ):
+    user_id = profile_data.user_id
+    bio = profile_data.bio
+    avatar_url = profile_data.avatar_url
+    
     # Verifica se o usuário existe
     user = session.get(User, user_id)
     if not user:
@@ -38,8 +47,10 @@ def create_or_update_profile(
 
     if profile:
         # Atualiza o perfil existente
-        profile.bio = bio or profile.bio
-        profile.avatar_url = avatar_url or profile.avatar_url
+        if bio is not None:
+            profile.bio = bio
+        if avatar_url is not None:
+            profile.avatar_url = avatar_url
     else:
         # Cria um novo perfil
         profile = UserProfile(user_id=user_id, bio=bio, avatar_url=avatar_url)

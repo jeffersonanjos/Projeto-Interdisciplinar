@@ -35,12 +35,27 @@
   letter-spacing: 1px;
 }
 
+/* Garantir visibilidade no modo claro */
+:root:not(.dark-mode) .edit-button {
+  background: #FFF8E7;
+  color: #1f5a2d;
+  border-color: #8b4513;
+}
+
 .edit-button:hover {
   transform: translateY(-2px);
   background: var(--bg-tertiary);
   transition: background-color 0.3s ease;
   border-color: var(--border-color-light);
   box-shadow: 0 6px 12px var(--shadow);
+  color: var(--text-secondary);
+}
+
+/* Garantir visibilidade no hover no modo claro */
+:root:not(.dark-mode) .edit-button:hover {
+  background: #ffffff;
+  color: #1f5a2d;
+  border-color: #a0522d;
 }
 
 .profile-content {
@@ -102,6 +117,15 @@
   border: 3px solid var(--border-color);
   transition: border-color 0.3s ease;
   text-align: center;
+  color: var(--text-secondary);
+}
+
+/* Garantir visibilidade no modo claro */
+:root:not(.dark-mode) .stat-card {
+  background: #FFF8E7;
+  color: #1f5a2d;
+  border-color: #8b4513;
+}
   box-shadow: 0 8px 16px var(--shadow);
 }
 
@@ -112,10 +136,20 @@
   margin-bottom: 8px;
 }
 
+/* Garantir visibilidade no modo claro */
+:root:not(.dark-mode) .stat-card h3 {
+  color: #1f5a2d;
+}
+
 .stat-card p {
   font-size: 10px;
   color: var(--text-tertiary);
   transition: color 0.3s ease;
+}
+
+/* Garantir visibilidade no modo claro */
+:root:not(.dark-mode) .stat-card p {
+  color: #8b4513;
 }
 
 .profile-main {
@@ -135,11 +169,21 @@
   margin-bottom: 10px;
 }
 
+/* Garantir visibilidade no modo claro */
+:root:not(.dark-mode) .profile-info h3 {
+  color: #1f5a2d;
+}
+
 .profile-email {
   font-size: 10px;
   color: var(--text-tertiary);
   transition: color 0.3s ease;
   margin-bottom: 20px;
+}
+
+/* Garantir visibilidade no modo claro */
+:root:not(.dark-mode) .profile-email {
+  color: #8b4513;
 }
 
 .profile-bio {
@@ -153,9 +197,20 @@
   line-height: 1.8;
 }
 
+/* Garantir visibilidade no modo claro */
+:root:not(.dark-mode) .profile-bio p {
+  color: #1f5a2d;
+}
+
 .no-bio {
   opacity: 0.6;
   font-style: italic;
+}
+
+/* Garantir visibilidade do texto "Nenhuma biografia" no modo claro */
+:root:not(.dark-mode) .no-bio {
+  color: #8b4513;
+  opacity: 0.8;
 }
 
 .profile-form {
@@ -187,11 +242,58 @@
   color: var(--text-secondary);
   transition: color 0.3s ease;
   font-family: 'Press Start 2P', monospace;
+  box-sizing: border-box;
+}
+
+/* Garantir visibilidade no modo claro */
+:root:not(.dark-mode) .profile-form .form-input,
+:root:not(.dark-mode) .profile-form .form-textarea {
+  color: #1f5a2d;
+  background: #ffffff;
+}
+
+:root:not(.dark-mode) .account-edit-form .form-input {
+  color: #1f5a2d;
+  background: #ffffff;
+}
+
+:root:not(.dark-mode) .modal-content .form-input {
+  color: #1f5a2d;
+  background: #ffffff;
+}
+
+.profile-form .form-textarea::placeholder {
+  color: var(--text-tertiary);
+  opacity: 0.7;
+}
+
+.profile-form .form-input::placeholder {
+  color: var(--text-tertiary);
+  opacity: 0.7;
 }
 
 .profile-form .form-textarea {
   resize: vertical;
   min-height: 120px;
+  cursor: text;
+  pointer-events: auto;
+  user-select: text;
+}
+
+.profile-form .form-textarea:focus {
+  outline: 2px solid var(--border-color-light);
+  outline-offset: 2px;
+  border-color: var(--border-color-light);
+}
+
+.profile-form .form-textarea:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.profile-form .form-textarea[readonly] {
+  background: var(--bg-secondary);
+  cursor: default;
 }
 
 .form-actions {
@@ -221,24 +323,56 @@
   transition: border-color 0.3s ease;
 }
 
+/* Garantir visibilidade no modo claro */
+:root:not(.dark-mode) .cancel-button {
+  background: #FFF8E7;
+  color: #1f5a2d;
+  border-color: #8b4513;
+}
+
 .cancel-button:hover {
   background: var(--bg-tertiary);
   transition: background-color 0.3s ease;
   border-color: var(--border-color-light);
+  color: var(--text-secondary);
+}
+
+/* Garantir visibilidade no hover no modo claro */
+:root:not(.dark-mode) .cancel-button:hover {
+  background: #ffffff;
+  color: #1f5a2d;
+  border-color: #a0522d;
 }
 
 .save-button {
-  background: var(--bg-secondary);
+  background: var(--green);
   transition: background-color 0.3s ease;
-  color: var(--text-secondary);
+  color: var(--text-primary);
   transition: color 0.3s ease;
-  border: 2px solid var(--border-color);
+  border: 2px solid var(--green);
   transition: border-color 0.3s ease;
+}
+
+/* Garantir visibilidade no modo claro */
+:root:not(.dark-mode) .save-button {
+  background: #1f5a2d;
+  color: #FFF8E7;
+  border-color: #1f5a2d;
 }
 
 .save-button:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 12px var(--shadow);
+  background: var(--green-dark);
+  color: var(--text-primary);
+  border-color: var(--green-dark);
+}
+
+/* Garantir visibilidade no hover no modo claro */
+:root:not(.dark-mode) .save-button:hover {
+  background: #1f5a2d;
+  color: #FFF8E7;
+  border-color: #1f5a2d;
 }
 
 .loading-container {
@@ -337,11 +471,27 @@
   letter-spacing: 1px;
 }
 
+/* Garantir visibilidade no modo claro */
+:root:not(.dark-mode) .delete-profile-button {
+  background: #FFF8E7;
+  color: #c62828;
+  border-color: #c62828;
+}
+
 .delete-profile-button:hover {
   background: #c62828;
-  color: var(--text-primary);
+  color: #ffffff;
   transition: color 0.3s ease;
   transform: translateY(-2px);
+  border-color: #c62828;
+}
+
+/* Garantir visibilidade no hover no modo claro */
+:root:not(.dark-mode) .delete-profile-button:hover {
+  background: #c62828;
+  color: #ffffff;
+  border-color: #c62828;
+}
   box-shadow: 0 4px 8px rgba(198, 40, 40, 0.3);
 }
 
@@ -363,12 +513,27 @@
   margin-top: 20px;
 }
 
+/* Garantir visibilidade no modo claro */
+:root:not(.dark-mode) .edit-account-button {
+  background: #FFF8E7;
+  color: #1f5a2d;
+  border-color: #8b4513;
+}
+
 .edit-account-button:hover {
   background: var(--bg-tertiary);
   transition: background-color 0.3s ease;
   border-color: var(--border-color-light);
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  color: var(--text-secondary);
+}
+
+/* Garantir visibilidade no hover no modo claro */
+:root:not(.dark-mode) .edit-account-button:hover {
+  background: #ffffff;
+  color: #1f5a2d;
+  border-color: #a0522d;
 }
 
 .account-edit-form {
@@ -399,6 +564,12 @@
   color: var(--text-secondary);
   transition: color 0.3s ease;
   font-family: 'Press Start 2P', monospace;
+  box-sizing: border-box;
+}
+
+.account-edit-form .form-input::placeholder {
+  color: var(--text-tertiary);
+  opacity: 0.7;
 }
 
 .modal-description {
@@ -442,6 +613,8 @@
   transition: border-color 0.3s ease;
   box-shadow: 0 10px 30px var(--shadow);
   position: relative;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 .modal-content h3 {
@@ -449,6 +622,44 @@
   color: var(--text-tertiary);
   transition: color 0.3s ease;
   margin-bottom: 20px;
+  margin-right: 40px; /* Espaço para o botão de fechar */
+}
+
+.modal-content .form-group {
+  margin-bottom: 20px;
+}
+
+.modal-content .form-group label {
+  display: block;
+  font-size: 10px;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
+  margin-bottom: 8px;
+}
+
+.modal-content .form-input {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid var(--border-color);
+  transition: border-color 0.3s ease;
+  border-radius: 8px;
+  font-size: 10px;
+  background: var(--bg-tertiary);
+  transition: background-color 0.3s ease;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
+  font-family: 'Press Start 2P', monospace;
+  box-sizing: border-box;
+}
+
+.modal-content .form-input::placeholder {
+  color: var(--text-tertiary);
+  opacity: 0.7;
+}
+
+.modal-content .form-input:focus {
+  outline: 2px solid var(--border-color-light);
+  outline-offset: 2px;
 }
 
 .modal-close-button {
@@ -466,6 +677,14 @@
   transition: color 0.3s ease;
   font-size: 18px;
   line-height: 1;
+}
+
+/* Garantir visibilidade no modo claro */
+:root:not(.dark-mode) .modal-close-button {
+  background: #FFF8E7;
+  color: #8b4513;
+  border-color: #8b4513;
+}
   display: flex;
   align-items: center;
   justify-content: center;
@@ -510,17 +729,34 @@
   transition: all 0.3s ease;
   text-transform: uppercase;
   letter-spacing: 1px;
-  background: var(--bg-secondary);
+  background: var(--green);
   transition: background-color 0.3s ease;
-  color: var(--text-secondary);
+  color: var(--text-primary);
   transition: color 0.3s ease;
-  border: 2px solid var(--border-color);
+  border: 2px solid var(--green);
   transition: border-color 0.3s ease;
+}
+
+/* Garantir visibilidade no modo claro */
+:root:not(.dark-mode) .submit-button {
+  background: #1f5a2d;
+  color: #FFF8E7;
+  border-color: #1f5a2d;
 }
 
 .submit-button:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 12px var(--shadow);
+  background: var(--green-dark);
+  color: var(--text-primary);
+  border-color: var(--green-dark);
+}
+
+/* Garantir visibilidade no hover no modo claro */
+:root:not(.dark-mode) .submit-button:hover {
+  background: #1f5a2d;
+  color: #FFF8E7;
+  border-color: #1f5a2d;
 }
 
 @media (max-width: 768px) {

@@ -42,6 +42,7 @@
   background: var(--bg-tertiary);
   transition: background-color 0.3s ease;
   border-color: var(--border-color-light);
+  color: var(--text-tertiary);
 }
 
 .search-type-toggle button.active {
@@ -102,6 +103,7 @@
   background: var(--bg-tertiary);
   transition: background-color 0.3s ease;
   border-color: var(--border-color-light);
+  color: var(--text-secondary);
   transform: translateY(-2px);
 }
 
@@ -196,6 +198,7 @@
   background: var(--bg-tertiary);
   transition: background-color 0.3s ease;
   border-color: var(--border-color-light);
+  color: var(--text-secondary);
   transform: translateY(-2px);
 }
 

@@ -5,8 +5,9 @@ from datetime import timedelta
 import logging
 from urllib.parse import quote_plus
 
-from models import User, Book as DBBook, Movie as DBMovie, Rating, Recommendation, UserLibrary, UserMovieLibrary
+from models import User, Book as DBBook, Movie as DBMovie, Rating, Recommendation, UserLibrary, UserMovieLibrary, Follow
 from sqlmodel import Session, select
+from sqlalchemy import func
 
 from api_clients import fetch_book_data, fetch_movie_data, fetch_movie_details
 from schemas import Book, Movie, BookRead
@@ -281,37 +282,345 @@ def update_user(
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
     
     # Verificar senha atual se houver alterações
-    if user_update.username is not None or user_update.email is not None or user_update.password is not None:
-        if not user_update.current_password:
+    has_changes = user_update.username is not None or user_update.email is not None or user_update.password is not None
+    
+    if has_changes:
+        if not user_update.current_password or not user_update.current_password.strip():
             raise HTTPException(status_code=400, detail="Senha atual é obrigatória para fazer alterações")
         
         # Verificar se a senha atual está correta
         from auth import verify_password
-        if not verify_password(user_update.current_password, user.hashed_password):
+        if not verify_password(user_update.current_password.strip(), user.hashed_password):
             raise HTTPException(status_code=401, detail="Senha atual incorreta")
     
     # Atualizar campos
     if user_update.username is not None:
+        username = user_update.username.strip()
+        if not username:
+            raise HTTPException(status_code=400, detail="Nome de usuário não pode estar vazio")
         # Verificar se o novo username já existe
-        existing_user = session.exec(select(User).where(User.username == user_update.username)).first()
+        existing_user = session.exec(select(User).where(User.username == username)).first()
         if existing_user and existing_user.id != user_id:
             raise HTTPException(status_code=400, detail="Username já está em uso")
-        user.username = user_update.username
+        user.username = username
     
     if user_update.email is not None:
+        email = user_update.email.strip()
+        if not email:
+            raise HTTPException(status_code=400, detail="Email não pode estar vazio")
+        # Validar formato de email básico
+        if '@' not in email or '.' not in email.split('@')[1]:
+            raise HTTPException(status_code=400, detail="Email inválido")
         # Verificar se o novo email já existe
-        existing_user = session.exec(select(User).where(User.email == user_update.email)).first()
+        existing_user = session.exec(select(User).where(User.email == email)).first()
         if existing_user and existing_user.id != user_id:
             raise HTTPException(status_code=400, detail="Email já está em uso")
-        user.email = user_update.email
+        user.email = email
     
     if user_update.password is not None:
-        user.hashed_password = get_password_hash(user_update.password)
+        password = user_update.password.strip()
+        if len(password) < 6:
+            raise HTTPException(status_code=400, detail="A senha deve ter pelo menos 6 caracteres")
+        user.hashed_password = get_password_hash(password)
     
     session.add(user)
     session.commit()
     session.refresh(user)
     return user
+
+@router.get("/users/search", response_model=List[UserRead], tags=["users"])
+def search_users(
+    query: str,
+    limit: int = 10,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_active_user)
+):
+    """Busca usuários por username (parcial match)"""
+    logger.info(f"Searching users with query: {query}")
+    if not query or not query.strip():
+        return []
+    
+    query_trimmed = query.strip()
+    # Busca usuários cujo username contém a query (case-insensitive)
+    # Usando func.lower para garantir compatibilidade
+    users = session.exec(
+        select(User)
+        .where(func.lower(User.username).contains(query_trimmed.lower()))
+        .limit(limit)
+    ).all()
+    
+    return users
+
+@router.post("/users/{user_id}/follow", tags=["users"])
+def follow_user(
+    user_id: int,
+    current_user: User = Depends(get_current_active_user),
+    session: Session = Depends(get_session)
+):
+    """Seguir um usuário"""
+    logger.info(f"User {current_user.id} following user {user_id}")
+    
+    if current_user.id == user_id:
+        raise HTTPException(status_code=400, detail="Você não pode seguir a si mesmo")
+    
+    # Verificar se o usuário existe
+    target_user = session.get(User, user_id)
+    if not target_user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    # Verificar se já está seguindo
+    existing_follow = session.exec(
+        select(Follow)
+        .where(Follow.follower_id == current_user.id)
+        .where(Follow.following_id == user_id)
+    ).first()
+    
+    if existing_follow:
+        raise HTTPException(status_code=400, detail="Você já está seguindo este usuário")
+    
+    # Criar o follow
+    follow = Follow(
+        follower_id=current_user.id,
+        following_id=user_id
+    )
+    session.add(follow)
+    session.commit()
+    session.refresh(follow)
+    
+    return {"message": "Usuário seguido com sucesso", "following": True}
+
+@router.delete("/users/{user_id}/follow", tags=["users"])
+def unfollow_user(
+    user_id: int,
+    current_user: User = Depends(get_current_active_user),
+    session: Session = Depends(get_session)
+):
+    """Parar de seguir um usuário"""
+    logger.info(f"User {current_user.id} unfollowing user {user_id}")
+    
+    # Verificar se está seguindo
+    follow = session.exec(
+        select(Follow)
+        .where(Follow.follower_id == current_user.id)
+        .where(Follow.following_id == user_id)
+    ).first()
+    
+    if not follow:
+        raise HTTPException(status_code=404, detail="Você não está seguindo este usuário")
+    
+    session.delete(follow)
+    session.commit()
+    
+    return {"message": "Deixou de seguir o usuário", "following": False}
+
+@router.get("/users/{user_id}/follow", tags=["users"])
+def check_follow_status(
+    user_id: int,
+    current_user: User = Depends(get_current_active_user),
+    session: Session = Depends(get_session)
+):
+    """Verificar se o usuário atual está seguindo outro usuário"""
+    if current_user.id == user_id:
+        return {"following": False, "can_follow": False}
+    
+    follow = session.exec(
+        select(Follow)
+        .where(Follow.follower_id == current_user.id)
+        .where(Follow.following_id == user_id)
+    ).first()
+    
+    return {"following": follow is not None, "can_follow": True}
+
+@router.get("/users/{user_id}/followers", response_model=List[UserRead], tags=["users"])
+def get_followers(
+    user_id: int,
+    session: Session = Depends(get_session)
+):
+    """Buscar seguidores de um usuário"""
+    logger.info(f"Getting followers for user {user_id}")
+    
+    # Verificar se o usuário existe
+    target_user = session.get(User, user_id)
+    if not target_user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    # Buscar follows onde o usuário é seguido
+    follows = session.exec(
+        select(Follow)
+        .where(Follow.following_id == user_id)
+    ).all()
+    
+    # Buscar informações dos seguidores
+    follower_ids = [f.follower_id for f in follows]
+    if not follower_ids:
+        return []
+    
+    followers = session.exec(
+        select(User)
+        .where(User.id.in_(follower_ids))
+    ).all()
+    
+    return followers
+
+@router.get("/users/{user_id}/following", response_model=List[UserRead], tags=["users"])
+def get_following(
+    user_id: int,
+    session: Session = Depends(get_session)
+):
+    """Buscar usuários que um usuário está seguindo"""
+    logger.info(f"Getting following for user {user_id}")
+    
+    # Verificar se o usuário existe
+    target_user = session.get(User, user_id)
+    if not target_user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    # Buscar follows onde o usuário é seguidor
+    follows = session.exec(
+        select(Follow)
+        .where(Follow.follower_id == user_id)
+    ).all()
+    
+    # Buscar informações dos seguidos
+    following_ids = [f.following_id for f in follows]
+    if not following_ids:
+        return []
+    
+    following = session.exec(
+        select(User)
+        .where(User.id.in_(following_ids))
+    ).all()
+    
+    return following
+
+@router.get("/users/{user_id}/activities", response_model=List[Dict[str, Any]], tags=["users"])
+def get_user_activities(
+    user_id: int,
+    limit: int = 10,
+    session: Session = Depends(get_session)
+):
+    """Buscar atividades recentes de um usuário (avaliações)"""
+    logger.info(f"Getting activities for user {user_id}")
+    
+    # Verificar se o usuário existe
+    target_user = session.get(User, user_id)
+    if not target_user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    # Buscar avaliações recentes do usuário
+    ratings = session.exec(
+        select(Rating)
+        .where(Rating.user_id == user_id)
+        .order_by(Rating.created_at.desc())
+        .limit(limit)
+    ).all()
+    
+    activities = []
+    for rating in ratings:
+        activity = {
+            "id": rating.id,
+            "type": "rating",
+            "action": "avaliou",
+            "rating": rating.score,
+            "comment": rating.comment,
+            "created_at": rating.created_at.isoformat() if rating.created_at else None,
+        }
+        
+        # Adicionar informações do livro ou filme
+        if rating.book_id:
+            book = session.get(DBBook, rating.book_id)
+            if book:
+                activity["highlight"] = book.title
+                activity["book_id"] = book.id
+        elif rating.movie_id:
+            movie = session.get(DBMovie, rating.movie_id)
+            if movie:
+                activity["highlight"] = movie.title
+                activity["movie_id"] = movie.id
+        
+        activities.append(activity)
+    
+    return activities
+
+@router.get("/timeline", response_model=List[Dict[str, Any]], tags=["timeline"])
+def get_community_timeline(
+    limit: int = 20,
+    only_following: bool = False,
+    current_user: User = Depends(get_current_active_user),
+    session: Session = Depends(get_session)
+):
+    """Buscar timeline da comunidade (atividades de todos os usuários ou apenas dos seguidos)"""
+    logger.info(f"Getting community timeline for user {current_user.id}, only_following={only_following}")
+    
+    # Se only_following=True, buscar apenas atividades dos usuários seguidos
+    if only_following:
+        # Buscar IDs dos usuários seguidos
+        follows = session.exec(
+            select(Follow)
+            .where(Follow.follower_id == current_user.id)
+        ).all()
+        following_ids = [f.following_id for f in follows]
+        
+        if not following_ids:
+            return []
+        
+        # Buscar avaliações dos usuários seguidos
+        ratings = session.exec(
+            select(Rating)
+            .where(Rating.user_id.in_(following_ids))
+            .order_by(Rating.created_at.desc())
+            .limit(limit)
+        ).all()
+    else:
+        # Buscar avaliações de todos os usuários (exceto o próprio)
+        ratings = session.exec(
+            select(Rating)
+            .where(Rating.user_id != current_user.id)
+            .order_by(Rating.created_at.desc())
+            .limit(limit)
+        ).all()
+    
+    timeline = []
+    for rating in ratings:
+        # Buscar informações do usuário
+        rating_user = session.get(User, rating.user_id)
+        if not rating_user:
+            continue
+        
+        # Buscar perfil do usuário para avatar
+        from models import UserProfile as DBUserProfile
+        user_profile = session.exec(
+            select(DBUserProfile)
+            .where(DBUserProfile.user_id == rating.user_id)
+        ).first()
+        
+        activity = {
+            "id": rating.id,
+            "user_id": rating.user_id,
+            "username": rating_user.username,
+            "avatar": user_profile.avatar_url if user_profile else None,
+            "type": "rating",
+            "action": "avaliou",
+            "rating": rating.score,
+            "comment": rating.comment,
+            "created_at": rating.created_at.isoformat() if rating.created_at else None,
+        }
+        
+        # Adicionar informações do livro ou filme
+        if rating.book_id:
+            book = session.get(DBBook, rating.book_id)
+            if book:
+                activity["highlight"] = book.title
+                activity["book_id"] = book.id
+        elif rating.movie_id:
+            movie = session.get(DBMovie, rating.movie_id)
+            if movie:
+                activity["highlight"] = movie.title
+                activity["movie_id"] = movie.id
+        
+        timeline.append(activity)
+    
+    return timeline
 
 @router.post("/ratings/", response_model=RatingRead, status_code=status.HTTP_201_CREATED, tags=["ratings"])
 async def create_rating(

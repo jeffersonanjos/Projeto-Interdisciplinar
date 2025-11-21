@@ -103,6 +103,7 @@
 .nav-button:hover {
   background: var(--bg-tertiary);
   border-bottom-color: var(--border-color-light);
+  color: var(--text-tertiary);
 }
 
 .nav-button.active {
