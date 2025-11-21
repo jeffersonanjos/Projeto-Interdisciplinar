@@ -67,11 +67,20 @@ def _omdb_title_to_movie(item: Dict[str, Any]) -> Movie:
     
     imdb_id = item.get("imdbID") or item.get("imdbid") or ""
     title = item.get("Title") or "N/A"
-    plot = item.get("Plot") or item.get("plot")
+    plot = item.get("Plot") or item.get("plot") or ""
+    # Filtrar "N/A" do plot
+    if plot == "N/A" or not plot:
+        plot = None
     poster = item.get("Poster") or item.get("poster")
     year = item.get("Year") or item.get("year")
     rating_str = item.get("imdbRating")
     votes_str = item.get("imdbVotes")
+    genre_str = item.get("Genre") or item.get("genre") or ""
+    
+    # Extrair gêneros da string separada por vírgulas
+    genres = []
+    if genre_str and genre_str != "N/A":
+        genres = [g.strip() for g in genre_str.split(",") if g.strip()]
     
     # Estratégia de fallback para pôsteres:
     # 1. Tentar URL original do OMDb (pode ser Amazon, pode estar quebrada)
@@ -95,6 +104,16 @@ def _omdb_title_to_movie(item: Dict[str, Any]) -> Movie:
     rating = _parse_omdb_rating(rating_str)
     vote_count = _parse_omdb_votes(votes_str)
     
+    # Extrair diretor
+    director_str = item.get("Director") or item.get("director") or ""
+    director = director_str if director_str and director_str != "N/A" else None
+    
+    # Extrair atores (cast)
+    actors_str = item.get("Actors") or item.get("actors") or ""
+    cast = []
+    if actors_str and actors_str != "N/A":
+        cast = [a.strip() for a in actors_str.split(",") if a.strip()]
+    
     return Movie(
         id=str(imdb_id),
         title=title,
@@ -103,6 +122,9 @@ def _omdb_title_to_movie(item: Dict[str, Any]) -> Movie:
         release_date=year,
         rating=rating,
         vote_count=vote_count,
+        genres=genres if genres else None,
+        director=director,
+        cast=cast if cast else None,
     )
 
 from google_books import search_books as google_search_books, get_book_by_id
@@ -118,6 +140,14 @@ async def search_books(query: str, session: Session = Depends(get_session)):
         # Extrair gêneros do campo categories da API do Google Books
         categories = volume_info.get("categories", [])
         genres = categories if isinstance(categories, list) else []
+        # Extrair ano de publicação
+        published_date = volume_info.get("publishedDate", "")
+        # Se for uma data completa, extrair apenas o ano
+        if published_date:
+            import re
+            year_match = re.search(r'(\d{4})', published_date) if isinstance(published_date, str) else None
+            published_date = year_match.group(1) if year_match else published_date
+        
         book_data = BookRead(
             id=book.get("id", "N/A"),
             title=volume_info.get("title", "N/A"),
@@ -125,6 +155,7 @@ async def search_books(query: str, session: Session = Depends(get_session)):
             description=volume_info.get("description", "N/A"),
             image_url=volume_info.get("imageLinks", {}).get("thumbnail", None),
             genres=genres if genres else None,
+            published_date=published_date if published_date else None,
         )
         book_list.append(book_data)
     return book_list
@@ -138,6 +169,14 @@ async def get_book(book_id: str, session: Session = Depends(get_session)):
         # Extrair gêneros do campo categories da API do Google Books
         categories = volume_info.get("categories", [])
         genres = categories if isinstance(categories, list) else []
+        # Extrair ano de publicação
+        published_date = volume_info.get("publishedDate", "")
+        # Se for uma data completa, extrair apenas o ano
+        if published_date:
+            import re
+            year_match = re.search(r'(\d{4})', published_date) if isinstance(published_date, str) else None
+            published_date = year_match.group(1) if year_match else published_date
+        
         book_data = BookRead(
             id=book.get("id", "N/A"),
             title=volume_info.get("title", "N/A"),
@@ -145,6 +184,7 @@ async def get_book(book_id: str, session: Session = Depends(get_session)):
             description=volume_info.get("description", "N/A"),
             image_url=volume_info.get("imageLinks", {}).get("thumbnail", None),
             genres=genres if genres else None,
+            published_date=published_date if published_date else None,
         )
         return book_data
     else:
@@ -695,12 +735,16 @@ async def create_rating(
                     except (ValueError, TypeError):
                         pass
                 
+                # Extrair gêneros do objeto movie_obj
+                genres = getattr(movie_obj, "genres", None)
+                
                 db_movie = DBMovie(
                     title=movie_obj.title,
                     description=movie_obj.overview,
                     cover_url=movie_obj.poster_path,
                     external_id=external_id,
                     release_date=release_date,
+                    genres=genres,
                 )
                 session.add(db_movie)
                 session.commit()
@@ -876,12 +920,12 @@ async def get_user_movie_library(user_id: int, session: Session = Depends(get_se
             logger.exception("Failed to fetch movie details for %s", entry.movie_external_id)
     return movies
 
-@router.get("/users/{user_id}/reviews", response_model=List[RatingRead], tags=["reviews"])
+@router.get("/users/{user_id}/reviews", response_model=List[Dict[str, Any]], tags=["reviews"])
 async def get_user_reviews(user_id: int, session: Session = Depends(get_session)):
     logger.info(f"Getting reviews for user: {user_id}")
     # Fetch ratings for the user
     ratings = session.exec(select(Rating).where(Rating.user_id == user_id)).all()
-    # Enriquecer com external_ids se necessário
+    # Enriquecer com external_ids e dados completos do livro/filme
     reviews_with_external = []
     for rating in ratings:
         review_dict = {
@@ -890,19 +934,40 @@ async def get_user_reviews(user_id: int, session: Session = Depends(get_session)
             "book_id": rating.book_id,
             "movie_id": rating.movie_id,
             "score": rating.score,
+            "rating": rating.score,  # Adicionar alias para compatibilidade
             "comment": rating.comment,
             "created_at": rating.created_at,
             "book_external_id": None,
             "movie_external_id": None,
+            "book": None,
+            "movie": None,
         }
         if rating.book_id:
             db_book = session.get(DBBook, rating.book_id)
-            if db_book and db_book.external_id:
-                review_dict["book_external_id"] = db_book.external_id
+            if db_book:
+                if db_book.external_id:
+                    review_dict["book_external_id"] = db_book.external_id
+                # Incluir dados completos do livro
+                review_dict["book"] = {
+                    "id": db_book.id,
+                    "title": db_book.title,
+                    "author": db_book.author,
+                    "genres": db_book.genres or [],
+                    "genre": ", ".join(db_book.genres) if db_book.genres else None,
+                }
         if rating.movie_id:
             db_movie = session.get(DBMovie, rating.movie_id)
-            if db_movie and db_movie.external_id:
-                review_dict["movie_external_id"] = db_movie.external_id
+            if db_movie:
+                if db_movie.external_id:
+                    review_dict["movie_external_id"] = db_movie.external_id
+                # Incluir dados completos do filme
+                review_dict["movie"] = {
+                    "id": db_movie.id,
+                    "title": db_movie.title,
+                    "director": db_movie.director,
+                    "genres": db_movie.genres or [],
+                    "genre": ", ".join(db_movie.genres) if db_movie.genres else None,
+                }
         reviews_with_external.append(review_dict)
     return reviews_with_external
 
@@ -1015,6 +1080,78 @@ async def update_book_genres(book_id: int, session: Session = Depends(get_sessio
     except Exception as e:
         logger.exception("Error updating book genres")
         raise HTTPException(status_code=500, detail=f"Error updating genres: {str(e)}")
+
+@router.put("/movies/{movie_id}/update-genres", tags=["movies"])
+async def update_movie_genres(movie_id: int, session: Session = Depends(get_session)):
+    """
+    Atualiza os gêneros de um filme existente no banco de dados buscando da API do OMDb.
+    """
+    logger.info(f"Updating genres for movie with id: {movie_id}")
+    db_movie = session.get(DBMovie, movie_id)
+    if not db_movie:
+        raise HTTPException(status_code=404, detail="Movie not found")
+    
+    if not db_movie.external_id:
+        raise HTTPException(status_code=400, detail="Movie does not have an external_id")
+    
+    # Buscar dados atualizados da API
+    try:
+        movie_data = fetch_movie_details(db_movie.external_id)
+        if movie_data:
+            movie_obj = _omdb_title_to_movie(movie_data)
+            if movie_obj and movie_obj.genres:
+                db_movie.genres = movie_obj.genres
+                session.add(db_movie)
+                session.commit()
+                session.refresh(db_movie)
+                return {"message": "Genres updated successfully", "genres": db_movie.genres}
+            else:
+                return {"message": "No genres found in API response"}
+        else:
+            return {"message": "Movie not found in external API"}
+    except Exception as e:
+        logger.exception("Error updating movie genres")
+        raise HTTPException(status_code=500, detail=f"Error updating genres: {str(e)}")
+
+@router.post("/movies/update-all-genres", tags=["movies"])
+async def update_all_movies_genres(session: Session = Depends(get_session)):
+    """
+    Atualiza os gêneros de todos os filmes no banco de dados que têm external_id mas não têm gêneros.
+    """
+    logger.info("Updating genres for all movies")
+    # Buscar todos os filmes com external_id
+    all_movies = session.exec(select(DBMovie).where(DBMovie.external_id.isnot(None))).all()
+    
+    # Filtrar filmes sem gêneros (None ou lista vazia)
+    movies_to_update = [
+        movie for movie in all_movies 
+        if not movie.genres or (isinstance(movie.genres, list) and len(movie.genres) == 0)
+    ]
+    
+    updated_count = 0
+    failed_count = 0
+    
+    for db_movie in movies_to_update:
+        try:
+            movie_data = fetch_movie_details(db_movie.external_id)
+            if movie_data:
+                movie_obj = _omdb_title_to_movie(movie_data)
+                if movie_obj and movie_obj.genres:
+                    db_movie.genres = movie_obj.genres
+                    session.add(db_movie)
+                    updated_count += 1
+        except Exception as e:
+            logger.exception(f"Error updating genres for movie {db_movie.id}: {e}")
+            failed_count += 1
+    
+    session.commit()
+    
+    return {
+        "message": f"Updated genres for {updated_count} movies",
+        "updated_count": updated_count,
+        "failed_count": failed_count,
+        "total_processed": len(movies_to_update)
+    }
 
 @router.post("/books/update-all-genres", tags=["books"])
 async def update_all_books_genres(session: Session = Depends(get_session)):

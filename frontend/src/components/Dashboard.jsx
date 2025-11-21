@@ -70,6 +70,8 @@ const Dashboard = () => {
 
   const extractGenresFromReview = (review) => {
     if (!review) return [];
+    
+    // Tentar obter gêneros de várias fontes possíveis
     const possibleGenres = [
       review.genre,
       review.genres,
@@ -78,25 +80,32 @@ const Dashboard = () => {
       review.movie_genre,
       review.book?.genre,
       review.movie?.genre,
+      review.book?.genres,
+      review.movie?.genres,
       review.metadata?.genre,
       review.metadata?.genres,
     ];
 
-    return possibleGenres
+    const extracted = possibleGenres
       .flatMap((value) => {
         if (!value) return [];
         if (Array.isArray(value)) return value;
         if (typeof value === 'string') {
+          // Se for uma string, tentar dividir por vírgula, barra ou pipe
           return value.split(/[,/|]/);
         }
         return [];
       })
       .map((genre) => genre?.trim())
       .filter(Boolean);
+    
+    return extracted;
   };
 
   const buildInsightsFromReviews = (reviews = []) => {
-    if (!reviews.length) {
+    console.log("buildInsightsFromReviews called with:", reviews);
+    if (!reviews || !reviews.length) {
+      console.log("No reviews found");
       return {
         avgRating: null,
         favoriteGenres: [],
@@ -108,16 +117,20 @@ const Dashboard = () => {
     let ratingCount = 0;
 
     reviews.forEach((review) => {
+      // Tentar obter o rating de várias formas possíveis
       const ratingValue = Number(
         review.rating ?? review.score ?? review.stars ?? review.value
       );
 
-      if (!Number.isNaN(ratingValue)) {
+      console.log("Processing review:", review, "ratingValue:", ratingValue);
+
+      if (!Number.isNaN(ratingValue) && ratingValue > 0) {
         ratingSum += ratingValue;
         ratingCount += 1;
       }
 
       const genres = extractGenresFromReview(review);
+      console.log("Extracted genres:", genres);
       genres.forEach((genre) => {
         genreCounts[genre] = (genreCounts[genre] || 0) + 1;
       });
@@ -128,8 +141,11 @@ const Dashboard = () => {
       .slice(0, 3)
       .map(([label, count]) => ({ label, count }));
 
+    const avgRating = ratingCount > 0 ? ratingSum / ratingCount : null;
+    console.log("Final insights - avgRating:", avgRating, "ratingCount:", ratingCount, "favoriteGenres:", favoriteGenres);
+
     return {
-      avgRating: ratingCount ? ratingSum / ratingCount : null,
+      avgRating,
       favoriteGenres,
     };
   };
@@ -214,8 +230,11 @@ const Dashboard = () => {
         externalApiService.getUserMovieLibrary(userId)
       ]);
       
+      console.log("Reviews result:", reviewsResult);
+      
       if (reviewsResult.success) {
-        const reviews = reviewsResult.data;
+        const reviews = reviewsResult.data || [];
+        console.log("Reviews data:", reviews);
         const books = booksResult.success && Array.isArray(booksResult.data) ? booksResult.data.length : 0;
         const movies = moviesResult.success && Array.isArray(moviesResult.data) ? moviesResult.data.length : 0;
         
@@ -226,6 +245,7 @@ const Dashboard = () => {
        });
         
         const insightsResult = buildInsightsFromReviews(reviews);
+        console.log("Insights result:", insightsResult);
         setInsights({
           favoriteGenres: insightsResult.favoriteGenres,
           avgRating: insightsResult.avgRating,
@@ -233,9 +253,21 @@ const Dashboard = () => {
         });
       } else {
         console.error('Erro ao carregar estatísticas:', reviewsResult.error);
+        // Definir valores padrão em caso de erro
+        setInsights({
+          favoriteGenres: [],
+          avgRating: null,
+          totalReviews: 0,
+        });
       }
     } catch (error) {
       console.error('Erro ao carregar estatísticas:', error);
+      // Definir valores padrão em caso de erro
+      setInsights({
+        favoriteGenres: [],
+        avgRating: null,
+        totalReviews: 0,
+      });
     }
   };
 

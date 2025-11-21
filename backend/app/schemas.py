@@ -59,6 +59,7 @@ class BookRead(BookBase):
     id: str
     authors: Optional[List[str]] = None        # compatível com Google Books API
     image_url: Optional[str] = None
+    published_date: Optional[str] = None       # Ano de publicação
 
     class Config:
         orm_mode = True
@@ -151,6 +152,9 @@ class Movie(BaseModel):
     release_date: Optional[str] = None
     rating: Optional[float] = None
     vote_count: Optional[int] = None
+    genres: Optional[List[str]] = None
+    director: Optional[str] = None
+    cast: Optional[List[str]] = None
 
     class Config:
         orm_mode = True

@@ -53,13 +53,13 @@ const Taskbar = ({ user, metrics, timeline, followingTimeline = [] }) => {
     : '??';
 
   const avgRating =
-    metrics?.avgRating && !Number.isNaN(metrics.avgRating)
+    metrics?.avgRating !== null && metrics?.avgRating !== undefined && !Number.isNaN(Number(metrics.avgRating))
       ? Number(metrics.avgRating).toFixed(1)
       : '--';
 
   const favoriteGenres = metrics?.favoriteGenres?.length
     ? metrics.favoriteGenres
-    : [{ label: '???', count: 0 }];
+    : [];
 
   const safeTimeline = Array.isArray(timeline) && timeline.length
     ? timeline.slice(0, 6)
@@ -776,12 +776,18 @@ const Taskbar = ({ user, metrics, timeline, followingTimeline = [] }) => {
           <div className="taskbar-genres">
             <span className="taskbar-genres__title">Gêneros preferidos</span>
             <div className="taskbar-genres__chips">
-              {favoriteGenres.map((genre) => (
-                <span key={genre.label} className="taskbar-genres__chip">
-                  {genre.label}
-                  {genre.count ? ` · ${genre.count}` : ''}
+              {favoriteGenres.length > 0 ? (
+                favoriteGenres.map((genre) => (
+                  <span key={genre.label} className="taskbar-genres__chip">
+                    {genre.label}
+                    {genre.count ? ` · ${genre.count}` : ''}
+                  </span>
+                ))
+              ) : (
+                <span className="taskbar-genres__chip" style={{ opacity: 0.6 }}>
+                  Nenhum gênero encontrado
                 </span>
-              ))}
+              )}
             </div>
           </div>
         </div>

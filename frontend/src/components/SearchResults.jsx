@@ -1,11 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './SearchResults.css';
 import { externalApiService } from '../services/apiService';
 import { useToast } from '../hooks/useToast';
 import Toast from './Toast';
+import DetailsModal from './DetailsModal';
 
 const SearchResults = ({ results, type }) => {
   const { toast, showToast } = useToast();
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [selectedDetailsItem, setSelectedDetailsItem] = useState(null);
   if (!results || results.length === 0) {
     return <p>No results found.</p>;
   }
@@ -87,19 +90,33 @@ const SearchResults = ({ results, type }) => {
   return (
     <div className="search-results-container">
       <div className="book-grid library-compact">
-        {results.map((result) => {
+        {results.map((result, index) => {
           const authors =
             Array.isArray(result.authors) ? result.authors.join(', ') : (result.authors || 'Autor desconhecido');
           const coverImage = isBook ? (result.image_url || defaultCover) : (result.poster_path || defaultCover);
+          // Usar uma chave única combinando tipo e ID, com fallback para índice
+          const uniqueKey = `${type}-${result.id || result.external_id || index}`;
           return (
-            <div key={result.id} className="book-item">
+            <div key={uniqueKey} className="book-item">
               <img 
                 src={coverImage} 
                 alt={result.title} 
                 className="book-cover"
                 onError={(e) => handleImageError(e, result)}
+                onClick={() => {
+                  setSelectedDetailsItem({ ...result, type });
+                  setShowDetailsModal(true);
+                }}
+                style={{ cursor: 'pointer' }}
               />
-              <div className="book-content">
+              <div 
+                className="book-content"
+                onClick={() => {
+                  setSelectedDetailsItem({ ...result, type });
+                  setShowDetailsModal(true);
+                }}
+                style={{ cursor: 'pointer', flex: 1 }}
+              >
                 <h3 className="book-title">{result.title || 'Sem título'}</h3>
                 {isBook ? (
                   <p className="book-authors">Autores: {authors}</p>
@@ -139,6 +156,14 @@ const SearchResults = ({ results, type }) => {
           );
         })}
       </div>
+      <DetailsModal
+        item={selectedDetailsItem}
+        isOpen={showDetailsModal}
+        onClose={() => {
+          setShowDetailsModal(false);
+          setSelectedDetailsItem(null);
+        }}
+      />
       <Toast message={toast} />
     </div>
   );

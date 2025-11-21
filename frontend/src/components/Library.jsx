@@ -4,6 +4,7 @@ import { ratingService, externalApiService } from '../services/apiService';
 import { useToast } from '../hooks/useToast';
 import Toast from './Toast';
 import PixelLoader from './PixelLoader';
+import DetailsModal from './DetailsModal';
 import './Library.css';
 
 const Library = () => {
@@ -25,6 +26,8 @@ const Library = () => {
   const [feedbackMessage, setFeedbackMessage] = useState('');
   const [isSubmittingRating, setIsSubmittingRating] = useState(false);
   const [isDeletingRating, setIsDeletingRating] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [selectedDetailsItem, setSelectedDetailsItem] = useState(null);
   const { toast, showToast } = useToast();
 
   useEffect(() => {
@@ -472,8 +475,20 @@ const Library = () => {
                   alt={item.title} 
                   className="book-cover"
                   onError={handleImageError}
+                  onClick={() => {
+                    setSelectedDetailsItem({ ...item, type: item.type || libraryType });
+                    setShowDetailsModal(true);
+                  }}
+                  style={{ cursor: 'pointer' }}
                 />
-                <div className="book-content">
+                <div 
+                  className="book-content"
+                  onClick={() => {
+                    setSelectedDetailsItem({ ...item, type: item.type || libraryType });
+                    setShowDetailsModal(true);
+                  }}
+                  style={{ cursor: 'pointer', flex: 1 }}
+                >
                   <h3 className="book-title">{item.title || 'Sem título'}</h3>
                   {isBook && <p className="book-authors">Autores: {authors}</p>}
                   {!isBook && (
@@ -484,13 +499,19 @@ const Library = () => {
                   )}
                 </div>
                 <button
-                  onClick={() => handleRateItem(item)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleRateItem(item);
+                  }}
                   className="rate-button"
                 >
                   {item.rating ? 'Editar Avaliação' : 'Avaliar'}
                 </button>
                 <button
-                  onClick={() => handleRemoveItem(item)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleRemoveItem(item);
+                  }}
                   className="remove-button"
                 >
                   Remover
@@ -643,6 +664,15 @@ const Library = () => {
           </div>
         </div>
       )}
+
+      <DetailsModal
+        item={selectedDetailsItem}
+        isOpen={showDetailsModal}
+        onClose={() => {
+          setShowDetailsModal(false);
+          setSelectedDetailsItem(null);
+        }}
+      />
 
       <Toast message={toast} />
     </div>
