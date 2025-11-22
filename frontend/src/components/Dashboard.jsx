@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useUpdate } from '../contexts/UpdateContext';
 import { useNavigate } from 'react-router-dom';
 import Search from './Search';
 import Library from './Library';
@@ -11,6 +12,7 @@ import './Dashboard.css';
 const Dashboard = () => {
   console.log("Dashboard component loaded");
   const { user, logout } = useAuth();
+  const { atualizacaoBiblioteca, atualizacaoAvaliacoes, atualizacaoTimeline, atualizacaoMetricas } = useUpdate();
   const navigate = useNavigate();
   const [activeView, setActiveView] = useState('home');
   const [stats, setStats] = useState({ books: 0, movies: 0, ratings: 0 });
@@ -34,6 +36,25 @@ const Dashboard = () => {
       loadUserProfile();
     }
   }, [user]);
+
+  // Recarregar dados quando houver atualizações
+  useEffect(() => {
+    if (atualizacaoBiblioteca > 0 || atualizacaoAvaliacoes > 0) {
+      loadStats();
+    }
+  }, [atualizacaoBiblioteca, atualizacaoAvaliacoes]);
+
+  useEffect(() => {
+    if (atualizacaoTimeline > 0) {
+      loadCommunityTimeline();
+    }
+  }, [atualizacaoTimeline]);
+
+  useEffect(() => {
+    if (atualizacaoMetricas > 0) {
+      loadStats();
+    }
+  }, [atualizacaoMetricas]);
 
   // Recarregar perfil quando voltar da view de perfil para sincronizar avatar
   useEffect(() => {

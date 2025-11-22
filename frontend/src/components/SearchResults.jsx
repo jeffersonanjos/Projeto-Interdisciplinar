@@ -1,12 +1,14 @@
 import React, { useState, useMemo } from 'react';
 import './SearchResults.css';
 import { externalApiService } from '../services/apiService';
+import { useUpdate } from '../contexts/UpdateContext';
 import { useToast } from '../hooks/useToast';
 import Toast from './Toast';
 import DetailsModal from './DetailsModal';
 
 const SearchResults = ({ results, type }) => {
   const { toast, showToast } = useToast();
+  const { notificarAtualizacaoBiblioteca } = useUpdate();
   const [mostrarModalDetalhes, setMostrarModalDetalhes] = useState(false);
   const [itemDetalhesSelecionado, setItemDetalhesSelecionado] = useState(null);
   if (!results || results.length === 0) {
@@ -21,6 +23,7 @@ const SearchResults = ({ results, type }) => {
         : await externalApiService.addMovieToLibrary(item.id);
       if (resultado.success) {
         showToast(`${ehLivro ? 'Livro' : 'Filme'} adicionado à biblioteca!`);
+        notificarAtualizacaoBiblioteca();
       } else {
         showToast(resultado.error || `Erro ao adicionar ${ehLivro ? 'livro' : 'filme'} à biblioteca`);
       }

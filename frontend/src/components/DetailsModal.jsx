@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import './DetailsModal.css';
 import { externalApiService } from '../services/apiService';
+import { useUpdate } from '../contexts/UpdateContext';
 import { useToast } from '../hooks/useToast';
 import Toast from './Toast';
 
 const DetailsModal = ({ item: item, isOpen: estaAberto, onClose: aoFechar }) => {
   const { toast, showToast } = useToast();
+  const { notificarAtualizacaoBiblioteca } = useUpdate();
   const [itemDetalhado, setItemDetalhado] = useState(null);
   const [carregandoDetalhes, setCarregandoDetalhes] = useState(false);
 
@@ -57,6 +59,7 @@ const DetailsModal = ({ item: item, isOpen: estaAberto, onClose: aoFechar }) => 
         : await externalApiService.addMovieToLibrary(itemDetalhado.id);
       if (resposta.success) {
         showToast(`${ehLivro ? 'Livro' : 'Filme'} adicionado à biblioteca!`);
+        notificarAtualizacaoBiblioteca();
       } else {
         showToast(resposta.error || `Erro ao adicionar ${ehLivro ? 'livro' : 'filme'} à biblioteca`);
       }

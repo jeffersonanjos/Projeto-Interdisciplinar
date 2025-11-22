@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import ThemeToggle from './ThemeToggle';
 import { useAuth } from '../contexts/AuthContext';
+import { useUpdate } from '../contexts/UpdateContext';
 import { useNavigate } from 'react-router-dom';
 import { profileService, ratingService, externalApiService, userService, timelineService } from '../services/apiService';
 import { useToast } from '../hooks/useToast';
@@ -13,6 +14,7 @@ const Taskbar = ({ user: usuario, metrics: metricas, timeline: linhaDoTempo, fol
   const [modalAberto, setModalAberto] = useState(null);
   const [estaVisivel, setEstaVisivel] = useState(true);
   const { user: usuarioAuth, logout, updateUser } = useAuth();
+  const { atualizacaoBiblioteca, atualizacaoAvaliacoes, atualizacaoTimeline, atualizacaoMetricas } = useUpdate();
   const navigate = useNavigate();
   const referenciaInputArquivo = useRef(null);
   const { toast, showToast } = useToast();
@@ -182,21 +184,37 @@ const Taskbar = ({ user: usuario, metrics: metricas, timeline: linhaDoTempo, fol
   const carregarEstatisticas = async () => {
     if (!usuarioAuth) return;
     try {
-      const [resultadoAvaliacoes, resultadoBiblioteca] = await Promise.all([
+      const [resultadoAvaliacoes, resultadoBiblioteca, resultadoBibliotecaFilmes] = await Promise.all([
         ratingService.getUserRatings(usuarioAuth.id),
-        externalApiService.getUserLibrary(parseInt(usuarioAuth.id))
+        externalApiService.getUserLibrary(parseInt(usuarioAuth.id)),
+        externalApiService.getUserMovieLibrary(parseInt(usuarioAuth.id))
       ]);
       const arrayAvaliacoes = resultadoAvaliacoes.success ? resultadoAvaliacoes.data : [];
       const arrayBiblioteca = resultadoBiblioteca.success ? resultadoBiblioteca.data : [];
+      const arrayBibliotecaFilmes = resultadoBibliotecaFilmes.success ? resultadoBibliotecaFilmes.data : [];
       setEstatisticas({
         books: Array.isArray(arrayBiblioteca) ? arrayBiblioteca.length : 0,
-        movies: 0,
+        movies: Array.isArray(arrayBibliotecaFilmes) ? arrayBibliotecaFilmes.length : 0,
         ratings: arrayAvaliacoes.length
       });
     } catch (erro) {
       console.error('Erro ao carregar estatísticas:', erro);
     }
   };
+
+  // Recarregar estatísticas quando houver atualizações
+  useEffect(() => {
+    if (atualizacaoBiblioteca > 0 || atualizacaoAvaliacoes > 0 || atualizacaoMetricas > 0) {
+      carregarEstatisticas();
+    }
+  }, [atualizacaoBiblioteca, atualizacaoAvaliacoes, atualizacaoMetricas]);
+
+  // Recarregar timeline pessoal quando houver atualizações
+  useEffect(() => {
+    if (atualizacaoTimeline > 0) {
+      carregarLinhaDoTempoPessoal();
+    }
+  }, [atualizacaoTimeline]);
 
   const lidarComSalvar = async (e) => {
     e.preventDefault();

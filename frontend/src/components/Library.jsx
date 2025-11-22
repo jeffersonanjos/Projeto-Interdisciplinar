@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useUpdate } from '../contexts/UpdateContext';
 import { ratingService, externalApiService } from '../services/apiService';
 import { useToast } from '../hooks/useToast';
 import Toast from './Toast';
@@ -9,6 +10,7 @@ import './Library.css';
 
 const Library = () => {
   const { user } = useAuth();
+  const { notificarAtualizacaoBiblioteca, notificarAtualizacaoAvaliacoes } = useUpdate();
   const [libraryType, setLibraryType] = useState('books'); // 'books' ou 'movies'
   const [items, setItems] = useState([]);
   const [allItems, setAllItems] = useState([]); // Todos os itens (livros + filmes) para contagem
@@ -239,6 +241,7 @@ const Library = () => {
           setSelectedRating(avaliacaoAtualizada);
           setIsEditingRating(false);
           setFeedbackMessage('Avaliação atualizada!');
+          notificarAtualizacaoAvaliacoes();
         } else {
           setFeedbackMessage(resultado.error || 'Erro ao atualizar avaliação.');
         }
@@ -264,6 +267,7 @@ const Library = () => {
           setSelectedRating(novaAvaliacao);
           setIsEditingRating(false);
           setFeedbackMessage('Avaliação salva!');
+          notificarAtualizacaoAvaliacoes();
         } else {
           setFeedbackMessage(resultado.error || 'Erro ao salvar avaliação.');
         }
@@ -289,6 +293,7 @@ const Library = () => {
         setRatingForm({ score: 0, comment: '' });
         setIsEditingRating(true);
         setFeedbackMessage('Avaliação removida.');
+        notificarAtualizacaoAvaliacoes();
       } else {
         setFeedbackMessage(resultado.error || 'Erro ao remover avaliação.');
       }
@@ -327,6 +332,7 @@ const Library = () => {
           return atualizado;
         });
         showToast(`${tipoItem === 'book' ? 'Livro' : 'Filme'} removido da biblioteca!`);
+        notificarAtualizacaoBiblioteca();
       } else {
         showToast(resultado.error || `Erro ao remover ${nomeItem} da biblioteca`);
       }
