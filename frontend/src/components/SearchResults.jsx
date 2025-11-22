@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import './SearchResults.css';
 import { externalApiService } from '../services/apiService';
 import { useToast } from '../hooks/useToast';
@@ -87,10 +87,52 @@ const SearchResults = ({ results, type }) => {
     img.src = createDefaultCover(result.title || 'Sem Imagem');
   };
 
+  // Filtrar resultados para garantir que correspondam ao tipo esperado
+  // e remover duplicatas baseadas no ID
+  const filteredResults = useMemo(() => {
+    const seen = new Set();
+    const filtered = [];
+    
+    for (const result of results) {
+      // Criar uma chave única para detecção de duplicatas
+      const id = result.id || result.external_id;
+      const uniqueKey = id ? `${type}-${id}` : null;
+      
+      // Verificar se já vimos este item
+      if (uniqueKey && seen.has(uniqueKey)) {
+        continue; // Pular duplicatas
+      }
+      
+      // Filtro rigoroso baseado no tipo esperado
+      if (isBook) {
+        // É um livro se tem authors ou image_url, E NÃO tem poster_path (característica de filme)
+        // Também garantir que NÃO tem release_date (característica de filme)
+        const hasBookCharacteristics = (result.authors || result.image_url);
+        const hasNoMovieCharacteristics = !result.poster_path && !result.release_date;
+        if (hasBookCharacteristics && hasNoMovieCharacteristics) {
+          if (uniqueKey) seen.add(uniqueKey);
+          filtered.push(result);
+        }
+      } else {
+        // É um filme se tem poster_path ou release_date, E NÃO tem authors
+        // Também garantir que não tem image_url (característica de livro)
+        // Validação adicional: verificar se tem IMDb ID (característica de filme)
+        const hasMovieCharacteristics = (result.poster_path || result.release_date || result.id);
+        const hasNoBookCharacteristics = !result.authors && !result.image_url;
+        if (hasMovieCharacteristics && hasNoBookCharacteristics) {
+          if (uniqueKey) seen.add(uniqueKey);
+          filtered.push(result);
+        }
+      }
+    }
+    
+    return filtered;
+  }, [results, type, isBook]);
+
   return (
     <div className="search-results-container">
       <div className="book-grid library-compact">
-        {results.map((result, index) => {
+        {filteredResults.map((result, index) => {
           const authors =
             Array.isArray(result.authors) ? result.authors.join(', ') : (result.authors || 'Autor desconhecido');
           const coverImage = isBook ? (result.image_url || defaultCover) : (result.poster_path || defaultCover);
@@ -121,13 +163,35 @@ const SearchResults = ({ results, type }) => {
                 {isBook ? (
                   <p className="book-authors">Autores: {authors}</p>
                 ) : (
-                  <>
-                    <p className="book-authors">
-                      Lançamento: {result.release_date || 'Sem data'} {result.rating ? `• Nota IMDb: ${result.rating}` : ''}
-                    </p>
-                    {result.overview && <p className="book-authors movie-overview">{result.overview}</p>}
-                  </>
+                  <p className="book-authors">
+                    {result.release_date ? `Lançamento: ${result.release_date}` : 'Sem data'}
+                    {result.rating && (
+                      <span> • Nota IMDb: {
+                        typeof result.rating === 'number' 
+                          ? result.rating.toFixed(1) 
+                          : (result.rating?.score ? result.rating.score.toFixed(1) : result.rating)
+                      }</span>
+                    )}
+                  </p>
                 )}
+                {(() => {
+                  // Processar gêneros de forma robusta
+                  let genres = [];
+                  if (result.genres) {
+                    if (Array.isArray(result.genres)) {
+                      genres = result.genres.filter(g => g && g.trim());
+                    } else if (typeof result.genres === 'string') {
+                      genres = result.genres.split(/[,|]/).map(g => g.trim()).filter(g => g);
+                    }
+                  }
+                  return genres.length > 0 && (
+                    <div className="taskbar-genres__chips">
+                      {genres.slice(0, 3).map((genre, index) => (
+                        <span key={index} className="taskbar-genres__chip">{genre}</span>
+                      ))}
+                    </div>
+                  );
+                })()}
               </div>
               <button
                 type="button"
@@ -156,6 +220,11 @@ const SearchResults = ({ results, type }) => {
           );
         })}
       </div>
+      {filteredResults.length === 0 && results.length > 0 && (
+        <p style={{ textAlign: 'center', padding: '20px', color: 'var(--text-secondary)' }}>
+          Nenhum {type === 'book' ? 'livro' : 'filme'} válido encontrado nos resultados.
+        </p>
+      )}
       <DetailsModal
         item={selectedDetailsItem}
         isOpen={showDetailsModal}

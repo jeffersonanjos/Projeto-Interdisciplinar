@@ -444,7 +444,7 @@ export const externalApiService = {
   },
   async getBooksFromBackend(query) {
     try {
-      const response = await api.get(`/books?query=${encodeURIComponent(query)}`);
+      const response = await api.get(`/books/search?query=${encodeURIComponent(query)}`);
       return { success: true, data: response.data };
     } catch (error) {
       return { success: false, error: error.response?.data?.detail || 'Erro ao buscar livros (backend)' };
@@ -569,6 +569,30 @@ export const externalApiService = {
         message = error.message || 'Erro ao remover filme da biblioteca';
       }
       return { success: false, error: message };
+    }
+  },
+  // Buscar filme por ID (external_id)
+  async getMovieById(externalId) {
+    console.log("externalApiService.getMovieById called with:", externalId);
+    try {
+      const response = await api.get(`/movies/${externalId}`);
+      console.log("externalApiService.getMovieById API response:", response);
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error("externalApiService.getMovieById error:", error);
+      return { success: false, error: error.response?.data?.detail || 'Erro ao buscar filme' };
+    }
+  },
+  // Buscar livro por ID (external_id)
+  async getBookById(externalId) {
+    console.log("externalApiService.getBookById called with:", externalId);
+    try {
+      const response = await api.get(`/books/${externalId}`);
+      console.log("externalApiService.getBookById API response:", response);
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error("externalApiService.getBookById error:", error);
+      return { success: false, error: error.response?.data?.detail || 'Erro ao buscar livro' };
     }
   },
 };

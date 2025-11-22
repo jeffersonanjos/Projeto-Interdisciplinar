@@ -32,37 +32,17 @@ export const ThemeProvider = ({ children }) => {
     
     // Aplicar tema ao documento
     const root = document.documentElement;
-    const body = document.body;
     
     // Adicionar classe de transição para suavizar a mudança
     root.classList.add('theme-transitioning');
     
-    // Usar requestAnimationFrame para garantir que a transição seja suave
-    const applyBackgroundBaseStyles = () => {
-      const rootStyles = getComputedStyle(root);
-      const bgPrimary = rootStyles.getPropertyValue('--bg-primary')?.trim() || '#1f5a2d';
-      body.style.backgroundSize = 'cover';
-      body.style.backgroundPosition = 'top center';
-      body.style.backgroundRepeat = 'no-repeat';
-      body.style.backgroundAttachment = 'fixed';
-      body.style.backgroundColor = bgPrimary;
-    };
-
     requestAnimationFrame(() => {
       if (isDarkMode) {
         root.classList.add('dark-mode');
         root.classList.remove('light-mode');
-        // Definir background image para dark mode
-        root.style.setProperty('--bg-image', `url(${backgroundDark})`);
-        body.style.backgroundImage = `url(${backgroundDark})`;
-        applyBackgroundBaseStyles();
       } else {
         root.classList.add('light-mode');
         root.classList.remove('dark-mode');
-        // Definir background image para light mode
-        root.style.setProperty('--bg-image', `url(${backgroundLight})`);
-        body.style.backgroundImage = `url(${backgroundLight})`;
-        applyBackgroundBaseStyles();
       }
       
       // Remover classe de transição após a animação
@@ -104,6 +84,30 @@ export const ThemeProvider = ({ children }) => {
 
   return (
     <ThemeContext.Provider value={value}>
+      <div 
+        className="background-blur"
+        style={{
+          position: 'fixed',
+          top: '-100px',
+          left: '-100px',
+          right: '-100px',
+          bottom: '-100px',
+          width: 'calc(100vw + 200px)',
+          height: 'calc(100vh + 200px)',
+          backgroundImage: `url(${isDarkMode ? backgroundDark : backgroundLight})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center center',
+          backgroundRepeat: 'no-repeat',
+          backgroundAttachment: 'fixed',
+          backgroundColor: isDarkMode ? '#000000' : '#ffffff',
+          filter: 'blur(8px)',
+          WebkitFilter: 'blur(8px)',
+          zIndex: -1,
+          transition: 'background-image 0.6s ease-in-out, filter 0.6s ease-in-out, background-color 0.6s ease-in-out',
+          overflow: 'hidden',
+          transform: 'scale(1.15)'
+        }}
+      />
       {children}
     </ThemeContext.Provider>
   );

@@ -1,13 +1,70 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import './DetailsModal.css';
+import { externalApiService } from '../services/apiService';
+import { useToast } from '../hooks/useToast';
+import Toast from './Toast';
 
 const DetailsModal = ({ item, isOpen, onClose }) => {
-  if (!isOpen || !item) return null;
+  const { toast, showToast } = useToast();
+  const [detailedItem, setDetailedItem] = useState(null);
+  const [loadingDetails, setLoadingDetails] = useState(false);
+
+  useEffect(() => {
+    if (isOpen && item) {
+      setDetailedItem(item);
+      // Se for filme e não tiver sinopse, buscar detalhes completos
+      const isBook = item.type === 'book' || 
+                     (item.type !== 'movie' && !item.director && (item.authors || item.description));
+      
+      if (!isBook && item.id && (!item.overview || item.overview === 'N/A') && (!item.description || item.description === 'N/A')) {
+        setLoadingDetails(true);
+        externalApiService.getMovieById(item.id)
+          .then(result => {
+            if (result.success && result.data) {
+              setDetailedItem({ ...item, ...result.data });
+            } else {
+              // Se falhar, manter o item original
+              setDetailedItem(item);
+            }
+          })
+          .catch(error => {
+            console.error('Error fetching movie details:', error);
+            // Se falhar, manter o item original
+            setDetailedItem(item);
+          })
+          .finally(() => {
+            setLoadingDetails(false);
+          });
+      }
+    } else if (!isOpen) {
+      // Limpar quando o modal fechar
+      setDetailedItem(null);
+      setLoadingDetails(false);
+    }
+  }, [isOpen, item]);
+
+  if (!isOpen || !item || !detailedItem) return null;
 
   // Detectar se é livro ou filme
   // Prioridade: type explícito > presença de director (filme) > presença de authors (livro)
-  const isBook = item.type === 'book' || 
-                 (item.type !== 'movie' && !item.director && (item.authors || item.description));
+  const isBook = detailedItem.type === 'book' || 
+                 (detailedItem.type !== 'movie' && !detailedItem.director && (detailedItem.authors || detailedItem.description));
+  
+  const handleAddToLibrary = async () => {
+    try {
+      const res = isBook
+        ? await externalApiService.addBookToLibrary(detailedItem.id)
+        : await externalApiService.addMovieToLibrary(detailedItem.id);
+      if (res.success) {
+        showToast(`${isBook ? 'Livro' : 'Filme'} adicionado à biblioteca!`);
+      } else {
+        showToast(res.error || `Erro ao adicionar ${isBook ? 'livro' : 'filme'} à biblioteca`);
+      }
+    } catch (error) {
+      console.error(`Error adding ${isBook ? 'book' : 'movie'} to library:`, error);
+      showToast(`Erro ao adicionar ${isBook ? 'livro' : 'filme'} à biblioteca.`);
+    }
+  };
   
   // Função para criar placeholder SVG
   const createDefaultCover = (title = 'Sem Imagem') => {
@@ -32,27 +89,27 @@ const DetailsModal = ({ item, isOpen, onClose }) => {
   };
 
   const coverImage = isBook 
-    ? (item.image_url || createDefaultCover(item.title))
-    : (item.poster_path || createDefaultCover(item.title));
+    ? (detailedItem.image_url || createDefaultCover(detailedItem.title))
+    : (detailedItem.poster_path || createDefaultCover(detailedItem.title));
 
   const handleImageError = (e) => {
     const img = e.target;
     if (img.dataset.finalFallback === 'true') return;
     img.dataset.finalFallback = 'true';
-    img.src = createDefaultCover(item.title || 'Sem Imagem');
+    img.src = createDefaultCover(detailedItem.title || 'Sem Imagem');
   };
 
-  const authors = isBook && Array.isArray(item.authors) 
-    ? item.authors.join(', ') 
-    : (isBook ? (item.authors || 'Autor desconhecido') : null);
+  const authors = isBook && Array.isArray(detailedItem.authors) 
+    ? detailedItem.authors.join(', ') 
+    : (isBook ? (detailedItem.authors || 'Autor desconhecido') : null);
 
-  const genres = item.genres && Array.isArray(item.genres) 
-    ? item.genres 
-    : (item.genres ? [item.genres] : []);
+  const genres = detailedItem.genres && Array.isArray(detailedItem.genres) 
+    ? detailedItem.genres 
+    : (detailedItem.genres ? [detailedItem.genres] : []);
 
-  const cast = item.cast && Array.isArray(item.cast) 
-    ? item.cast 
-    : (item.cast ? [item.cast] : []);
+  const cast = detailedItem.cast && Array.isArray(detailedItem.cast) 
+    ? detailedItem.cast 
+    : (detailedItem.cast ? [detailedItem.cast] : []);
 
   return (
     <div className="modal-overlay details-modal-overlay" onClick={onClose}>
@@ -70,14 +127,19 @@ const DetailsModal = ({ item, isOpen, onClose }) => {
           <div className="details-modal-cover">
             <img 
               src={coverImage} 
-              alt={item.title} 
+              alt={detailedItem.title} 
               className="details-cover-image"
               onError={handleImageError}
             />
           </div>
           
           <div className="details-modal-info">
-            <h2 className="details-title">{item.title || 'Sem título'}</h2>
+            <h2 className="details-title">{detailedItem.title || 'Sem título'}</h2>
+            {loadingDetails && (
+              <p style={{ fontSize: '9px', color: 'var(--text-secondary)', marginBottom: '10px' }}>
+                Carregando detalhes...
+              </p>
+            )}
             
             {isBook ? (
               <>
@@ -87,34 +149,34 @@ const DetailsModal = ({ item, isOpen, onClose }) => {
                     <span className="details-value">{authors}</span>
                   </div>
                 )}
-                {item.published_date && (
+                {detailedItem.published_date && (
                   <div className="details-field">
                     <span className="details-label">Ano de Publicação:</span>
-                    <span className="details-value">{item.published_date}</span>
+                    <span className="details-value">{detailedItem.published_date}</span>
                   </div>
                 )}
               </>
             ) : (
               <>
-                {item.director && (
+                {detailedItem.director && (
                   <div className="details-field">
                     <span className="details-label">Diretor:</span>
-                    <span className="details-value">{item.director}</span>
+                    <span className="details-value">{detailedItem.director}</span>
                   </div>
                 )}
-                {item.release_date && (
+                {detailedItem.release_date && (
                   <div className="details-field">
                     <span className="details-label">Ano de Lançamento:</span>
-                    <span className="details-value">{item.release_date}</span>
+                    <span className="details-value">{detailedItem.release_date}</span>
                   </div>
                 )}
-                {(item.rating || (item.rating && item.rating.score)) && (
+                {(detailedItem.rating || (detailedItem.rating && detailedItem.rating.score)) && (
                   <div className="details-field">
                     <span className="details-label">Nota IMDb:</span>
                     <span className="details-value">
-                      {typeof item.rating === 'number' 
-                        ? item.rating.toFixed(1) 
-                        : (item.rating?.score ? item.rating.score.toFixed(1) : 'N/A')}
+                      {typeof detailedItem.rating === 'number' 
+                        ? detailedItem.rating.toFixed(1) 
+                        : (detailedItem.rating?.score ? detailedItem.rating.score.toFixed(1) : 'N/A')}
                     </span>
                   </div>
                 )}
@@ -130,25 +192,36 @@ const DetailsModal = ({ item, isOpen, onClose }) => {
             {genres.length > 0 && (
               <div className="details-field">
                 <span className="details-label">Gêneros:</span>
-                <div className="details-genres">
+                <div className="details-genres taskbar-genres__chips">
                   {genres.map((genre, index) => (
-                    <span key={index} className="genre-tag">{genre}</span>
+                    <span key={index} className="taskbar-genres__chip">{genre}</span>
                   ))}
                 </div>
               </div>
             )}
             
-            {((item.description && item.description !== 'N/A') || (item.overview && item.overview !== 'N/A')) && (
+            {((detailedItem.description && detailedItem.description !== 'N/A') || (detailedItem.overview && detailedItem.overview !== 'N/A')) && (
               <div className="details-field details-synopsis">
                 <span className="details-label">Sinopse:</span>
                 <p className="details-synopsis-text">
-                  {item.description && item.description !== 'N/A' ? item.description : (item.overview && item.overview !== 'N/A' ? item.overview : '')}
+                  {detailedItem.description && detailedItem.description !== 'N/A' ? detailedItem.description : (detailedItem.overview && detailedItem.overview !== 'N/A' ? detailedItem.overview : '')}
                 </p>
               </div>
             )}
+            
+            <div className="details-modal-actions">
+              <button
+                type="button"
+                className="details-add-button"
+                onClick={handleAddToLibrary}
+              >
+                Adicionar à Biblioteca
+              </button>
+            </div>
           </div>
         </div>
       </div>
+      <Toast message={toast} />
     </div>
   );
 };

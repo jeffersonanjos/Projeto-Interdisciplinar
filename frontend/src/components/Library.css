@@ -32,8 +32,11 @@
   transition: background-color 0.3s ease;
   color: var(--text-secondary);
   transition: color 0.3s ease;
-  border: 2px solid var(--border-color);
-  transition: border-color 0.3s ease;
+  border: none;
+  box-shadow: 
+    0 2px 0 rgba(0, 0, 0, 0.1),
+    0 4px 8px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
   cursor: pointer;
   transition: all 0.3s ease;
 }
@@ -41,7 +44,11 @@
 .library-type-toggle button:hover {
   background: var(--bg-tertiary);
   transition: background-color 0.3s ease;
-  border-color: var(--border-color-light);
+  transform: translateY(-1px);
+  box-shadow: 
+    0 3px 0 rgba(0, 0, 0, 0.15),
+    0 6px 12px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
   color: var(--text-tertiary);
 }
 
@@ -50,7 +57,11 @@
   transition: background-color 0.3s ease;
   color: var(--text-secondary);
   transition: color 0.3s ease;
-  border-color: var(--brown);
+  box-shadow: 
+    0 1px 0 rgba(0, 0, 0, 0.2),
+    0 2px 4px rgba(0, 0, 0, 0.1),
+    inset 0 2px 4px rgba(0, 0, 0, 0.15);
+  transform: translateY(1px);
 }
 
 .empty-library {
@@ -119,6 +130,28 @@
   width: 100%;
 }
 
+.library-compact .taskbar-genres__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+  width: 100%;
+  justify-content: center;
+}
+
+.library-compact .taskbar-genres__chip {
+  border: none;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 8px;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  box-shadow: 
+    0 1px 0 rgba(0, 0, 0, 0.1),
+    0 2px 4px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
 .library-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -130,15 +163,28 @@
   transition: background-color 0.3s ease;
   border-radius: 15px;
   padding: 25px;
-  border: 3px solid var(--border-color);
-  transition: border-color 0.3s ease;
-  box-shadow: 0 8px 16px var(--shadow);
+  border: none;
+  box-shadow: 
+    0 4px 0 rgba(0, 0, 0, 0.1),
+    0 8px 16px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
   transition: all 0.3s ease;
 }
 
 .library-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+  transform: translateY(-3px);
+  box-shadow: 
+    0 6px 0 rgba(0, 0, 0, 0.15),
+    0 12px 24px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.library-card:active {
+  transform: translateY(1px);
+  box-shadow: 
+    0 2px 0 rgba(0, 0, 0, 0.15),
+    0 4px 8px rgba(0, 0, 0, 0.1),
+    inset 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .library-card-header h3 {
@@ -186,8 +232,11 @@
   width: 32px;
   height: 32px;
   border-radius: 8px;
-  border: 2px solid var(--border-color);
-  transition: border-color 0.3s ease;
+  border: none;
+  box-shadow: 
+    0 2px 0 rgba(0, 0, 0, 0.1),
+    0 4px 8px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
   background: var(--bg-secondary);
   transition: background-color 0.3s ease;
   color: var(--text-tertiary);
@@ -205,7 +254,19 @@
   background: var(--bg-tertiary);
   transition: background-color 0.3s ease;
   color: var(--text-tertiary);
-  border-color: var(--border-color-light);
+  transform: translateY(-1px);
+  box-shadow: 
+    0 3px 0 rgba(0, 0, 0, 0.15),
+    0 6px 12px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.modal-close-button:active {
+  transform: translateY(1px);
+  box-shadow: 
+    0 1px 0 rgba(0, 0, 0, 0.2),
+    0 2px 4px rgba(0, 0, 0, 0.1),
+    inset 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
 .modal-close-button:focus {
@@ -216,8 +277,11 @@
 .modal-feedback {
   background: var(--bg-tertiary);
   transition: background-color 0.3s ease;
-  border: 2px solid var(--border-color);
-  transition: border-color 0.3s ease;
+  border: none;
+  box-shadow: 
+    0 2px 0 rgba(0, 0, 0, 0.1),
+    0 4px 8px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
   border-radius: 10px;
   padding: 12px;
   font-size: 10px;
@@ -316,8 +380,11 @@
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  border: 2px solid var(--border-color);
-  transition: border-color 0.3s ease;
+  border: none;
+  box-shadow: 
+    0 2px 0 rgba(0, 0, 0, 0.1),
+    0 4px 8px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
   background: var(--bg-secondary);
   transition: background-color 0.3s ease;
   display: flex;
@@ -332,20 +399,38 @@
 }
 
 .icon-button.edit {
-  border-color: var(--green);
+  box-shadow: 
+    0 2px 0 rgba(31, 90, 45, 0.3),
+    0 4px 8px rgba(31, 90, 45, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
   color: var(--text-secondary);
   transition: color 0.3s ease;
 }
 
 .icon-button.delete {
-  border-color: #c62828;
+  box-shadow: 
+    0 2px 0 rgba(198, 40, 40, 0.3),
+    0 4px 8px rgba(198, 40, 40, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
   color: #c62828;
 }
 
 .icon-button:hover {
   background: var(--bg-tertiary);
   transition: background-color 0.3s ease;
-  transform: translateY(-2px);
+  transform: translateY(-1px);
+  box-shadow: 
+    0 3px 0 rgba(0, 0, 0, 0.15),
+    0 6px 12px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.icon-button:active {
+  transform: translateY(1px);
+  box-shadow: 
+    0 1px 0 rgba(0, 0, 0, 0.2),
+    0 2px 4px rgba(0, 0, 0, 0.1),
+    inset 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
 .icon-button:disabled {
@@ -358,8 +443,11 @@
   width: 100%;
   padding: 12px;
   border-radius: 8px;
-  border: 2px solid var(--border-color);
-  transition: border-color 0.3s ease;
+  border: none;
+  box-shadow: 
+    0 2px 0 rgba(0, 0, 0, 0.1),
+    0 4px 8px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
   background: var(--bg-secondary);
   transition: background-color 0.3s ease;
   color: var(--text-secondary);
@@ -374,8 +462,19 @@
   background: var(--bg-tertiary);
   transition: background-color 0.3s ease;
   color: var(--text-tertiary);
-  border-color: var(--border-color-light);
-  transform: translateY(-2px);
+  transform: translateY(-1px);
+  box-shadow: 
+    0 3px 0 rgba(0, 0, 0, 0.15),
+    0 6px 12px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.close-button:active {
+  transform: translateY(1px);
+  box-shadow: 
+    0 1px 0 rgba(0, 0, 0, 0.2),
+    0 2px 4px rgba(0, 0, 0, 0.1),
+    inset 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 .rate-button {
   width: 100%;
@@ -384,8 +483,11 @@
   transition: background-color 0.3s ease;
   color: var(--text-secondary);
   transition: color 0.3s ease;
-  border: 2px solid var(--border-color);
-  transition: border-color 0.3s ease;
+  border: none;
+  box-shadow: 
+    0 2px 0 rgba(0, 0, 0, 0.1),
+    0 4px 8px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   font-size: 9px;
   cursor: pointer;
@@ -396,14 +498,78 @@
 
 .library-compact .rate-button {
   margin-top: auto;
+  background: var(--green);
+  color: var(--text-primary);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 
+    0 4px 0 rgba(0, 0, 0, 0.25),
+    0 6px 12px rgba(0, 0, 0, 0.2),
+    0 2px 4px rgba(0, 0, 0, 0.15),
+    inset 0 2px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.1),
+    0 0 16px rgba(76, 175, 80, 0.2);
+}
+
+.library-compact .rate-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(255, 255, 255, 0.2), 
+    transparent);
+  transition: left 0.5s ease;
+}
+
+.library-compact .rate-button:hover::before {
+  left: 100%;
+}
+
+.library-compact .rate-button:hover {
+  background: var(--green-dark);
+  transform: translateY(-2px);
+  box-shadow: 
+    0 6px 0 rgba(0, 0, 0, 0.3),
+    0 10px 20px rgba(0, 0, 0, 0.25),
+    0 4px 8px rgba(0, 0, 0, 0.2),
+    inset 0 2px 0 rgba(255, 255, 255, 0.25),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.1),
+    0 0 24px rgba(76, 175, 80, 0.3);
+}
+
+.library-compact .rate-button:active {
+  transform: translateY(1px);
+  box-shadow: 
+    0 2px 0 rgba(0, 0, 0, 0.3),
+    0 4px 8px rgba(0, 0, 0, 0.2),
+    0 1px 2px rgba(0, 0, 0, 0.15),
+    inset 0 3px 6px rgba(0, 0, 0, 0.25),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.1),
+    0 0 12px rgba(76, 175, 80, 0.15);
 }
 
 .rate-button:hover {
   background: var(--bg-tertiary);
   transition: background-color 0.3s ease;
   color: var(--text-secondary);
-  border-color: var(--border-color-light);
-  transform: translateY(-2px);
+  transform: translateY(-1px);
+  box-shadow: 
+    0 3px 0 rgba(0, 0, 0, 0.15),
+    0 6px 12px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.rate-button:active {
+  transform: translateY(1px);
+  box-shadow: 
+    0 1px 0 rgba(0, 0, 0, 0.2),
+    0 2px 4px rgba(0, 0, 0, 0.1),
+    inset 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
 .remove-button {
@@ -412,7 +578,11 @@
   background: var(--bg-secondary);
   transition: background-color 0.3s ease;
   color: #c62828;
-  border: 2px solid #c62828;
+  border: none;
+  box-shadow: 
+    0 2px 0 rgba(198, 40, 40, 0.3),
+    0 4px 8px rgba(198, 40, 40, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   font-size: 9px;
   cursor: pointer;
@@ -430,8 +600,19 @@
   background: #c62828;
   color: var(--text-primary);
   transition: color 0.3s ease;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(198, 40, 40, 0.3);
+  transform: translateY(-1px);
+  box-shadow: 
+    0 3px 0 rgba(198, 40, 40, 0.4),
+    0 6px 12px rgba(198, 40, 40, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.remove-button:active {
+  transform: translateY(1px);
+  box-shadow: 
+    0 1px 0 rgba(198, 40, 40, 0.4),
+    0 2px 4px rgba(198, 40, 40, 0.2),
+    inset 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 /* Modal */
@@ -457,9 +638,11 @@
   padding: 30px;
   max-width: 500px;
   width: 100%;
-  border: 3px solid var(--border-color);
-  transition: border-color 0.3s ease;
-  box-shadow: 0 10px 30px var(--shadow);
+  border: none;
+  box-shadow: 
+    0 6px 0 rgba(0, 0, 0, 0.15),
+    0 10px 30px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .modal-content h3 {
@@ -526,15 +709,31 @@
   transition: background-color 0.3s ease;
   color: var(--text-secondary);
   transition: color 0.3s ease;
-  border: 2px solid var(--border-color);
-  transition: border-color 0.3s ease;
+  border: none;
+  box-shadow: 
+    0 2px 0 rgba(0, 0, 0, 0.1),
+    0 4px 8px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
 }
 
 .cancel-button:hover {
   background: var(--bg-tertiary);
   transition: background-color 0.3s ease;
-  border-color: var(--border-color-light);
+  transform: translateY(-1px);
+  box-shadow: 
+    0 3px 0 rgba(0, 0, 0, 0.15),
+    0 6px 12px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
   color: var(--text-secondary);
+}
+
+.cancel-button:active {
+  transform: translateY(1px);
+  box-shadow: 
+    0 1px 0 rgba(0, 0, 0, 0.2),
+    0 2px 4px rgba(0, 0, 0, 0.1),
+    inset 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
 .submit-button {
@@ -542,15 +741,30 @@
   transition: background-color 0.3s ease;
   color: var(--text-secondary);
   transition: color 0.3s ease;
-  border: 2px solid var(--border-color);
-  transition: border-color 0.3s ease;
+  border: none;
+  box-shadow: 
+    0 2px 0 rgba(0, 0, 0, 0.1),
+    0 4px 8px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
 }
 
 .submit-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px var(--shadow);
+  transform: translateY(-1px);
+  box-shadow: 
+    0 3px 0 rgba(0, 0, 0, 0.15),
+    0 6px 12px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
   background: var(--bg-tertiary);
   color: var(--text-secondary);
+}
+
+.submit-button:active {
+  transform: translateY(1px);
+  box-shadow: 
+    0 1px 0 rgba(0, 0, 0, 0.2),
+    0 2px 4px rgba(0, 0, 0, 0.1),
+    inset 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
 .submit-button:disabled {

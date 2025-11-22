@@ -66,28 +66,40 @@
 /* Estilos base */
 html {
   font-size: 16px;
+  background-color: transparent;
+  min-height: 100%;
 }
 
 body {
   font-family: 'Press Start 2P', monospace;
   line-height: 1.6;
-  background-image: var(--bg-image);
   background-color: transparent;
-  background-size: cover;
-  background-position: top center;
-  background-repeat: no-repeat;
-  background-attachment: fixed;
   color: var(--text-primary);
   min-height: 100vh;
   margin: 0;
+  position: relative;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  transition: background-color 0.6s ease-in-out, color 0.6s ease-in-out, background-size 0.6s ease-in-out;
+  transition: color 0.6s ease-in-out;
+}
+
+/* Background blur element - será renderizado via ThemeContext */
+.background-blur {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  min-width: 100%;
+  min-height: 100%;
+  z-index: -1;
+  overflow: hidden;
+  background-color: transparent;
 }
 
 /* Fallback para quando a imagem não carregar */
-body:not([style*="background-image"]) {
-  background-color: var(--bg-primary);
+body:not([style*="--bg-image"])::before {
+  display: none;
 }
 
 /* Estilos para elementos de texto */

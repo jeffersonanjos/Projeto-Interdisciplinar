@@ -97,11 +97,23 @@ const Library = () => {
       const filteredMovies = libraryMovies.filter((item) => item && item.id);
 
       // Preparar itens com ratings
-      const booksWithRatings = filteredBooks.map((item) => ({
-        ...item,
-        rating: ratingsMap[item.id] || null,
-        type: 'book',
-      }));
+      const booksWithRatings = filteredBooks.map((item) => {
+        // Garantir que os gêneros sejam processados corretamente
+        let genres = [];
+        if (item.genres) {
+          if (Array.isArray(item.genres)) {
+            genres = item.genres;
+          } else if (typeof item.genres === 'string') {
+            genres = [item.genres];
+          }
+        }
+        return {
+          ...item,
+          genres: genres.length > 0 ? genres : null,
+          rating: ratingsMap[item.id] || null,
+          type: 'book',
+        };
+      });
 
       const moviesWithRatings = filteredMovies.map((item) => ({
         ...item,
@@ -112,28 +124,9 @@ const Library = () => {
       const allItems = [...booksWithRatings, ...moviesWithRatings];
       setAllItems(allItems);
 
-      // Carregar livros e filmes incrementalmente em paralelo
-      const loadBooksIncrementally = async () => {
-        setLoadedBooks([]);
-        for (let i = 0; i < booksWithRatings.length; i++) {
-          await new Promise(resolve => setTimeout(resolve, 50));
-          setLoadedBooks(prev => [...prev, booksWithRatings[i]]);
-        }
-      };
-
-      const loadMoviesIncrementally = async () => {
-        setLoadedMovies([]);
-        for (let i = 0; i < moviesWithRatings.length; i++) {
-          await new Promise(resolve => setTimeout(resolve, 50));
-          setLoadedMovies(prev => [...prev, moviesWithRatings[i]]);
-        }
-      };
-
-      // Executar ambos em paralelo
-      await Promise.all([
-        loadBooksIncrementally(),
-        loadMoviesIncrementally()
-      ]);
+      // Carregar livros e filmes imediatamente
+      setLoadedBooks(booksWithRatings);
+      setLoadedMovies(moviesWithRatings);
 
       // Filtrar por tipo selecionado e atualizar itens finais
       const filteredItems = libraryType === 'books' 
@@ -497,6 +490,24 @@ const Library = () => {
                       {item.rating && item.rating.score ? ` • Nota: ${item.rating.score.toFixed(1)}` : ''}
                     </p>
                   )}
+                  {(() => {
+                    // Processar gêneros de forma robusta
+                    let genres = [];
+                    if (item.genres) {
+                      if (Array.isArray(item.genres)) {
+                        genres = item.genres.filter(g => g && g.trim());
+                      } else if (typeof item.genres === 'string') {
+                        genres = item.genres.split(/[,|]/).map(g => g.trim()).filter(g => g);
+                      }
+                    }
+                    return genres.length > 0 && (
+                      <div className="taskbar-genres__chips">
+                        {genres.slice(0, 3).map((genre, index) => (
+                          <span key={index} className="taskbar-genres__chip">{genre}</span>
+                        ))}
+                      </div>
+                    );
+                  })()}
                 </div>
                 <button
                   onClick={(e) => {

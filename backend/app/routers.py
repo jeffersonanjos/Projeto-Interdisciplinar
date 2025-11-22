@@ -61,11 +61,25 @@ def _parse_omdb_votes(votes_str: Optional[str]) -> Optional[int]:
         return None
 
 
-def _omdb_title_to_movie(item: Dict[str, Any]) -> Movie:
+def _omdb_title_to_movie(item: Dict[str, Any]) -> Optional[Movie]:
     """Converts OMDb API response to Movie schema."""
     from api_clients import fetch_movie_poster_from_tmdb
     
+    # Validar que é realmente um filme (não um livro ou outro tipo)
+    item_type = item.get("Type", "").lower()
+    if item_type and item_type not in ["movie", "series"]:
+        # Se tiver Type definido e não for movie ou series, pular
+        return None
+    
     imdb_id = item.get("imdbID") or item.get("imdbid") or ""
+    
+    # Validação adicional: garantir que tem imdbID (característica de filme)
+    if not imdb_id:
+        # Sem IMDb ID, pode ser que não seja um filme válido
+        # Mas vamos permitir se tiver outras características de filme
+        if not item.get("Title") and not item.get("Year"):
+            return None
+    
     title = item.get("Title") or "N/A"
     plot = item.get("Plot") or item.get("plot") or ""
     # Filtrar "N/A" do plot
@@ -218,7 +232,53 @@ async def search_movies(
     if not movie_data or "results" not in movie_data:
         raise HTTPException(status_code=404, detail="No movies found")
 
-    return [_omdb_title_to_movie(item) for item in movie_data["results"]]
+    # Buscar detalhes completos de cada filme para obter gêneros
+    # A busca inicial do OMDb (s=query) não retorna gêneros, apenas busca detalhada (i=imdbID)
+    import asyncio
+    import concurrent.futures
+    
+    results = movie_data["results"]
+    
+    async def fetch_movie_with_details(item: Dict[str, Any]) -> Movie:
+        """Busca detalhes completos do filme se tiver IMDb ID"""
+        imdb_id = item.get("imdbID") or item.get("imdbid")
+        
+        if not imdb_id:
+            # Sem IMDb ID, retornar resultado da busca inicial
+            return _omdb_title_to_movie(item)
+        
+        # Buscar detalhes completos em thread pool para não bloquear
+        loop = asyncio.get_event_loop()
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            try:
+                details = await loop.run_in_executor(
+                    executor, 
+                    fetch_movie_details, 
+                    imdb_id
+                )
+                # Se encontrou detalhes válidos, usar eles (têm gêneros)
+                if details and details.get("Response") == "True":
+                    return _omdb_title_to_movie(details)
+            except Exception as e:
+                logger.warning(f"Error fetching details for {imdb_id}: {e}")
+        
+        # Se falhou, usar resultado da busca inicial (sem gêneros)
+        return _omdb_title_to_movie(item)
+    
+    # Buscar todos os detalhes em paralelo e filtrar None (itens inválidos)
+    movies = await asyncio.gather(*[fetch_movie_with_details(item) for item in results])
+    
+    # Filtrar resultados None (itens que não são filmes válidos) e remover duplicatas
+    seen_ids = set()
+    valid_movies = []
+    for m in movies:
+        if m is not None and m.id:
+            # Remover duplicatas baseadas no ID
+            if m.id not in seen_ids:
+                seen_ids.add(m.id)
+                valid_movies.append(m)
+    
+    return valid_movies
 
 @router.get("/movies/{external_id}", response_model=Movie, tags=["movies"])
 async def get_movie(external_id: str, session: Session = Depends(get_session)):
@@ -887,7 +947,53 @@ async def search_movies_public(
     if not movie_data or "results" not in movie_data:
         raise HTTPException(status_code=404, detail="No movies found")
 
-    return [_omdb_title_to_movie(item) for item in movie_data["results"]]
+    # Buscar detalhes completos de cada filme para obter gêneros
+    # A busca inicial do OMDb (s=query) não retorna gêneros, apenas busca detalhada (i=imdbID)
+    import asyncio
+    import concurrent.futures
+    
+    results = movie_data["results"]
+    
+    async def fetch_movie_with_details(item: Dict[str, Any]) -> Optional[Movie]:
+        """Busca detalhes completos do filme se tiver IMDb ID"""
+        imdb_id = item.get("imdbID") or item.get("imdbid")
+        
+        if not imdb_id:
+            # Sem IMDb ID, retornar resultado da busca inicial
+            return _omdb_title_to_movie(item)
+        
+        # Buscar detalhes completos em thread pool para não bloquear
+        loop = asyncio.get_event_loop()
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            try:
+                details = await loop.run_in_executor(
+                    executor, 
+                    fetch_movie_details, 
+                    imdb_id
+                )
+                # Se encontrou detalhes válidos, usar eles (têm gêneros)
+                if details and details.get("Response") == "True":
+                    return _omdb_title_to_movie(details)
+            except Exception as e:
+                logger.warning(f"Error fetching details for {imdb_id}: {e}")
+        
+        # Se falhou, usar resultado da busca inicial (sem gêneros)
+        return _omdb_title_to_movie(item)
+    
+    # Buscar todos os detalhes em paralelo e filtrar None (itens inválidos)
+    movies = await asyncio.gather(*[fetch_movie_with_details(item) for item in results])
+    
+    # Filtrar resultados None (itens que não são filmes válidos) e remover duplicatas
+    seen_ids = set()
+    valid_movies = []
+    for m in movies:
+        if m is not None and m.id:
+            # Remover duplicatas baseadas no ID
+            if m.id not in seen_ids:
+                seen_ids.add(m.id)
+                valid_movies.append(m)
+    
+    return valid_movies
 
 @router.get("/users/{user_id}/library", response_model=List[BookRead], tags=["library"])
 async def get_user_library(user_id: int, session: Session = Depends(get_session)):
@@ -910,12 +1016,16 @@ async def get_user_movie_library(user_id: int, session: Session = Depends(get_se
     logger.info(f"Getting movie library for user: {user_id}")
     entries = session.exec(select(UserMovieLibrary).where(UserMovieLibrary.user_id == user_id)).all()
     movies: List[Movie] = []
+    seen_ids = set()
     for entry in entries:
         try:
             movie_data = fetch_movie_details(entry.movie_external_id)
             if movie_data:
                 movie = _omdb_title_to_movie(movie_data)
-                movies.append(movie)
+                # Filtrar None e remover duplicatas
+                if movie is not None and movie.id and movie.id not in seen_ids:
+                    seen_ids.add(movie.id)
+                    movies.append(movie)
         except Exception:
             logger.exception("Failed to fetch movie details for %s", entry.movie_external_id)
     return movies

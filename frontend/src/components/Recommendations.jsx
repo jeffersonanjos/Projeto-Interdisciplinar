@@ -44,12 +44,8 @@ const Recommendations = () => {
           const books = result.data || [];
           setBookRecommendations(books);
           
-          // Mostrar livros incrementalmente
-          setLoadedBooks([]);
-          for (let i = 0; i < books.length; i++) {
-            await new Promise(resolve => setTimeout(resolve, 30));
-            setLoadedBooks(prev => [...prev, books[i]]);
-          }
+          // Mostrar livros imediatamente
+          setLoadedBooks(books);
         } else {
           console.error("Recommendations loadRecommendations book error:", result.error);
         }
@@ -70,12 +66,8 @@ const Recommendations = () => {
           const movies = result.data || [];
           setMovieRecommendations(movies);
           
-          // Mostrar filmes incrementalmente
-          setLoadedMovies([]);
-          for (let i = 0; i < movies.length; i++) {
-            await new Promise(resolve => setTimeout(resolve, 30));
-            setLoadedMovies(prev => [...prev, movies[i]]);
-          }
+          // Mostrar filmes imediatamente
+          setLoadedMovies(movies);
         } else {
           console.error("Recommendations loadRecommendations movie error:", result.error);
         }

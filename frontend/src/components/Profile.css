@@ -609,9 +609,11 @@
   padding: 30px;
   max-width: 500px;
   width: 100%;
-  border: 3px solid var(--border-color);
-  transition: border-color 0.3s ease;
-  box-shadow: 0 10px 30px var(--shadow);
+  border: none;
+  box-shadow: 
+    0 6px 0 rgba(0, 0, 0, 0.15),
+    0 10px 30px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
   position: relative;
   max-height: 90vh;
   overflow-y: auto;
@@ -640,8 +642,7 @@
 .modal-content .form-input {
   width: 100%;
   padding: 12px;
-  border: 2px solid var(--border-color);
-  transition: border-color 0.3s ease;
+  border: none;
   border-radius: 8px;
   font-size: 10px;
   background: var(--bg-tertiary);
@@ -650,6 +651,11 @@
   transition: color 0.3s ease;
   font-family: 'Press Start 2P', monospace;
   box-sizing: border-box;
+  box-shadow: 
+    0 2px 0 rgba(0, 0, 0, 0.1),
+    0 4px 8px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .modal-content .form-input::placeholder {
@@ -658,8 +664,13 @@
 }
 
 .modal-content .form-input:focus {
-  outline: 2px solid var(--border-color-light);
-  outline-offset: 2px;
+  outline: none;
+  box-shadow: 
+    0 0 0 3px rgba(139, 69, 19, 0.2),
+    0 3px 0 rgba(0, 0, 0, 0.15),
+    0 6px 12px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    inset 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .modal-close-button {
@@ -669,22 +680,17 @@
   width: 32px;
   height: 32px;
   border-radius: 8px;
-  border: 2px solid var(--border-color);
-  transition: border-color 0.3s ease;
+  border: none;
+  box-shadow: 
+    0 2px 0 rgba(0, 0, 0, 0.1),
+    0 4px 8px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
   background: var(--bg-secondary);
   transition: background-color 0.3s ease;
   color: var(--text-tertiary);
   transition: color 0.3s ease;
   font-size: 18px;
   line-height: 1;
-}
-
-/* Garantir visibilidade no modo claro */
-:root:not(.dark-mode) .modal-close-button {
-  background: #FFF8E7;
-  color: #8b4513;
-  border-color: #8b4513;
-}
   display: flex;
   align-items: center;
   justify-content: center;
@@ -692,17 +698,38 @@
   transition: all 0.3s ease;
 }
 
+/* Garantir visibilidade no modo claro */
+:root:not(.dark-mode) .modal-close-button {
+  background: #FFF8E7;
+  color: #8b4513;
+}
+
 .modal-close-button:hover {
   background: var(--bg-tertiary);
   transition: background-color 0.3s ease;
-  border-color: var(--border-color-light);
+  transform: translateY(-1px);
+  box-shadow: 
+    0 3px 0 rgba(0, 0, 0, 0.15),
+    0 6px 12px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.modal-close-button:active {
+  transform: translateY(1px);
+  box-shadow: 
+    0 1px 0 rgba(0, 0, 0, 0.2),
+    0 2px 4px rgba(0, 0, 0, 0.1),
+    inset 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
 .modal-feedback {
   background: var(--bg-tertiary);
   transition: background-color 0.3s ease;
-  border: 2px solid var(--border-color);
-  transition: border-color 0.3s ease;
+  border: none;
+  box-shadow: 
+    0 2px 0 rgba(0, 0, 0, 0.1),
+    0 4px 8px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
   border-radius: 10px;
   padding: 12px;
   font-size: 10px;
@@ -733,30 +760,41 @@
   transition: background-color 0.3s ease;
   color: var(--text-primary);
   transition: color 0.3s ease;
-  border: 2px solid var(--green);
-  transition: border-color 0.3s ease;
+  border: none;
+  box-shadow: 
+    0 3px 0 rgba(0, 0, 0, 0.2),
+    0 4px 8px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 /* Garantir visibilidade no modo claro */
 :root:not(.dark-mode) .submit-button {
   background: #1f5a2d;
   color: #FFF8E7;
-  border-color: #1f5a2d;
 }
 
 .submit-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px var(--shadow);
+  transform: translateY(-1px);
+  box-shadow: 
+    0 4px 0 rgba(0, 0, 0, 0.25),
+    0 6px 12px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
   background: var(--green-dark);
   color: var(--text-primary);
-  border-color: var(--green-dark);
+}
+
+.submit-button:active {
+  transform: translateY(1px);
+  box-shadow: 
+    0 1px 0 rgba(0, 0, 0, 0.3),
+    0 2px 4px rgba(0, 0, 0, 0.2),
+    inset 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 /* Garantir visibilidade no hover no modo claro */
 :root:not(.dark-mode) .submit-button:hover {
   background: #1f5a2d;
   color: #FFF8E7;
-  border-color: #1f5a2d;
 }
 
 @media (max-width: 768px) {

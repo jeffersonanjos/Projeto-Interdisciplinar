@@ -63,9 +63,21 @@ def create_or_update_profile(
 
 @router.get("/{user_id}", response_model=UserProfile)
 def get_profile(user_id: int, session: Session = Depends(get_session)):
+    # Verificar se o usuário existe
+    user = session.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    # Buscar perfil existente
     profile = session.exec(select(UserProfile).where(UserProfile.user_id == user_id)).first()
+    
+    # Se não existe, criar um perfil padrão
     if not profile:
-        raise HTTPException(status_code=404, detail="Perfil não encontrado")
+        profile = UserProfile(user_id=user_id, bio=None, avatar_url=None)
+        session.add(profile)
+        session.commit()
+        session.refresh(profile)
+    
     return profile
 
 
