@@ -36,57 +36,57 @@ export const AuthProvider = ({ children }) => {
     checkAuth();
   }, []);
 
-  const login = async (username, password) => {
+  const login = async (username, senha) => {
     setLoading(true);
- console.log("Login started");
+ console.log("Login iniciado");
     try {
-      const result = await authService.login(username, password);
-   console.log("Login API response:", result);
-      if (result.success) {
-        setUser(result.user);
-  console.log("Login successful:", result.user);
+      const resultado = await authService.login(username, senha);
+   console.log("Resposta da API de login:", resultado);
+      if (resultado.success) {
+        setUser(resultado.user);
+  console.log("Login bem-sucedido:", resultado.user);
         return { success: true };
       } else {
-  console.log("Login failed:", result.error);
-        return { success: false, error: result.error };
+  console.log("Login falhou:", resultado.error);
+        return { success: false, error: resultado.error };
       }
-    } catch (error) {
-   console.error("Login error:", error);
+    } catch (erro) {
+   console.error("Erro no login:", erro);
       return { success: false, error: 'Erro inesperado ao fazer login' };
     } finally {
       setLoading(false);
-   console.log("Login finished");
+   console.log("Login finalizado");
     }
   };
 
-  const register = async (username, email, password) => {
+  const register = async (username, email, senha) => {
     setLoading(true);
- console.log("Register started");
+ console.log("Registro iniciado");
     try {
-      const result = await authService.register(username, email, password);
-   console.log("Register API response:", result);
-      if (result.success) {
+      const resultado = await authService.register(username, email, senha);
+   console.log("Resposta da API de registro:", resultado);
+      if (resultado.success) {
         // Após registro bem-sucedido, fazer login automaticamente
-        const loginResult = await authService.login(username, password);
-  console.log("Automatic login after register:", loginResult);
-        if (loginResult.success) {
-          setUser(loginResult.user);
-    console.log("Register and automatic login successful:", loginResult.user);
+        const resultadoLogin = await authService.login(username, senha);
+  console.log("Login automático após registro:", resultadoLogin);
+        if (resultadoLogin.success) {
+          setUser(resultadoLogin.user);
+    console.log("Registro e login automático bem-sucedidos:", resultadoLogin.user);
           return { success: true };
         } else {
-    console.log("Register successful, but automatic login failed:", loginResult.error);
+    console.log("Registro bem-sucedido, mas login automático falhou:", resultadoLogin.error);
           return { success: false, error: 'Conta criada, mas erro ao fazer login automático' };
         }
       } else {
-     console.log("Register failed:", result.error);
-        return { success: false, error: result.error };
+     console.log("Registro falhou:", resultado.error);
+        return { success: false, error: resultado.error };
       }
-    } catch (error) {
-   console.error("Register error:", error);
+    } catch (erro) {
+   console.error("Erro no registro:", erro);
       return { success: false, error: 'Erro inesperado ao criar conta' };
     } finally {
       setLoading(false);
-   console.log("Register finished");
+   console.log("Registro finalizado");
     }
   };
 
@@ -96,10 +96,10 @@ export const AuthProvider = ({ children }) => {
  console.log("Logout successful");
   };
 
-  const updateUser = (updatedUser) => {
-    setUser(updatedUser);
-    if (updatedUser) {
-      localStorage.setItem('user', JSON.stringify(updatedUser));
+  const updateUser = (usuarioAtualizado) => {
+    setUser(usuarioAtualizado);
+    if (usuarioAtualizado) {
+      localStorage.setItem('user', JSON.stringify(usuarioAtualizado));
     }
   };
 

@@ -7,112 +7,112 @@ import './Recommendations.css';
 
 const Recommendations = () => {
   console.log("Recommendations component loaded");
-  const { user } = useAuth();
-  const [bookRecommendations, setBookRecommendations] = useState([]);
-  const [movieRecommendations, setMovieRecommendations] = useState([]);
-  const [loadedBooks, setLoadedBooks] = useState([]); // Livros carregados incrementalmente
-  const [loadedMovies, setLoadedMovies] = useState([]); // Filmes carregados incrementalmente
-  const [loading, setLoading] = useState(true);
-  const [loadingBooks, setLoadingBooks] = useState(true);
-  const [loadingMovies, setLoadingMovies] = useState(true);
-  const [error, setError] = useState('');
-  const [recommendationType, setRecommendationType] = useState('books'); // 'books' ou 'movies' - agora é apenas um filtro
+  const { user: usuario } = useAuth();
+  const [recomendacoesLivros, setRecomendacoesLivros] = useState([]);
+  const [recomendacoesFilmes, setRecomendacoesFilmes] = useState([]);
+  const [livrosCarregados, setLivrosCarregados] = useState([]); // Livros carregados incrementalmente
+  const [filmesCarregados, setFilmesCarregados] = useState([]); // Filmes carregados incrementalmente
+  const [carregando, setCarregando] = useState(true);
+  const [carregandoLivros, setCarregandoLivros] = useState(true);
+  const [carregandoFilmes, setCarregandoFilmes] = useState(true);
+  const [erro, setErro] = useState('');
+  const [tipoRecomendacao, setTipoRecomendacao] = useState('books'); // 'books' ou 'movies' - agora é apenas um filtro
 
   useEffect(() => {
     console.log("Recommendations useEffect called");
-    loadRecommendations();
-  }, [user]);
+    carregarRecomendacoes();
+  }, [usuario]);
 
-  const loadRecommendations = async () => {
-    console.log("Recommendations loadRecommendations called");
-    if (!user) return;
+  const carregarRecomendacoes = async () => {
+    console.log("Recommendations carregarRecomendacoes called");
+    if (!usuario) return;
     
-    setLoading(true);
-    setLoadingBooks(true);
-    setLoadingMovies(true);
-    setError('');
-    setBookRecommendations([]);
-    setMovieRecommendations([]);
-    setLoadedBooks([]);
-    setLoadedMovies([]);
+    setCarregando(true);
+    setCarregandoLivros(true);
+    setCarregandoFilmes(true);
+    setErro('');
+    setRecomendacoesLivros([]);
+    setRecomendacoesFilmes([]);
+    setLivrosCarregados([]);
+    setFilmesCarregados([]);
 
     // Carregar recomendações de livros e filmes em paralelo
-    const bookPromise = recommendationService.getBookRecommendations(user.id)
-      .then(async (result) => {
-        console.log("Recommendations loadRecommendations book result:", result);
-        if (result.success && Array.isArray(result.data)) {
-          const books = result.data || [];
-          setBookRecommendations(books);
+    const promessaLivros = recommendationService.getBookRecommendations(usuario.id)
+      .then(async (resultado) => {
+        console.log("Recommendations carregarRecomendacoes livro resultado:", resultado);
+        if (resultado.success && Array.isArray(resultado.data)) {
+          const livros = resultado.data || [];
+          setRecomendacoesLivros(livros);
           
           // Mostrar livros imediatamente
-          setLoadedBooks(books);
+          setLivrosCarregados(livros);
         } else {
-          console.error("Recommendations loadRecommendations book error:", result.error);
+          console.error("Recommendations carregarRecomendacoes livro erro:", resultado.error);
         }
-        setLoadingBooks(false);
-        return result;
+        setCarregandoLivros(false);
+        return resultado;
       })
-      .catch((error) => {
-        console.error("Recommendations loadRecommendations book error:", error);
-        setBookRecommendations([]);
-        setLoadingBooks(false);
-        return { success: false, error: error.message };
+      .catch((erro) => {
+        console.error("Recommendations carregarRecomendacoes livro erro:", erro);
+        setRecomendacoesLivros([]);
+        setCarregandoLivros(false);
+        return { success: false, error: erro.message };
       });
 
-    const moviePromise = recommendationService.getMovieRecommendations(user.id)
-      .then(async (result) => {
-        console.log("Recommendations loadRecommendations movie result:", result);
-        if (result.success && Array.isArray(result.data)) {
-          const movies = result.data || [];
-          setMovieRecommendations(movies);
+    const promessaFilmes = recommendationService.getMovieRecommendations(usuario.id)
+      .then(async (resultado) => {
+        console.log("Recommendations carregarRecomendacoes filme resultado:", resultado);
+        if (resultado.success && Array.isArray(resultado.data)) {
+          const filmes = resultado.data || [];
+          setRecomendacoesFilmes(filmes);
           
           // Mostrar filmes imediatamente
-          setLoadedMovies(movies);
+          setFilmesCarregados(filmes);
         } else {
-          console.error("Recommendations loadRecommendations movie error:", result.error);
+          console.error("Recommendations carregarRecomendacoes filme erro:", resultado.error);
         }
-        setLoadingMovies(false);
-        return result;
+        setCarregandoFilmes(false);
+        return resultado;
       })
-      .catch((error) => {
-        console.error("Recommendations loadRecommendations movie error:", error);
-        setMovieRecommendations([]);
-        setLoadingMovies(false);
-        return { success: false, error: error.message };
+      .catch((erro) => {
+        console.error("Recommendations carregarRecomendacoes filme erro:", erro);
+        setRecomendacoesFilmes([]);
+        setCarregandoFilmes(false);
+        return { success: false, error: erro.message };
       });
 
     // Aguardar ambas as buscas terminarem para verificar erros finais
-    Promise.all([bookPromise, moviePromise])
-      .then(([bookResult, movieResult]) => {
+    Promise.all([promessaLivros, promessaFilmes])
+      .then(([resultadoLivros, resultadoFilmes]) => {
         // Verificar se houve erros apenas se ambas falharam
-        if (!bookResult.success && !movieResult.success) {
-          setError('Erro ao carregar recomendações. Tente novamente.');
-        } else if (!bookResult.success && movieResult.success) {
+        if (!resultadoLivros.success && !resultadoFilmes.success) {
+          setErro('Erro ao carregar recomendações. Tente novamente.');
+        } else if (!resultadoLivros.success && resultadoFilmes.success) {
           // Se apenas livros falharam, não mostrar erro (filmes funcionaram)
           console.warn('Recomendações de livros falharam, mas filmes foram encontrados.');
-        } else if (bookResult.success && !movieResult.success) {
+        } else if (resultadoLivros.success && !resultadoFilmes.success) {
           // Se apenas filmes falharam, não mostrar erro (livros funcionaram)
           console.warn('Recomendações de filmes falharam, mas livros foram encontrados.');
         }
-        setLoading(false);
-        console.log("Recommendations loadRecommendations loading set to false");
+        setCarregando(false);
+        console.log("Recommendations carregarRecomendacoes carregando set to false");
       })
-      .catch((error) => {
-        setError('Erro ao carregar recomendações.');
-        console.error("Recommendations loadRecommendations general error:", error);
-        setLoading(false);
-        setLoadingBooks(false);
-        setLoadingMovies(false);
+      .catch((erro) => {
+        setErro('Erro ao carregar recomendações.');
+        console.error("Recommendations carregarRecomendacoes erro geral:", erro);
+        setCarregando(false);
+        setCarregandoLivros(false);
+        setCarregandoFilmes(false);
       });
   };
 
   // Determinar qual resultado mostrar baseado no filtro
   // Durante o carregamento, mostrar itens carregados incrementalmente
-  const currentRecommendations = recommendationType === 'books' 
-    ? (loadingBooks ? loadedBooks : bookRecommendations)
-    : (loadingMovies ? loadedMovies : movieRecommendations);
-  const currentLoading = recommendationType === 'books' ? loadingBooks : loadingMovies;
-  const currentType = recommendationType === 'books' ? 'book' : 'movie';
+  const recomendacoesAtuais = tipoRecomendacao === 'books' 
+    ? (carregandoLivros ? livrosCarregados : recomendacoesLivros)
+    : (carregandoFilmes ? filmesCarregados : recomendacoesFilmes);
+  const carregamentoAtual = tipoRecomendacao === 'books' ? carregandoLivros : carregandoFilmes;
+  const tipoAtual = tipoRecomendacao === 'books' ? 'book' : 'movie';
 
   return (
     <div className="recommendations-container">
@@ -123,49 +123,49 @@ const Recommendations = () => {
         </p>
         <div className="recommendation-type-toggle">
           <button
-            className={recommendationType === 'books' ? 'active' : ''}
-            onClick={() => setRecommendationType('books')}
-            disabled={loading}
+            className={tipoRecomendacao === 'books' ? 'active' : ''}
+            onClick={() => setTipoRecomendacao('books')}
+            disabled={carregando}
           >
-            Livros ({bookRecommendations.length})
-            {loadingBooks && <span className="loading-indicator">...</span>}
+            Livros ({recomendacoesLivros.length})
+            {carregandoLivros && <span className="loading-indicator">...</span>}
           </button>
           <button
-            className={recommendationType === 'movies' ? 'active' : ''}
-            onClick={() => setRecommendationType('movies')}
-            disabled={loading}
+            className={tipoRecomendacao === 'movies' ? 'active' : ''}
+            onClick={() => setTipoRecomendacao('movies')}
+            disabled={carregando}
           >
-            Filmes ({movieRecommendations.length})
-            {loadingMovies && <span className="loading-indicator">...</span>}
+            Filmes ({recomendacoesFilmes.length})
+            {carregandoFilmes && <span className="loading-indicator">...</span>}
           </button>
         </div>
       </div>
 
-      {error && (
+      {erro && (
         <div className="error-message">
-          {error}
+          {erro}
         </div>
       )}
 
-      {currentLoading && currentRecommendations.length === 0 ? (
-        <PixelLoader message={`Carregando recomendações de ${recommendationType === 'books' ? 'livros' : 'filmes'}...`} />
-      ) : currentRecommendations.length === 0 && !error && !currentLoading ? (
+      {carregamentoAtual && recomendacoesAtuais.length === 0 ? (
+        <PixelLoader message={`Carregando recomendações de ${tipoRecomendacao === 'books' ? 'livros' : 'filmes'}...`} />
+      ) : recomendacoesAtuais.length === 0 && !erro && !carregamentoAtual ? (
         <div className="no-recommendations">
-          <p>Não há recomendações de {recommendationType === 'books' ? 'livros' : 'filmes'} disponíveis no momento.</p>
-          <p>Adicione {recommendationType === 'books' ? 'livros' : 'filmes'} à sua biblioteca para receber recomendações personalizadas!</p>
+          <p>Não há recomendações de {tipoRecomendacao === 'books' ? 'livros' : 'filmes'} disponíveis no momento.</p>
+          <p>Adicione {tipoRecomendacao === 'books' ? 'livros' : 'filmes'} à sua biblioteca para receber recomendações personalizadas!</p>
         </div>
       ) : (
         <div className="recommendations-content">
           <div className="recommendations-section">
-            {(currentRecommendations.length > 0 || currentLoading) && (
+            {(recomendacoesAtuais.length > 0 || carregamentoAtual) && (
               <div className="recommendations-group">
                 <h3>
-                  {recommendationType === 'books' ? 'Livros' : 'Filmes'} Recomendados 
-                  {!currentLoading && ` (${currentRecommendations.length})`}
-                  {currentLoading && currentRecommendations.length > 0 && ` (${currentRecommendations.length}...)`}
+                  {tipoRecomendacao === 'books' ? 'Livros' : 'Filmes'} Recomendados 
+                  {!carregamentoAtual && ` (${recomendacoesAtuais.length})`}
+                  {carregamentoAtual && recomendacoesAtuais.length > 0 && ` (${recomendacoesAtuais.length}...)`}
                 </h3>
-                {currentRecommendations.length > 0 && (
-                  <SearchResults results={currentRecommendations} type={currentType} />
+                {recomendacoesAtuais.length > 0 && (
+                  <SearchResults results={recomendacoesAtuais} type={tipoAtual} />
                 )}
               </div>
             )}

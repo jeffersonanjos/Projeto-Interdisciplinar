@@ -8,7 +8,7 @@ import './Profile.css';
 
 const Profile = () => {
   console.log("Profile component loaded");
-  const { user, logout, updateUser } = useAuth();
+  const { user: usuario, logout, updateUser } = useAuth();
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
   const [profile, setProfile] = useState(null);
@@ -21,101 +21,101 @@ const Profile = () => {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [passwordModalData, setPasswordModalData] = useState({ currentPassword: '', error: '' });
-  const [pendingUpdate, setPendingUpdate] = useState(null); // Armazena os dados que serão atualizados após confirmação
+  const [atualizacaoPendente, setAtualizacaoPendente] = useState(null); // Armazena os dados que serão atualizados após confirmação
   const { toast, showToast } = useToast();
 
   useEffect(() => {
 	console.log("Profile useEffect called");
-    loadProfile();
-    loadStats();
-    if (user) {
+    carregarPerfil();
+    carregarEstatisticas();
+    if (usuario) {
       setAccountFormData({
-        username: user.username || '',
-        email: user.email || '',
+        username: usuario.username || '',
+        email: usuario.email || '',
         password: '',
         confirmPassword: ''
       });
     }
-  }, [user]);
+  }, [usuario]);
 
-  const loadProfile = async () => {
-	console.log("Profile loadProfile called");
-    if (!user) return;
+  const carregarPerfil = async () => {
+	console.log("Profile carregarPerfil called");
+    if (!usuario) return;
     
     try {
-      const result = await profileService.getProfile(user.id);
-	  console.log("Profile loadProfile result:", result);
-      if (result.success && result.data) {
-        setProfile(result.data);
-		console.log("Profile loadProfile profile set:", result.data);
+      const resultado = await profileService.getProfile(usuario.id);
+	  console.log("Profile carregarPerfil resultado:", resultado);
+      if (resultado.success && resultado.data) {
+        setProfile(resultado.data);
+		console.log("Profile carregarPerfil profile set:", resultado.data);
         setFormData({
-          bio: result.data.bio || '',
-          avatar_url: result.data.avatar_url || ''
+          bio: resultado.data.bio || '',
+          avatar_url: resultado.data.avatar_url || ''
         });
         // Se houver avatar, garantir que a URL está completa
-        if (result.data.avatar_url && !result.data.avatar_url.startsWith('http')) {
+        if (resultado.data.avatar_url && !resultado.data.avatar_url.startsWith('http')) {
           setFormData(prev => ({
             ...prev,
-            avatar_url: `http://localhost:8001${result.data.avatar_url}`
+            avatar_url: `http://localhost:8001${resultado.data.avatar_url}`
           }));
         }
-		console.log("Profile loadProfile formData set:", formData);
+		console.log("Profile carregarPerfil formData set:", formData);
       }
-    } catch (error) {
-      console.error('Erro ao carregar perfil:', error);
+    } catch (erro) {
+      console.error('Erro ao carregar perfil:', erro);
     } finally {
       setLoading(false);
-	  console.log("Profile loadProfile loading set to false");
+	  console.log("Profile carregarPerfil loading set to false");
     }
   };
 
-  const loadStats = async () => {
-	console.log("Profile loadStats called");
-    if (!user) return;
+  const carregarEstatisticas = async () => {
+	console.log("Profile carregarEstatisticas called");
+    if (!usuario) return;
     
     try {
-      const [ratingsResult, libraryResult] = await Promise.all([
-        ratingService.getUserRatings(user.id),
-        externalApiService.getUserLibrary(parseInt(user.id))
+      const [resultadoAvaliacoes, resultadoBiblioteca] = await Promise.all([
+        ratingService.getUserRatings(usuario.id),
+        externalApiService.getUserLibrary(parseInt(usuario.id))
       ]);
-      console.log("Profile loadStats ratingsResult:", ratingsResult, "libraryResult:", libraryResult);
-      const ratingsArr = ratingsResult.success ? ratingsResult.data : [];
-      const libraryArr = libraryResult.success ? libraryResult.data : [];
+      console.log("Profile carregarEstatisticas resultadoAvaliacoes:", resultadoAvaliacoes, "resultadoBiblioteca:", resultadoBiblioteca);
+      const arrayAvaliacoes = resultadoAvaliacoes.success ? resultadoAvaliacoes.data : [];
+      const arrayBiblioteca = resultadoBiblioteca.success ? resultadoBiblioteca.data : [];
       setStats({
-        books: Array.isArray(libraryArr) ? libraryArr.length : 0,
+        books: Array.isArray(arrayBiblioteca) ? arrayBiblioteca.length : 0,
         movies: 0,
-        ratings: ratingsArr.length
+        ratings: arrayAvaliacoes.length
       });
-      console.log("Profile loadStats stats set:", {
-        books: Array.isArray(libraryArr) ? libraryArr.length : 0,
+      console.log("Profile carregarEstatisticas stats set:", {
+        books: Array.isArray(arrayBiblioteca) ? arrayBiblioteca.length : 0,
         movies: 0,
-        ratings: ratingsArr.length
+        ratings: arrayAvaliacoes.length
       });
-    } catch (error) {
-      console.error('Erro ao carregar estatísticas:', error);
+    } catch (erro) {
+      console.error('Erro ao carregar estatísticas:', erro);
     }
   };
 
-  const handleSave = async (e) => {
-	console.log("Profile handleSave called");
+  const lidarComSalvar = async (e) => {
+	console.log("Profile lidarComSalvar called");
     e.preventDefault();
-    if (!user) return;
+    if (!usuario) return;
 
     try {
-      const result = await profileService.createOrUpdateProfile(user.id, { bio: formData.bio });
-	  console.log("Profile handleSave createOrUpdateProfile result:", result);
-      if (result.success) {
-        setProfile(result.data);
-		console.log("Profile handleSave profile set:", result.data);
+      const resultado = await profileService.createOrUpdateProfile(usuario.id, { bio: formData.bio });
+	  console.log("Profile lidarComSalvar createOrUpdateProfile resultado:", resultado);
+      if (resultado.success) {
+        setProfile(resultado.data);
+		console.log("Profile lidarComSalvar profile set:", resultado.data);
         setEditing(false);
-		console.log("Profile handleSave editing set to false");
+		console.log("Profile lidarComSalvar editing set to false");
         showToast('Perfil atualizado com sucesso!');
       } else {
-        showToast('Erro ao salvar perfil: ' + result.error);
+        showToast('Erro ao salvar perfil: ' + resultado.error);
       }
-    } catch (error) {
+    } catch (erro) {
       showToast('Erro ao salvar perfil');
-	  console.error("Profile handleSave error:", error);
+	  console.error("Profile lidarComSalvar erro:", erro);
     }
   };
 
@@ -125,66 +125,66 @@ const Profile = () => {
     }
   };
 
-  const handleRemoveAvatar = async () => {
-    if (!user) return;
+  const lidarComRemoverAvatar = async () => {
+    if (!usuario) return;
     
     if (!window.confirm('Tem certeza que deseja remover seu avatar?')) {
       return;
     }
 
     try {
-      const result = await profileService.removeAvatar(user.id);
-      if (result.success) {
+      const resultado = await profileService.removeAvatar(usuario.id);
+      if (resultado.success) {
         setFormData({ ...formData, avatar_url: '' });
         if (profile) {
           setProfile({ ...profile, avatar_url: null });
         }
         // Atualizar o usuário no contexto para sincronizar com taskbar
         if (updateUser) {
-          updateUser({ ...user, avatar_url: null });
+          updateUser({ ...usuario, avatar_url: null });
         }
         showToast('Avatar removido com sucesso!');
       } else {
-        showToast('Erro ao remover avatar: ' + result.error);
+        showToast('Erro ao remover avatar: ' + resultado.error);
       }
-    } catch (error) {
+    } catch (erro) {
       showToast('Erro ao remover avatar');
-      console.error("Profile handleRemoveAvatar error:", error);
+      console.error("Profile lidarComRemoverAvatar erro:", erro);
     }
   };
 
-  const handleFileChange = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file || !user) return;
+  const lidarComMudancaArquivo = async (e) => {
+    const arquivo = e.target.files?.[0];
+    if (!arquivo || !usuario) return;
 
     // Validar se é uma imagem
-    if (!file.type.startsWith('image/')) {
+    if (!arquivo.type.startsWith('image/')) {
       showToast('Por favor, selecione um arquivo de imagem');
       return;
     }
 
     setUploadingAvatar(true);
     try {
-      const result = await profileService.uploadAvatar(user.id, file);
-      if (result.success) {
+      const resultado = await profileService.uploadAvatar(usuario.id, arquivo);
+      if (resultado.success) {
         // Atualizar o avatar na interface
-        const avatarUrl = result.data.avatar_url;
-        const fullAvatarUrl = avatarUrl.startsWith('http') ? avatarUrl : `http://localhost:8001${avatarUrl}`;
-        setFormData({ ...formData, avatar_url: fullAvatarUrl });
+        const urlAvatar = resultado.data.avatar_url;
+        const urlAvatarCompleta = urlAvatar.startsWith('http') ? urlAvatar : `http://localhost:8001${urlAvatar}`;
+        setFormData({ ...formData, avatar_url: urlAvatarCompleta });
         if (profile) {
-          setProfile({ ...profile, avatar_url: fullAvatarUrl });
+          setProfile({ ...profile, avatar_url: urlAvatarCompleta });
         }
         // Atualizar o usuário no contexto para sincronizar com taskbar
         if (updateUser) {
-          updateUser({ ...user, avatar_url: fullAvatarUrl });
+          updateUser({ ...usuario, avatar_url: urlAvatarCompleta });
         }
         showToast('Avatar atualizado com sucesso!');
       } else {
-        showToast('Erro ao fazer upload do avatar: ' + result.error);
+        showToast('Erro ao fazer upload do avatar: ' + resultado.error);
       }
-    } catch (error) {
+    } catch (erro) {
       showToast('Erro ao fazer upload do avatar');
-      console.error("Profile handleFileChange error:", error);
+      console.error("Profile lidarComMudancaArquivo erro:", erro);
     } finally {
       setUploadingAvatar(false);
       // Limpar o input para permitir selecionar o mesmo arquivo novamente
@@ -194,48 +194,48 @@ const Profile = () => {
     }
   };
 
-  const handleDeleteProfile = async () => {
-    if (!user) return;
+  const lidarComDeletarPerfil = async () => {
+    if (!usuario) return;
     
-    const confirmMessage = 'Tem certeza que deseja deletar sua conta? Esta ação não pode ser desfeita e todos os seus dados serão perdidos.';
-    if (!window.confirm(confirmMessage)) {
+    const mensagemConfirmacao = 'Tem certeza que deseja deletar sua conta? Esta ação não pode ser desfeita e todos os seus dados serão perdidos.';
+    if (!window.confirm(mensagemConfirmacao)) {
       return;
     }
 
-    const doubleConfirm = 'Esta é sua última chance. Tem certeza absoluta?';
-    if (!window.confirm(doubleConfirm)) {
+    const confirmacaoDupla = 'Esta é sua última chance. Tem certeza absoluta?';
+    if (!window.confirm(confirmacaoDupla)) {
       return;
     }
 
     try {
-      const result = await profileService.deleteProfile(user.id);
-      if (result.success) {
+      const resultado = await profileService.deleteProfile(usuario.id);
+      if (resultado.success) {
         showToast('Conta deletada com sucesso');
         setTimeout(() => {
           logout();
           navigate('/login');
         }, 1500);
       } else {
-        showToast('Erro ao deletar conta: ' + result.error);
+        showToast('Erro ao deletar conta: ' + resultado.error);
       }
-    } catch (error) {
+    } catch (erro) {
       showToast('Erro ao deletar conta');
-      console.error("Profile handleDeleteProfile error:", error);
+      console.error("Profile lidarComDeletarPerfil erro:", erro);
     }
   };
 
-  const handleAccountEdit = () => {
+  const lidarComEditarConta = () => {
     setEditingAccount(true);
     setAccountFormData({
-      username: user?.username || '',
-      email: user?.email || '',
+      username: usuario?.username || '',
+      email: usuario?.email || '',
       password: '',
       confirmPassword: ''
     });
   };
 
-  const handleAccountSave = () => {
-    if (!user) return;
+  const lidarComSalvarConta = () => {
+    if (!usuario) return;
 
     // Validar campos obrigatórios
     if (!accountFormData.username || !accountFormData.email) {
@@ -244,8 +244,8 @@ const Profile = () => {
     }
 
     // Validar formato de email básico
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(accountFormData.email)) {
+    const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!regexEmail.test(accountFormData.email)) {
       showToast('Por favor, insira um email válido');
       return;
     }
@@ -263,81 +263,81 @@ const Profile = () => {
     }
 
     // Preparar dados para atualização
-    const updateData = {
-      username: accountFormData.username !== user.username ? accountFormData.username : undefined,
-      email: accountFormData.email !== user.email ? accountFormData.email : undefined,
+    const dadosAtualizacao = {
+      username: accountFormData.username !== usuario.username ? accountFormData.username : undefined,
+      email: accountFormData.email !== usuario.email ? accountFormData.email : undefined,
       password: accountFormData.password && accountFormData.password.length > 0 ? accountFormData.password : undefined
     };
 
     // Verificar se há algo para atualizar
-    const hasChanges = updateData.username || updateData.email || updateData.password;
-    if (!hasChanges) {
+    const temAlteracoes = dadosAtualizacao.username || dadosAtualizacao.email || dadosAtualizacao.password;
+    if (!temAlteracoes) {
       showToast('Nenhuma alteração foi feita');
       setEditingAccount(false);
       return;
     }
 
     // Armazenar dados pendentes e abrir modal de confirmação de senha
-    setPendingUpdate(updateData);
+    setAtualizacaoPendente(dadosAtualizacao);
     setPasswordModalData({ currentPassword: '', error: '' });
     setShowPasswordModal(true);
   };
 
-  const handlePasswordConfirm = async () => {
+  const lidarComConfirmarSenha = async () => {
     if (!passwordModalData.currentPassword || passwordModalData.currentPassword.trim() === '') {
       setPasswordModalData({ ...passwordModalData, error: 'Por favor, digite sua senha atual' });
       return;
     }
 
-    if (!user || !pendingUpdate) return;
+    if (!usuario || !atualizacaoPendente) return;
 
     try {
       // Remover campos undefined do payload e construir objeto limpo
-      const updatePayload = {
+      const cargaAtualizacao = {
         current_password: passwordModalData.currentPassword.trim()
       };
       
-      if (pendingUpdate.username !== undefined && pendingUpdate.username !== null) {
-        updatePayload.username = pendingUpdate.username.trim();
+      if (atualizacaoPendente.username !== undefined && atualizacaoPendente.username !== null) {
+        cargaAtualizacao.username = atualizacaoPendente.username.trim();
       }
-      if (pendingUpdate.email !== undefined && pendingUpdate.email !== null) {
-        updatePayload.email = pendingUpdate.email.trim();
+      if (atualizacaoPendente.email !== undefined && atualizacaoPendente.email !== null) {
+        cargaAtualizacao.email = atualizacaoPendente.email.trim();
       }
-      if (pendingUpdate.password !== undefined && pendingUpdate.password !== null && pendingUpdate.password.length > 0) {
-        updatePayload.password = pendingUpdate.password;
+      if (atualizacaoPendente.password !== undefined && atualizacaoPendente.password !== null && atualizacaoPendente.password.length > 0) {
+        cargaAtualizacao.password = atualizacaoPendente.password;
       }
 
-      const result = await userService.updateUser(user.id, updatePayload);
+      const resultado = await userService.updateUser(usuario.id, cargaAtualizacao);
       
-      if (result.success) {
+      if (resultado.success) {
         showToast('Dados atualizados com sucesso!');
         setShowPasswordModal(false);
         setEditingAccount(false);
         setPasswordModalData({ currentPassword: '', error: '' });
-        setPendingUpdate(null);
+        setAtualizacaoPendente(null);
         
         // Atualizar dados do usuário no contexto
-        if (result.data && updateUser) {
-          updateUser(result.data);
+        if (resultado.data && updateUser) {
+          updateUser(resultado.data);
         }
         
         // Recarregar perfil para sincronizar dados
-        await loadProfile();
+        await carregarPerfil();
       } else {
-        const errorMessage = result.error || 'Erro ao atualizar dados';
-        setPasswordModalData({ ...passwordModalData, error: errorMessage });
+        const mensagemErro = resultado.error || 'Erro ao atualizar dados';
+        setPasswordModalData({ ...passwordModalData, error: mensagemErro });
       }
-    } catch (error) {
-      console.error("Profile handlePasswordConfirm error:", error);
-      const errorMessage = error.response?.data?.detail || error.message || 'Erro ao atualizar dados';
-      setPasswordModalData({ ...passwordModalData, error: errorMessage });
+    } catch (erro) {
+      console.error("Profile lidarComConfirmarSenha erro:", erro);
+      const mensagemErro = erro.response?.data?.detail || erro.message || 'Erro ao atualizar dados';
+      setPasswordModalData({ ...passwordModalData, error: mensagemErro });
     }
   };
 
-  const handlePasswordModalCancel = () => {
+  const lidarComCancelarModalSenha = () => {
     setShowPasswordModal(false);
     setPasswordModalData({ currentPassword: '', error: '' });
-    setPendingUpdate(null);
+    setAtualizacaoPendente(null);
   };
 
   if (loading) {
@@ -378,9 +378,9 @@ const Profile = () => {
                 style={{ cursor: 'pointer' }}
                 onError={(e) => {
                   e.target.style.display = 'none';
-                  const placeholder = e.target.parentElement.querySelector('.avatar-placeholder');
-                  if (placeholder) {
-                    placeholder.style.display = 'flex';
+                  const marcador = e.target.parentElement.querySelector('.avatar-placeholder');
+                  if (marcador) {
+                    marcador.style.display = 'flex';
                   }
                 }}
               />
@@ -393,14 +393,14 @@ const Profile = () => {
                 cursor: 'pointer'
               }}
             >
-              {user?.username?.charAt(0).toUpperCase() || 'U'}
+              {usuario?.username?.charAt(0).toUpperCase() || 'U'}
             </div>
             {formData.avatar_url && !uploadingAvatar && (
               <button
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleRemoveAvatar();
+                  lidarComRemoverAvatar();
                 }}
                 className="remove-avatar-button"
                 title="Remover avatar"
@@ -412,7 +412,7 @@ const Profile = () => {
               ref={fileInputRef}
               type="file"
               accept="image/*"
-              onChange={handleFileChange}
+              onChange={lidarComMudancaArquivo}
               style={{ display: 'none' }}
             />
           </div>
@@ -437,9 +437,9 @@ const Profile = () => {
           <div className="profile-info">
             {!editingAccount ? (
               <>
-                <h3>{user?.username}</h3>
-                <p className="profile-email">{user?.email}</p>
-                <button onClick={handleAccountEdit} className="edit-account-button">
+                <h3>{usuario?.username}</h3>
+                <p className="profile-email">{usuario?.email}</p>
+                <button onClick={lidarComEditarConta} className="edit-account-button">
                   Editar Dados da Conta
                 </button>
               </>
@@ -494,7 +494,7 @@ const Profile = () => {
                     type="button" 
                     onClick={() => {
                       setEditingAccount(false);
-                      setAccountFormData({ username: user?.username || '', email: user?.email || '', password: '', confirmPassword: '' });
+                      setAccountFormData({ username: usuario?.username || '', email: usuario?.email || '', password: '', confirmPassword: '' });
                     }} 
                     className="cancel-button"
                   >
@@ -502,7 +502,7 @@ const Profile = () => {
                   </button>
                   <button 
                     type="button" 
-                    onClick={handleAccountSave} 
+                    onClick={lidarComSalvarConta} 
                     className="save-button"
                   >
                     Salvar
@@ -512,7 +512,7 @@ const Profile = () => {
             )}
             
             {editing ? (
-              <form onSubmit={handleSave} className="profile-form">
+              <form onSubmit={lidarComSalvar} className="profile-form">
                 <div className="form-group">
                   <label htmlFor="bio">Biografia</label>
                   <textarea
@@ -547,7 +547,7 @@ const Profile = () => {
                 </div>
                 <div className="profile-actions">
                   <button 
-                    onClick={handleDeleteProfile} 
+                    onClick={lidarComDeletarPerfil} 
                     className="delete-profile-button"
                   >
                     Deletar Conta
@@ -561,12 +561,12 @@ const Profile = () => {
 
       {/* Modal de confirmação de senha */}
       {showPasswordModal && (
-        <div className="modal-overlay" onClick={handlePasswordModalCancel}>
+        <div className="modal-overlay" onClick={lidarComCancelarModalSenha}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <button
               type="button"
               className="modal-close-button"
-              onClick={handlePasswordModalCancel}
+              onClick={lidarComCancelarModalSenha}
               aria-label="Fechar modal"
             >
               ×
@@ -591,7 +591,7 @@ const Profile = () => {
                 placeholder="Digite sua senha atual"
                 onKeyPress={(e) => {
                   if (e.key === 'Enter') {
-                    handlePasswordConfirm();
+                    lidarComConfirmarSenha();
                   }
                 }}
               />
@@ -599,14 +599,14 @@ const Profile = () => {
             <div className="modal-actions">
               <button
                 type="button"
-                onClick={handlePasswordModalCancel}
+                onClick={lidarComCancelarModalSenha}
                 className="cancel-button"
               >
                 Cancelar
               </button>
               <button
                 type="button"
-                onClick={handlePasswordConfirm}
+                onClick={lidarComConfirmarSenha}
                 className="submit-button"
               >
                 Confirmar

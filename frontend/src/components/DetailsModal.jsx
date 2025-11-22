@@ -4,70 +4,70 @@ import { externalApiService } from '../services/apiService';
 import { useToast } from '../hooks/useToast';
 import Toast from './Toast';
 
-const DetailsModal = ({ item, isOpen, onClose }) => {
+const DetailsModal = ({ item: item, isOpen: estaAberto, onClose: aoFechar }) => {
   const { toast, showToast } = useToast();
-  const [detailedItem, setDetailedItem] = useState(null);
-  const [loadingDetails, setLoadingDetails] = useState(false);
+  const [itemDetalhado, setItemDetalhado] = useState(null);
+  const [carregandoDetalhes, setCarregandoDetalhes] = useState(false);
 
   useEffect(() => {
-    if (isOpen && item) {
-      setDetailedItem(item);
+    if (estaAberto && item) {
+      setItemDetalhado(item);
       // Se for filme e não tiver sinopse, buscar detalhes completos
-      const isBook = item.type === 'book' || 
+      const ehLivro = item.type === 'book' || 
                      (item.type !== 'movie' && !item.director && (item.authors || item.description));
       
-      if (!isBook && item.id && (!item.overview || item.overview === 'N/A') && (!item.description || item.description === 'N/A')) {
-        setLoadingDetails(true);
+      if (!ehLivro && item.id && (!item.overview || item.overview === 'N/A') && (!item.description || item.description === 'N/A')) {
+        setCarregandoDetalhes(true);
         externalApiService.getMovieById(item.id)
-          .then(result => {
-            if (result.success && result.data) {
-              setDetailedItem({ ...item, ...result.data });
+          .then(resultado => {
+            if (resultado.success && resultado.data) {
+              setItemDetalhado({ ...item, ...resultado.data });
             } else {
               // Se falhar, manter o item original
-              setDetailedItem(item);
+              setItemDetalhado(item);
             }
           })
-          .catch(error => {
-            console.error('Error fetching movie details:', error);
+          .catch(erro => {
+            console.error('Erro ao buscar detalhes do filme:', erro);
             // Se falhar, manter o item original
-            setDetailedItem(item);
+            setItemDetalhado(item);
           })
           .finally(() => {
-            setLoadingDetails(false);
+            setCarregandoDetalhes(false);
           });
       }
-    } else if (!isOpen) {
+    } else if (!estaAberto) {
       // Limpar quando o modal fechar
-      setDetailedItem(null);
-      setLoadingDetails(false);
+      setItemDetalhado(null);
+      setCarregandoDetalhes(false);
     }
-  }, [isOpen, item]);
+  }, [estaAberto, item]);
 
-  if (!isOpen || !item || !detailedItem) return null;
+  if (!estaAberto || !item || !itemDetalhado) return null;
 
   // Detectar se é livro ou filme
   // Prioridade: type explícito > presença de director (filme) > presença de authors (livro)
-  const isBook = detailedItem.type === 'book' || 
-                 (detailedItem.type !== 'movie' && !detailedItem.director && (detailedItem.authors || detailedItem.description));
+  const ehLivro = itemDetalhado.type === 'book' || 
+                 (itemDetalhado.type !== 'movie' && !itemDetalhado.director && (itemDetalhado.authors || itemDetalhado.description));
   
-  const handleAddToLibrary = async () => {
+  const lidarComAdicionarABiblioteca = async () => {
     try {
-      const res = isBook
-        ? await externalApiService.addBookToLibrary(detailedItem.id)
-        : await externalApiService.addMovieToLibrary(detailedItem.id);
-      if (res.success) {
-        showToast(`${isBook ? 'Livro' : 'Filme'} adicionado à biblioteca!`);
+      const resposta = ehLivro
+        ? await externalApiService.addBookToLibrary(itemDetalhado.id)
+        : await externalApiService.addMovieToLibrary(itemDetalhado.id);
+      if (resposta.success) {
+        showToast(`${ehLivro ? 'Livro' : 'Filme'} adicionado à biblioteca!`);
       } else {
-        showToast(res.error || `Erro ao adicionar ${isBook ? 'livro' : 'filme'} à biblioteca`);
+        showToast(resposta.error || `Erro ao adicionar ${ehLivro ? 'livro' : 'filme'} à biblioteca`);
       }
-    } catch (error) {
-      console.error(`Error adding ${isBook ? 'book' : 'movie'} to library:`, error);
-      showToast(`Erro ao adicionar ${isBook ? 'livro' : 'filme'} à biblioteca.`);
+    } catch (erro) {
+      console.error(`Erro ao adicionar ${ehLivro ? 'livro' : 'filme'} à biblioteca:`, erro);
+      showToast(`Erro ao adicionar ${ehLivro ? 'livro' : 'filme'} à biblioteca.`);
     }
   };
   
   // Função para criar placeholder SVG
-  const createDefaultCover = (title = 'Sem Imagem') => {
+  const criarCapaPadrao = (titulo = 'Sem Imagem') => {
     const svg = `
       <svg width="200" height="300" xmlns="http://www.w3.org/2000/svg">
         <defs>
@@ -82,42 +82,42 @@ const DetailsModal = ({ item, isOpen, onClose }) => {
           <circle cx="0" cy="-5" r="8" fill="none" stroke="#cbd5e0" stroke-width="2"/>
           <path d="M-15,10 L0,25 L15,10" fill="none" stroke="#cbd5e0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </g>
-        <text x="100" y="200" font-family="Arial, sans-serif" font-size="14" fill="#cbd5e0" text-anchor="middle">${title.length > 20 ? title.substring(0, 20) + '...' : title}</text>
+        <text x="100" y="200" font-family="Arial, sans-serif" font-size="14" fill="#cbd5e0" text-anchor="middle">${titulo.length > 20 ? titulo.substring(0, 20) + '...' : titulo}</text>
       </svg>
     `;
     return `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svg)))}`;
   };
 
-  const coverImage = isBook 
-    ? (detailedItem.image_url || createDefaultCover(detailedItem.title))
-    : (detailedItem.poster_path || createDefaultCover(detailedItem.title));
+  const imagemCapa = ehLivro 
+    ? (itemDetalhado.image_url || criarCapaPadrao(itemDetalhado.title))
+    : (itemDetalhado.poster_path || criarCapaPadrao(itemDetalhado.title));
 
-  const handleImageError = (e) => {
-    const img = e.target;
-    if (img.dataset.finalFallback === 'true') return;
-    img.dataset.finalFallback = 'true';
-    img.src = createDefaultCover(detailedItem.title || 'Sem Imagem');
+  const lidarComErroImagem = (e) => {
+    const imagem = e.target;
+    if (imagem.dataset.finalFallback === 'true') return;
+    imagem.dataset.finalFallback = 'true';
+    imagem.src = criarCapaPadrao(itemDetalhado.title || 'Sem Imagem');
   };
 
-  const authors = isBook && Array.isArray(detailedItem.authors) 
-    ? detailedItem.authors.join(', ') 
-    : (isBook ? (detailedItem.authors || 'Autor desconhecido') : null);
+  const autores = ehLivro && Array.isArray(itemDetalhado.authors) 
+    ? itemDetalhado.authors.join(', ') 
+    : (ehLivro ? (itemDetalhado.authors || 'Autor desconhecido') : null);
 
-  const genres = detailedItem.genres && Array.isArray(detailedItem.genres) 
-    ? detailedItem.genres 
-    : (detailedItem.genres ? [detailedItem.genres] : []);
+  const generos = itemDetalhado.genres && Array.isArray(itemDetalhado.genres) 
+    ? itemDetalhado.genres 
+    : (itemDetalhado.genres ? [itemDetalhado.genres] : []);
 
-  const cast = detailedItem.cast && Array.isArray(detailedItem.cast) 
-    ? detailedItem.cast 
-    : (detailedItem.cast ? [detailedItem.cast] : []);
+  const elenco = itemDetalhado.cast && Array.isArray(itemDetalhado.cast) 
+    ? itemDetalhado.cast 
+    : (itemDetalhado.cast ? [itemDetalhado.cast] : []);
 
   return (
-    <div className="modal-overlay details-modal-overlay" onClick={onClose}>
+    <div className="modal-overlay details-modal-overlay" onClick={aoFechar}>
       <div className="modal-content details-modal-content" onClick={(e) => e.stopPropagation()}>
         <button
           type="button"
           className="modal-close-button"
-          onClick={onClose}
+          onClick={aoFechar}
           aria-label="Fechar modal"
         >
           ×
@@ -126,85 +126,85 @@ const DetailsModal = ({ item, isOpen, onClose }) => {
         <div className="details-modal-body">
           <div className="details-modal-cover">
             <img 
-              src={coverImage} 
-              alt={detailedItem.title} 
+              src={imagemCapa} 
+              alt={itemDetalhado.title} 
               className="details-cover-image"
-              onError={handleImageError}
+              onError={lidarComErroImagem}
             />
           </div>
           
           <div className="details-modal-info">
-            <h2 className="details-title">{detailedItem.title || 'Sem título'}</h2>
-            {loadingDetails && (
+            <h2 className="details-title">{itemDetalhado.title || 'Sem título'}</h2>
+            {carregandoDetalhes && (
               <p style={{ fontSize: '9px', color: 'var(--text-secondary)', marginBottom: '10px' }}>
                 Carregando detalhes...
               </p>
             )}
             
-            {isBook ? (
+            {ehLivro ? (
               <>
-                {authors && (
+                {autores && (
                   <div className="details-field">
                     <span className="details-label">Autor(es):</span>
-                    <span className="details-value">{authors}</span>
+                    <span className="details-value">{autores}</span>
                   </div>
                 )}
-                {detailedItem.published_date && (
+                {itemDetalhado.published_date && (
                   <div className="details-field">
                     <span className="details-label">Ano de Publicação:</span>
-                    <span className="details-value">{detailedItem.published_date}</span>
+                    <span className="details-value">{itemDetalhado.published_date}</span>
                   </div>
                 )}
               </>
             ) : (
               <>
-                {detailedItem.director && (
+                {itemDetalhado.director && (
                   <div className="details-field">
                     <span className="details-label">Diretor:</span>
-                    <span className="details-value">{detailedItem.director}</span>
+                    <span className="details-value">{itemDetalhado.director}</span>
                   </div>
                 )}
-                {detailedItem.release_date && (
+                {itemDetalhado.release_date && (
                   <div className="details-field">
                     <span className="details-label">Ano de Lançamento:</span>
-                    <span className="details-value">{detailedItem.release_date}</span>
+                    <span className="details-value">{itemDetalhado.release_date}</span>
                   </div>
                 )}
-                {(detailedItem.rating || (detailedItem.rating && detailedItem.rating.score)) && (
+                {(itemDetalhado.rating || (itemDetalhado.rating && itemDetalhado.rating.score)) && (
                   <div className="details-field">
                     <span className="details-label">Nota IMDb:</span>
                     <span className="details-value">
-                      {typeof detailedItem.rating === 'number' 
-                        ? detailedItem.rating.toFixed(1) 
-                        : (detailedItem.rating?.score ? detailedItem.rating.score.toFixed(1) : 'N/A')}
+                      {typeof itemDetalhado.rating === 'number' 
+                        ? itemDetalhado.rating.toFixed(1) 
+                        : (itemDetalhado.rating?.score ? itemDetalhado.rating.score.toFixed(1) : 'N/A')}
                     </span>
                   </div>
                 )}
-                {cast.length > 0 && (
+                {elenco.length > 0 && (
                   <div className="details-field">
                     <span className="details-label">Principais Atores:</span>
-                    <span className="details-value">{cast.join(', ')}</span>
+                    <span className="details-value">{elenco.join(', ')}</span>
                   </div>
                 )}
               </>
             )}
             
-            {genres.length > 0 && (
+            {generos.length > 0 && (
               <div className="details-field">
                 <span className="details-label">Gêneros:</span>
                 <div className="details-genres taskbar-genres__chips">
-                  {genres.map((genre, index) => (
-                    <span key={index} className="taskbar-genres__chip">{genre}</span>
+                  {generos.map((genero, indice) => (
+                    <span key={indice} className="taskbar-genres__chip">{genero}</span>
                   ))}
                 </div>
               </div>
             )}
             
-            {((detailedItem.description && detailedItem.description !== 'N/A') || (detailedItem.overview && detailedItem.overview !== 'N/A')) && (
+            {((itemDetalhado.description && itemDetalhado.description !== 'N/A') || (itemDetalhado.overview && itemDetalhado.overview !== 'N/A')) && (
               <div className="details-field details-synopsis">
                 <span className="details-label">Sinopse:</span>
                 <p className="details-synopsis-text">
-                  {detailedItem.description && detailedItem.description !== 'N/A' ? detailedItem.description : (detailedItem.overview && detailedItem.overview !== 'N/A' ? detailedItem.overview : '')}
+                  {itemDetalhado.description && itemDetalhado.description !== 'N/A' ? itemDetalhado.description : (itemDetalhado.overview && itemDetalhado.overview !== 'N/A' ? itemDetalhado.overview : '')}
                 </p>
               </div>
             )}
@@ -213,7 +213,7 @@ const DetailsModal = ({ item, isOpen, onClose }) => {
               <button
                 type="button"
                 className="details-add-button"
-                onClick={handleAddToLibrary}
+                onClick={lidarComAdicionarABiblioteca}
               >
                 Adicionar à Biblioteca
               </button>

@@ -66,17 +66,17 @@ const Register = () => {
     }
 
     try {
-      const result = await register(formData.username, formData.email, formData.password);
-      console.log("Register API response:", result);
-      if (result.success) {
-        console.log("Register successful");
+      const resultado = await register(formData.username, formData.email, formData.password);
+      console.log("Resposta da API de registro:", resultado);
+      if (resultado.success) {
+        console.log("Registro bem-sucedido");
         navigate('/dashboard');
       } else {
-        console.log("Register failed");
-        setError(result.error);
+        console.log("Registro falhou");
+        setError(resultado.error);
       }
-    } catch (err) {
-      console.error("Register error:", err);
+    } catch (erro) {
+      console.error("Erro no registro:", erro);
       setError('Erro inesperado. Tente novamente.');
     } finally {
       setLoading(false);

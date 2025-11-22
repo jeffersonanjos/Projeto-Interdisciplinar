@@ -58,84 +58,84 @@ const Library = () => {
     setLoadedBooks([]);
     setLoadedMovies([]);
     try {
-      const userId = parseInt(user.id, 10);
+      const idUsuario = parseInt(user.id, 10);
       
-      // Carregar ratings primeiro (mais rápido)
-      const ratingsResult = await ratingService.getUserRatings(userId);
-      const ratingsMap = {};
-      if (ratingsResult.success && Array.isArray(ratingsResult.data)) {
-        ratingsResult.data.forEach((rating) => {
-          const externalId = rating.book_external_id || rating.movie_external_id;
-          if (externalId) {
-            ratingsMap[externalId] = {
-              id: rating.id,
-              score: rating.score,
-              comment: rating.comment || '',
-              created_at: rating.created_at,
+      // Carregar avaliações primeiro (mais rápido)
+      const resultadoAvaliacoes = await ratingService.getUserRatings(idUsuario);
+      const mapaAvaliacoes = {};
+      if (resultadoAvaliacoes.success && Array.isArray(resultadoAvaliacoes.data)) {
+        resultadoAvaliacoes.data.forEach((avaliacao) => {
+          const idExterno = avaliacao.book_external_id || avaliacao.movie_external_id;
+          if (idExterno) {
+            mapaAvaliacoes[idExterno] = {
+              id: avaliacao.id,
+              score: avaliacao.score,
+              comment: avaliacao.comment || '',
+              created_at: avaliacao.created_at,
             };
           }
         });
       }
-      setRatings(ratingsMap);
+      setRatings(mapaAvaliacoes);
 
       // Carregar livros e filmes em paralelo
-      const [booksResult, moviesResult] = await Promise.all([
-        externalApiService.getUserLibrary(userId),
-        externalApiService.getUserMovieLibrary(userId)
+      const [resultadoLivros, resultadoFilmes] = await Promise.all([
+        externalApiService.getUserLibrary(idUsuario),
+        externalApiService.getUserMovieLibrary(idUsuario)
       ]);
 
       // Processar livros
-      const libraryBooks = booksResult.success && Array.isArray(booksResult.data)
-        ? booksResult.data
+      const livrosBiblioteca = resultadoLivros.success && Array.isArray(resultadoLivros.data)
+        ? resultadoLivros.data
         : [];
-      const filteredBooks = libraryBooks.filter((item) => item && item.id);
+      const livrosFiltrados = livrosBiblioteca.filter((item) => item && item.id);
       
       // Processar filmes
-      const libraryMovies = moviesResult.success && Array.isArray(moviesResult.data)
-        ? moviesResult.data
+      const filmesBiblioteca = resultadoFilmes.success && Array.isArray(resultadoFilmes.data)
+        ? resultadoFilmes.data
         : [];
-      const filteredMovies = libraryMovies.filter((item) => item && item.id);
+      const filmesFiltrados = filmesBiblioteca.filter((item) => item && item.id);
 
-      // Preparar itens com ratings
-      const booksWithRatings = filteredBooks.map((item) => {
+      // Preparar itens com avaliações
+      const livrosComAvaliacoes = livrosFiltrados.map((item) => {
         // Garantir que os gêneros sejam processados corretamente
-        let genres = [];
+        let generos = [];
         if (item.genres) {
           if (Array.isArray(item.genres)) {
-            genres = item.genres;
+            generos = item.genres;
           } else if (typeof item.genres === 'string') {
-            genres = [item.genres];
+            generos = [item.genres];
           }
         }
         return {
           ...item,
-          genres: genres.length > 0 ? genres : null,
-          rating: ratingsMap[item.id] || null,
+          genres: generos.length > 0 ? generos : null,
+          rating: mapaAvaliacoes[item.id] || null,
           type: 'book',
         };
       });
 
-      const moviesWithRatings = filteredMovies.map((item) => ({
+      const filmesComAvaliacoes = filmesFiltrados.map((item) => ({
         ...item,
-        rating: ratingsMap[item.id] || null,
+        rating: mapaAvaliacoes[item.id] || null,
         type: 'movie',
       }));
 
-      const allItems = [...booksWithRatings, ...moviesWithRatings];
-      setAllItems(allItems);
+      const todosItens = [...livrosComAvaliacoes, ...filmesComAvaliacoes];
+      setAllItems(todosItens);
 
       // Carregar livros e filmes imediatamente
-      setLoadedBooks(booksWithRatings);
-      setLoadedMovies(moviesWithRatings);
+      setLoadedBooks(livrosComAvaliacoes);
+      setLoadedMovies(filmesComAvaliacoes);
 
       // Filtrar por tipo selecionado e atualizar itens finais
-      const filteredItems = libraryType === 'books' 
-        ? allItems.filter(item => item.type === 'book')
-        : allItems.filter(item => item.type === 'movie');
+      const itensFiltrados = libraryType === 'books' 
+        ? todosItens.filter(item => item.type === 'book')
+        : todosItens.filter(item => item.type === 'movie');
 
-      setItems(filteredItems);
-    } catch (error) {
-      console.error('Erro ao carregar biblioteca:', error);
+      setItems(itensFiltrados);
+    } catch (erro) {
+      console.error('Erro ao carregar biblioteca:', erro);
       setItems([]);
       setRatings({});
     } finally {
@@ -143,37 +143,37 @@ const Library = () => {
     }
   };
 
-  const updateItemRating = (itemId, ratingData) => {
-    setItems((prevItems) =>
-      prevItems.map((item) =>
-        item.id === itemId ? { ...item, rating: ratingData } : item
+  const updateItemRating = (idItem, dadosAvaliacao) => {
+    setItems((itensAnteriores) =>
+      itensAnteriores.map((item) =>
+        item.id === idItem ? { ...item, rating: dadosAvaliacao } : item
       )
     );
-    setRatings((prevRatings) => {
-      const updated = { ...prevRatings };
-      if (ratingData) {
-        updated[itemId] = ratingData;
+    setRatings((avaliacoesAnteriores) => {
+      const atualizado = { ...avaliacoesAnteriores };
+      if (dadosAvaliacao) {
+        atualizado[idItem] = dadosAvaliacao;
       } else {
-        delete updated[itemId];
+        delete atualizado[idItem];
       }
-      return updated;
+      return atualizado;
     });
-    setSelectedItem((prev) =>
-      prev && prev.id === itemId ? { ...prev, rating: ratingData } : prev
+    setSelectedItem((itemAnterior) =>
+      itemAnterior && itemAnterior.id === idItem ? { ...itemAnterior, rating: dadosAvaliacao } : itemAnterior
     );
   };
 
   const handleRateItem = (item) => {
-    const existingRating = ratings[item.id] || null;
+    const avaliacaoExistente = ratings[item.id] || null;
     setSelectedItem(item);
-    setSelectedRating(existingRating);
+    setSelectedRating(avaliacaoExistente);
     setRatingForm({
-      score: existingRating ? Number(existingRating.score) : 0,
-      comment: existingRating?.comment || '',
+      score: avaliacaoExistente ? Number(avaliacaoExistente.score) : 0,
+      comment: avaliacaoExistente?.comment || '',
     });
     setHoverRating(0);
     setFeedbackMessage('');
-    setIsEditingRating(!existingRating);
+    setIsEditingRating(!avaliacaoExistente);
     setIsSubmittingRating(false);
     setIsDeletingRating(false);
     setShowRatingModal(true);
@@ -208,8 +208,8 @@ const Library = () => {
     setHoverRating(0);
   };
 
-  const handleSubmitRating = async (event) => {
-    event.preventDefault();
+  const handleSubmitRating = async (evento) => {
+    evento.preventDefault();
     if (!selectedItem || !user || ratingForm.score === 0) {
       setFeedbackMessage('Selecione uma nota de 1 a 5 para continuar.');
       return;
@@ -218,58 +218,58 @@ const Library = () => {
     setIsSubmittingRating(true);
     setFeedbackMessage('');
 
-    const normalizedComment = ratingForm.comment?.trim() || null;
-    const normalizedScore = Number(ratingForm.score);
+    const comentarioNormalizado = ratingForm.comment?.trim() || null;
+    const pontuacaoNormalizada = Number(ratingForm.score);
 
     try {
       if (selectedRating) {
-        const updatePayload = {
-          score: normalizedScore,
-          comment: normalizedComment,
+        const payloadAtualizacao = {
+          score: pontuacaoNormalizada,
+          comment: comentarioNormalizado,
         };
-        const result = await ratingService.updateRating(selectedRating.id, updatePayload);
-        if (result.success) {
-          const updatedRating = {
-            id: result.data.id,
-            score: result.data.score,
-            comment: result.data.comment || '',
-            created_at: result.data.created_at,
+        const resultado = await ratingService.updateRating(selectedRating.id, payloadAtualizacao);
+        if (resultado.success) {
+          const avaliacaoAtualizada = {
+            id: resultado.data.id,
+            score: resultado.data.score,
+            comment: resultado.data.comment || '',
+            created_at: resultado.data.created_at,
           };
-          updateItemRating(selectedItem.id, updatedRating);
-          setSelectedRating(updatedRating);
+          updateItemRating(selectedItem.id, avaliacaoAtualizada);
+          setSelectedRating(avaliacaoAtualizada);
           setIsEditingRating(false);
           setFeedbackMessage('Avaliação atualizada!');
         } else {
-          setFeedbackMessage(result.error || 'Erro ao atualizar avaliação.');
+          setFeedbackMessage(resultado.error || 'Erro ao atualizar avaliação.');
         }
       } else {
-        const itemType = selectedItem.type || libraryType;
-        const createPayload = {
-          score: normalizedScore,
-          comment: normalizedComment,
+        const tipoItem = selectedItem.type || libraryType;
+        const payloadCriacao = {
+          score: pontuacaoNormalizada,
+          comment: comentarioNormalizado,
           user_id: user.id,
-          ...(itemType === 'book'
+          ...(tipoItem === 'book'
             ? { book_external_id: selectedItem.id }
             : { movie_external_id: selectedItem.id }),
         };
-        const result = await ratingService.createRating(createPayload);
-        if (result.success) {
-          const newRating = {
-            id: result.data.id,
-            score: result.data.score,
-            comment: result.data.comment || '',
-            created_at: result.data.created_at,
+        const resultado = await ratingService.createRating(payloadCriacao);
+        if (resultado.success) {
+          const novaAvaliacao = {
+            id: resultado.data.id,
+            score: resultado.data.score,
+            comment: resultado.data.comment || '',
+            created_at: resultado.data.created_at,
           };
-          updateItemRating(selectedItem.id, newRating);
-          setSelectedRating(newRating);
+          updateItemRating(selectedItem.id, novaAvaliacao);
+          setSelectedRating(novaAvaliacao);
           setIsEditingRating(false);
           setFeedbackMessage('Avaliação salva!');
         } else {
-          setFeedbackMessage(result.error || 'Erro ao salvar avaliação.');
+          setFeedbackMessage(resultado.error || 'Erro ao salvar avaliação.');
         }
       }
-    } catch (error) {
-      console.error('Erro ao salvar avaliação:', error);
+    } catch (erro) {
+      console.error('Erro ao salvar avaliação:', erro);
       setFeedbackMessage('Erro ao salvar avaliação.');
     } finally {
       setIsSubmittingRating(false);
@@ -282,18 +282,18 @@ const Library = () => {
     setIsDeletingRating(true);
     setFeedbackMessage('');
     try {
-      const result = await ratingService.deleteRating(selectedRating.id);
-      if (result.success) {
+      const resultado = await ratingService.deleteRating(selectedRating.id);
+      if (resultado.success) {
         updateItemRating(selectedItem.id, null);
         setSelectedRating(null);
         setRatingForm({ score: 0, comment: '' });
         setIsEditingRating(true);
         setFeedbackMessage('Avaliação removida.');
       } else {
-        setFeedbackMessage(result.error || 'Erro ao remover avaliação.');
+        setFeedbackMessage(resultado.error || 'Erro ao remover avaliação.');
       }
-    } catch (error) {
-      console.error('Erro ao remover avaliação:', error);
+    } catch (erro) {
+      console.error('Erro ao remover avaliação:', erro);
       setFeedbackMessage('Erro ao remover avaliação.');
     } finally {
       setIsDeletingRating(false);
@@ -303,52 +303,52 @@ const Library = () => {
   const handleRemoveItem = async (item) => {
     if (!item || !item.id) return;
     
-    const itemType = item.type || libraryType;
-    const itemName = itemType === 'book' ? 'livro' : 'filme';
+    const tipoItem = item.type || libraryType;
+    const nomeItem = tipoItem === 'book' ? 'livro' : 'filme';
     
     if (!window.confirm(`Tem certeza que deseja remover "${item.title}" da sua biblioteca?`)) {
       return;
     }
 
     try {
-      const result = itemType === 'book'
+      const resultado = tipoItem === 'book'
         ? await externalApiService.removeBookFromLibrary(item.id)
         : await externalApiService.removeMovieFromLibrary(item.id);
       
-      if (result.success) {
+      if (resultado.success) {
         // Remover o item da lista filtrada
-        setItems((prevItems) => prevItems.filter((i) => i.id !== item.id));
+        setItems((itensAnteriores) => itensAnteriores.filter((i) => i.id !== item.id));
         // Remover o item da lista completa
-        setAllItems((prevAllItems) => prevAllItems.filter((i) => i.id !== item.id));
+        setAllItems((todosItensAnteriores) => todosItensAnteriores.filter((i) => i.id !== item.id));
         // Remover a avaliação associada se existir
-        setRatings((prevRatings) => {
-          const updated = { ...prevRatings };
-          delete updated[item.id];
-          return updated;
+        setRatings((avaliacoesAnteriores) => {
+          const atualizado = { ...avaliacoesAnteriores };
+          delete atualizado[item.id];
+          return atualizado;
         });
-        showToast(`${itemType === 'book' ? 'Livro' : 'Filme'} removido da biblioteca!`);
+        showToast(`${tipoItem === 'book' ? 'Livro' : 'Filme'} removido da biblioteca!`);
       } else {
-        showToast(result.error || `Erro ao remover ${itemName} da biblioteca`);
+        showToast(resultado.error || `Erro ao remover ${nomeItem} da biblioteca`);
       }
-    } catch (error) {
-      console.error(`Erro ao remover ${itemName}:`, error);
-      showToast(`Erro ao remover ${itemName} da biblioteca`);
+    } catch (erro) {
+      console.error(`Erro ao remover ${nomeItem}:`, erro);
+      showToast(`Erro ao remover ${nomeItem} da biblioteca`);
     }
   };
 
-  const renderStars = (score) => {
-    const roundedScore = Math.round(score || 0);
+  const renderStars = (pontuacao) => {
+    const pontuacaoArredondada = Math.round(pontuacao || 0);
     return (
       <div className="static-stars">
-        {[1, 2, 3, 4, 5].map((value) => (
+        {[1, 2, 3, 4, 5].map((valor) => (
           <span
-            key={value}
-            className={`static-star ${value <= roundedScore ? 'filled' : ''}`}
+            key={valor}
+            className={`static-star ${valor <= pontuacaoArredondada ? 'filled' : ''}`}
           >
             ★
           </span>
         ))}
-        <span className="score-number">{(score || 0).toFixed(1)}</span>
+        <span className="score-number">{(pontuacao || 0).toFixed(1)}</span>
       </div>
     );
   };
@@ -356,7 +356,7 @@ const Library = () => {
   // Usar loadedItems durante o carregamento para mostrar itens incrementalmente
   // Se está carregando, usar os itens carregados do tipo atual
   // Se não está carregando mas há itens carregados do tipo atual, usar eles
-  const displayItems = loading 
+  const itensExibidos = loading 
     ? (libraryType === 'books' ? loadedBooks : loadedMovies)
     : items;
 
@@ -398,21 +398,21 @@ const Library = () => {
 
       {loading && loadedItems.length === 0 ? (
         <PixelLoader message="Carregando biblioteca..." />
-      ) : displayItems.length === 0 && !loading ? (
+      ) : itensExibidos.length === 0 && !loading ? (
         <div className="empty-library">
           <p>Você ainda não tem {libraryType === 'books' ? 'livros' : 'filmes'} na sua biblioteca.</p>
           <p>Use a busca para adicionar {libraryType === 'books' ? 'livros' : 'filmes'}!</p>
         </div>
       ) : (
         <div className="book-grid library-compact">
-          {displayItems.map((item) => {
-            const isBook = (item.type || libraryType) === 'book';
-            const authors = isBook && Array.isArray(item.authors)
+          {itensExibidos.map((item) => {
+            const ehLivro = (item.type || libraryType) === 'book';
+            const autores = ehLivro && Array.isArray(item.authors)
               ? item.authors.join(', ')
-              : (isBook ? (item.authors || 'Autor desconhecido') : null);
+              : (ehLivro ? (item.authors || 'Autor desconhecido') : null);
             
             // Função para criar placeholder SVG melhorado
-            const createDefaultCover = (title = 'Sem Imagem') => {
+            const criarCapaPadrao = (titulo = 'Sem Imagem') => {
               const svg = `
                 <svg width="200" height="300" xmlns="http://www.w3.org/2000/svg">
                   <defs>
@@ -432,10 +432,10 @@ const Library = () => {
               `;
               return `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svg)))}`;
             };
-            const defaultCover = createDefaultCover(item.title || 'Sem Imagem');
-            const coverImage = isBook 
-              ? (item.image_url || defaultCover)
-              : (item.poster_path || defaultCover);
+            const capaPadrao = criarCapaPadrao(item.title || 'Sem Imagem');
+            const imagemCapa = ehLivro 
+              ? (item.image_url || capaPadrao)
+              : (item.poster_path || capaPadrao);
             
             const handleImageError = (e) => {
               const img = e.target;
@@ -446,25 +446,25 @@ const Library = () => {
               }
               
               // Se for filme e ainda não tentou todas as fontes
-              if (!isBook && item.id) {
+              if (!ehLivro && item.id) {
                 // Tentar 1: API de pôsteres do OMDb (se ainda não tentou)
                 if (!img.dataset.triedOmdb) {
                   img.dataset.triedOmdb = 'true';
-                  const omdbPosterUrl = `http://img.omdbapi.com/?apikey=a3f0b40b&i=${item.id}`;
-                  img.src = omdbPosterUrl;
+                  const urlPosterOmdb = `http://img.omdbapi.com/?apikey=a3f0b40b&i=${item.id}`;
+                  img.src = urlPosterOmdb;
                   return;
                 }
               }
               
               // Fallback final: usar placeholder personalizado com título
               img.dataset.finalFallback = 'true';
-              img.src = createDefaultCover(item.title || 'Sem Imagem');
+              img.src = criarCapaPadrao(item.title || 'Sem Imagem');
             };
             
             return (
               <div key={item.id} className="book-item">
                 <img 
-                  src={coverImage} 
+                  src={imagemCapa} 
                   alt={item.title} 
                   className="book-cover"
                   onError={handleImageError}
@@ -483,8 +483,8 @@ const Library = () => {
                   style={{ cursor: 'pointer', flex: 1 }}
                 >
                   <h3 className="book-title">{item.title || 'Sem título'}</h3>
-                  {isBook && <p className="book-authors">Autores: {authors}</p>}
-                  {!isBook && (
+                  {ehLivro && <p className="book-authors">Autores: {autores}</p>}
+                  {!ehLivro && (
                     <p className="book-authors">
                       {item.release_date ? `Lançamento: ${item.release_date}` : ''}
                       {item.rating && item.rating.score ? ` • Nota: ${item.rating.score.toFixed(1)}` : ''}
@@ -492,18 +492,18 @@ const Library = () => {
                   )}
                   {(() => {
                     // Processar gêneros de forma robusta
-                    let genres = [];
+                    let generos = [];
                     if (item.genres) {
                       if (Array.isArray(item.genres)) {
-                        genres = item.genres.filter(g => g && g.trim());
+                        generos = item.genres.filter(g => g && g.trim());
                       } else if (typeof item.genres === 'string') {
-                        genres = item.genres.split(/[,|]/).map(g => g.trim()).filter(g => g);
+                        generos = item.genres.split(/[,|]/).map(g => g.trim()).filter(g => g);
                       }
                     }
-                    return genres.length > 0 && (
+                    return generos.length > 0 && (
                       <div className="taskbar-genres__chips">
-                        {genres.slice(0, 3).map((genre, index) => (
-                          <span key={index} className="taskbar-genres__chip">{genre}</span>
+                        {generos.slice(0, 3).map((genero, indice) => (
+                          <span key={indice} className="taskbar-genres__chip">{genero}</span>
                         ))}
                       </div>
                     );

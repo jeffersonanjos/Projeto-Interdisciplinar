@@ -38,18 +38,18 @@ app.add_middleware(
 
 @app.on_event("startup")
 def on_startup():
-    logger.info("Starting up the application - on_startup")
+    logger.info("Iniciando a aplicação - on_startup")
     create_db_and_tables()
-    logger.info("Database and tables created")
+    logger.info("Banco de dados e tabelas criados")
     import os
-    logger.info(f"Environment variables: {os.environ}")
+    logger.info(f"Variáveis de ambiente: {os.environ}")
 
 
 #  Inclui as rotas principais e as novas funcionalidades
 app.include_router(api_router)
 app.include_router(profile_router)
 app.include_router(user_reviews_router)
-logger.info("Routers included")
+logger.info("Rotas incluídas")
 
 # Servir arquivos estáticos (avatares)
 if os.path.exists("uploads/avatars"):
@@ -58,9 +58,9 @@ if os.path.exists("uploads/avatars"):
 
 @app.get("/")
 def root():
-    logger.info("Root endpoint called")
+    logger.info("Endpoint raiz chamado")
     import uvicorn
-    port = int(os.environ.get("PORT", 8001))  # Default port is 8000
-    logger.info(f"The port being used is: {port}")
-    logger.info(f"Application running on port: {port}")
+    port = int(os.environ.get("PORT", 8001))  # Porta padrão é 8001
+    logger.info(f"A porta sendo usada é: {port}")
+    logger.info(f"Aplicação rodando na porta: {port}")
     return {"message": "Bem-vindo ao Sistema de Recomendação de Livros e Filmes"}

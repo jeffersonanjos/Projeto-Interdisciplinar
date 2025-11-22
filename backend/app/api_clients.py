@@ -14,7 +14,7 @@ OMDB_ENABLE_FALLBACK = os.getenv("OMDB_ENABLE_FALLBACK", "true").lower() == "tru
 
 # TMDb API para pôsteres (mais confiável que OMDb)
 TMDB_BASE_URL = "https://api.themoviedb.org/3"
-TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500"  # Base URL para imagens do TMDb
+TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500"  # URL base para imagens do TMDb
 TMDB_API_KEY = os.getenv("TMDB_API_KEY", "")  # Opcional: requer cadastro gratuito em themoviedb.org
 
 OMDB_FALLBACK_RESULTS = [
@@ -48,30 +48,30 @@ OMDB_FALLBACK_RESULTS = [
 ]
 
 
-def fetch_book_data(query: str) -> Dict[str, Any]:
-    """Fetches book data from the Google Books API based on a search query."""
-    params = {"q": query}
+def buscar_dados_livro(consulta: str) -> Dict[str, Any]:
+    """Busca dados de livros da API do Google Books com base em uma consulta de busca."""
+    params = {"q": consulta}
     try:
-        response = requests.get(
+        resposta = requests.get(
             f"{GOOGLE_BOOKS_BASE_URL}/volumes",
             params=params,
             timeout=10,
         )
-        response.raise_for_status()
-        return response.json()
+        resposta.raise_for_status()
+        return resposta.json()
     except requests.exceptions.RequestException as exc:
-        logger.exception("Error fetching book data from Google Books: %s", exc)
+        logger.exception("Erro ao buscar dados de livros do Google Books: %s", exc)
         return {}
 
 
 def _request_omdb(params: Dict[str, Any] | None = None) -> Dict[str, Any]:
     """
-    Executes a GET request against the OMDb API and handles basic error reporting.
-    Requires OMDB_API_KEY env var or uses default key.
+    Executa uma requisição GET na API do OMDb e trata relatórios básicos de erro.
+    Requer variável de ambiente OMDB_API_KEY ou usa chave padrão.
     """
     params = dict(params or {})
     params.setdefault("apikey", OMDB_API_KEY)
-    params.setdefault("r", "json")  # Return JSON format
+    params.setdefault("r", "json")  # Retornar formato JSON
 
     url = OMDB_BASE_URL
     last_error: Optional[Exception] = None
@@ -120,136 +120,136 @@ def _fallback_titles_for_query(query: str) -> List[Dict[str, Any]]:
     ]
 
 
-def fetch_movie_data(
-    query: str,
+def buscar_dados_filme(
+    consulta: str,
     *,
-    limit: int = 20,
-    start_year: Optional[int] = None,
-    end_year: Optional[int] = None,
-    genres: Optional[Iterable[str]] = None,
-    sort_by: Optional[str] = None,
-    sort_order: Optional[str] = None,
+    limite: int = 20,
+    ano_inicio: Optional[int] = None,
+    ano_fim: Optional[int] = None,
+    generos: Optional[Iterable[str]] = None,
+    ordenar_por: Optional[str] = None,
+    ordem_ordenacao: Optional[str] = None,
 ) -> Dict[str, Any]:
-    """Fetches movie search results from the OMDb API with filtering options."""
-    logger.info("Fetching OMDb titles for query: %s", query)
-    if not query:
+    """Busca resultados de filmes da API do OMDb com opções de filtro."""
+    logger.info("Buscando títulos do OMDb para consulta: %s", consulta)
+    if not consulta:
         return {}
 
-    params: Dict[str, Any] = {"s": query}
+    params: Dict[str, Any] = {"s": consulta}
     params["type"] = "movie"
 
-    if start_year is not None:
-        params["y"] = start_year
-    # OMDb doesn't support end_year directly, but we can filter results
+    if ano_inicio is not None:
+        params["y"] = ano_inicio
+    # OMDb não suporta ano_fim diretamente, mas podemos filtrar resultados
 
-    # OMDb doesn't support genres, sort_by, or sort_order in search
-    # These parameters are ignored but kept for API compatibility
+    # OMDb não suporta generos, ordenar_por ou ordem_ordenacao na busca
+    # Esses parâmetros são ignorados mas mantidos para compatibilidade da API
 
-    # OMDb API returns 10 results per page by default
-    # We may need to fetch multiple pages to get the requested limit
-    all_results: List[Dict[str, Any]] = []
-    page = 1
-    max_pages = min((limit // 10) + 1, 10)  # OMDb free tier limits to 10 pages
-    page_info = None
+    # A API do OMDb retorna 10 resultados por página por padrão
+    # Podemos precisar buscar múltiplas páginas para obter o limite solicitado
+    todos_resultados: List[Dict[str, Any]] = []
+    pagina = 1
+    max_paginas = min((limite // 10) + 1, 10)  # OMDb free tier limita a 10 páginas
+    info_pagina = None
     
-    while len(all_results) < limit and page <= max_pages:
-        params_page = params.copy()
-        params_page["page"] = page
+    while len(todos_resultados) < limite and pagina <= max_paginas:
+        params_pagina = params.copy()
+        params_pagina["page"] = pagina
         
-        payload = _request_omdb(params=params_page)
+        payload = _request_omdb(params=params_pagina)
         
         if isinstance(payload, dict) and payload.get("Response") == "True":
-            search_results = payload.get("Search", []) or []
-            if not search_results:
-                break  # No more results
+            resultados_busca = payload.get("Search", []) or []
+            if not resultados_busca:
+                break  # Sem mais resultados
             
-            # Get page_info from first request
-            if page == 1:
-                total_results = payload.get("totalResults", "0")
+            # Obter info_pagina da primeira requisição
+            if pagina == 1:
+                total_resultados = payload.get("totalResults", "0")
                 try:
-                    total = int(total_results)
-                    page_info = {"totalResults": total}
+                    total = int(total_resultados)
+                    info_pagina = {"totalResults": total}
                 except (ValueError, TypeError):
                     pass
             
-            all_results.extend(search_results)
-            page += 1
+            todos_resultados.extend(resultados_busca)
+            pagina += 1
         else:
-            break  # Error or no more results
+            break  # Erro ou sem mais resultados
     
-    # Filter by end_year if provided
-    if end_year is not None:
-        filtered_results = []
-        for t in all_results:
-            year_str = t.get("Year", "")
-            if year_str:
+    # Filtrar por ano_fim se fornecido
+    if ano_fim is not None:
+        resultados_filtrados = []
+        for titulo in todos_resultados:
+            ano_str = titulo.get("Year", "")
+            if ano_str:
                 try:
-                    # Extract year from string (could be "1999" or "1999-2000")
-                    year = int(year_str.split("-")[0])
-                    if year <= end_year:
-                        filtered_results.append(t)
+                    # Extrair ano da string (pode ser "1999" ou "1999-2000")
+                    ano = int(ano_str.split("-")[0])
+                    if ano <= ano_fim:
+                        resultados_filtrados.append(titulo)
                 except (ValueError, TypeError):
                     pass
-        all_results = filtered_results
+        todos_resultados = resultados_filtrados
     
-    # Limit to requested limit
-    titles = all_results[:limit]
+    # Limitar ao limite solicitado
+    titulos = todos_resultados[:limite]
 
-    if not titles and OMDB_ENABLE_FALLBACK:
-        titles = _fallback_titles_for_query(query)
+    if not titulos and OMDB_ENABLE_FALLBACK:
+        titulos = _fallback_titles_for_query(consulta)
 
     return {
-        "results": titles,
-        "pageInfo": page_info,
+        "results": titulos,
+        "pageInfo": info_pagina,
     }
 
 
-def fetch_movie_poster_from_tmdb(imdb_id: str) -> Optional[str]:
+def buscar_poster_filme_tmdb(id_imdb: str) -> Optional[str]:
     """
     Busca o pôster de um filme no TMDb usando o IMDb ID.
     Retorna a URL do pôster ou None se não encontrar.
     """
-    if not TMDB_API_KEY or not imdb_id:
+    if not TMDB_API_KEY or not id_imdb:
         return None
     
     try:
         # TMDb permite buscar por IMDb ID externo
-        url = f"{TMDB_BASE_URL}/find/{imdb_id}"
+        url = f"{TMDB_BASE_URL}/find/{id_imdb}"
         params = {
             "api_key": TMDB_API_KEY,
             "external_source": "imdb_id"
         }
-        response = requests.get(url, params=params, timeout=5)
-        response.raise_for_status()
-        data = response.json()
+        resposta = requests.get(url, params=params, timeout=5)
+        resposta.raise_for_status()
+        dados = resposta.json()
         
         # TMDb retorna resultados em movie_results
-        movie_results = data.get("movie_results", [])
-        if movie_results:
-            poster_path = movie_results[0].get("poster_path")
-            if poster_path:
-                return f"{TMDB_IMAGE_BASE_URL}{poster_path}"
+        resultados_filmes = dados.get("movie_results", [])
+        if resultados_filmes:
+            caminho_poster = resultados_filmes[0].get("poster_path")
+            if caminho_poster:
+                return f"{TMDB_IMAGE_BASE_URL}{caminho_poster}"
     except Exception as exc:
-        logger.debug("TMDb poster fetch failed for %s: %s", imdb_id, exc)
+        logger.debug("Falha ao buscar pôster do TMDb para %s: %s", id_imdb, exc)
     
     return None
 
 
-def fetch_movie_details(movie_id: str) -> Dict[str, Any]:
-    """Fetches detailed movie information from OMDb by IMDb ID."""
-    logger.info("Fetching OMDb title details for id: %s", movie_id)
-    if not movie_id:
+def buscar_detalhes_filme(id_filme: str) -> Dict[str, Any]:
+    """Busca informações detalhadas de filme do OMDb por IMDb ID."""
+    logger.info("Buscando detalhes do título do OMDb para id: %s", id_filme)
+    if not id_filme:
         return {}
 
-    # OMDb uses 'i' parameter for IMDb ID
-    params = {"i": movie_id, "plot": "full"}  # Use full plot for details
+    # OMDb usa parâmetro 'i' para IMDb ID
+    params = {"i": id_filme, "plot": "full"}  # Usar sinopse completa para detalhes
     
     payload = _request_omdb(params=params)
     if isinstance(payload, dict) and payload.get("Response") == "True":
         return payload
 
     if OMDB_ENABLE_FALLBACK:
-        for title in OMDB_FALLBACK_RESULTS:
-            if title.get("imdbID") == movie_id:
-                return title
+        for titulo in OMDB_FALLBACK_RESULTS:
+            if titulo.get("imdbID") == id_filme:
+                return titulo
     return {}

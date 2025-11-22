@@ -9,7 +9,7 @@ from models import User, Book as DBBook, Movie as DBMovie, Rating, Recommendatio
 from sqlmodel import Session, select
 from sqlalchemy import func
 
-from api_clients import fetch_book_data, fetch_movie_data, fetch_movie_details
+from api_clients import buscar_dados_livro, buscar_dados_filme, buscar_detalhes_filme
 from schemas import Book, Movie, BookRead
 from database import get_session
 from schemas import (
@@ -40,34 +40,34 @@ VALID_OMDB_SORT = {
 VALID_SORT_ORDER = {"ASC", "DESC"}
 
 
-def _parse_omdb_rating(rating_str: Optional[str]) -> Optional[float]:
-    """Converts OMDb rating string (e.g., '8.7') to float."""
-    if not rating_str:
+def _parse_omdb_rating(string_avaliacao: Optional[str]) -> Optional[float]:
+    """Converte string de avaliação do OMDb (ex: '8.7') para float."""
+    if not string_avaliacao:
         return None
     try:
-        return float(rating_str)
+        return float(string_avaliacao)
     except (ValueError, TypeError):
         return None
 
 
-def _parse_omdb_votes(votes_str: Optional[str]) -> Optional[int]:
-    """Converts OMDb votes string (e.g., '1,900,000') to int."""
-    if not votes_str:
+def _parse_omdb_votes(string_votos: Optional[str]) -> Optional[int]:
+    """Converte string de votos do OMDb (ex: '1,900,000') para int."""
+    if not string_votos:
         return None
     try:
-        # Remove commas and convert to int
-        return int(votes_str.replace(",", ""))
+        # Remove vírgulas e converte para int
+        return int(string_votos.replace(",", ""))
     except (ValueError, TypeError):
         return None
 
 
 def _omdb_title_to_movie(item: Dict[str, Any]) -> Optional[Movie]:
-    """Converts OMDb API response to Movie schema."""
-    from api_clients import fetch_movie_poster_from_tmdb
+    """Converte resposta da API do OMDb para schema Movie."""
+    from api_clients import buscar_poster_filme_tmdb
     
     # Validar que é realmente um filme (não um livro ou outro tipo)
-    item_type = item.get("Type", "").lower()
-    if item_type and item_type not in ["movie", "series"]:
+    tipo_item = item.get("Type", "").lower()
+    if tipo_item and tipo_item not in ["movie", "series"]:
         # Se tiver Type definido e não for movie ou series, pular
         return None
     
@@ -80,129 +80,129 @@ def _omdb_title_to_movie(item: Dict[str, Any]) -> Optional[Movie]:
         if not item.get("Title") and not item.get("Year"):
             return None
     
-    title = item.get("Title") or "N/A"
-    plot = item.get("Plot") or item.get("plot") or ""
-    # Filtrar "N/A" do plot
-    if plot == "N/A" or not plot:
-        plot = None
+    titulo = item.get("Title") or "N/A"
+    sinopse = item.get("Plot") or item.get("plot") or ""
+    # Filtrar "N/A" da sinopse
+    if sinopse == "N/A" or not sinopse:
+        sinopse = None
     poster = item.get("Poster") or item.get("poster")
-    year = item.get("Year") or item.get("year")
-    rating_str = item.get("imdbRating")
-    votes_str = item.get("imdbVotes")
-    genre_str = item.get("Genre") or item.get("genre") or ""
+    ano = item.get("Year") or item.get("year")
+    string_avaliacao = item.get("imdbRating")
+    string_votos = item.get("imdbVotes")
+    string_genero = item.get("Genre") or item.get("genre") or ""
     
     # Extrair gêneros da string separada por vírgulas
-    genres = []
-    if genre_str and genre_str != "N/A":
-        genres = [g.strip() for g in genre_str.split(",") if g.strip()]
+    generos = []
+    if string_genero and string_genero != "N/A":
+        generos = [g.strip() for g in string_genero.split(",") if g.strip()]
     
     # Estratégia de fallback para pôsteres:
     # 1. Tentar URL original do OMDb (pode ser Amazon, pode estar quebrada)
     # 2. Se não tiver URL original ou for inválida, tentar TMDb (mais confiável)
     # 3. Se tudo falhar, deixar None (frontend usará placeholder)
-    poster_path = None
+    caminho_poster = None
     
     # Verificar se a URL original é válida (não é "N/A" e não é vazia)
     if poster and poster != "N/A" and poster.strip() and not poster.startswith("http://ia.media-imdb.com"):
         # URLs do Amazon frequentemente estão quebradas, mas vamos tentar
         # Se começar com http://ia.media-imdb.com, é provável que esteja quebrada
-        poster_path = poster
+        caminho_poster = poster
     
     # Se não temos URL válida e temos IMDb ID, tentar TMDb
-    if not poster_path and imdb_id:
-        tmdb_poster = fetch_movie_poster_from_tmdb(imdb_id)
-        if tmdb_poster:
-            poster_path = tmdb_poster
+    if not caminho_poster and imdb_id:
+        poster_tmdb = buscar_poster_filme_tmdb(id_imdb)
+        if poster_tmdb:
+            caminho_poster = poster_tmdb
     
-    # Parse rating and votes
-    rating = _parse_omdb_rating(rating_str)
-    vote_count = _parse_omdb_votes(votes_str)
+    # Parse de avaliação e votos
+    avaliacao = _parse_omdb_rating(string_avaliacao)
+    contagem_votos = _parse_omdb_votes(string_votos)
     
     # Extrair diretor
-    director_str = item.get("Director") or item.get("director") or ""
-    director = director_str if director_str and director_str != "N/A" else None
+    string_diretor = item.get("Director") or item.get("director") or ""
+    diretor = string_diretor if string_diretor and string_diretor != "N/A" else None
     
     # Extrair atores (cast)
-    actors_str = item.get("Actors") or item.get("actors") or ""
-    cast = []
-    if actors_str and actors_str != "N/A":
-        cast = [a.strip() for a in actors_str.split(",") if a.strip()]
+    string_atores = item.get("Actors") or item.get("actors") or ""
+    elenco = []
+    if string_atores and string_atores != "N/A":
+        elenco = [a.strip() for a in string_atores.split(",") if a.strip()]
     
     return Movie(
         id=str(imdb_id),
-        title=title,
-        overview=plot,
-        poster_path=poster_path if poster_path and poster_path != "N/A" else None,
-        release_date=year,
-        rating=rating,
-        vote_count=vote_count,
-        genres=genres if genres else None,
-        director=director,
-        cast=cast if cast else None,
+        title=titulo,
+        overview=sinopse,
+        poster_path=caminho_poster if caminho_poster and caminho_poster != "N/A" else None,
+        release_date=ano,
+        rating=avaliacao,
+        vote_count=contagem_votos,
+        genres=generos if generos else None,
+        director=diretor,
+        cast=elenco if elenco else None,
     )
 
-from google_books import search_books as google_search_books, get_book_by_id
+from google_books import buscar_livros as google_buscar_livros, obter_livro_por_id
 
 @router.get("/books/search", response_model=List[BookRead], tags=["books"])
 async def search_books(query: str, session: Session = Depends(get_session)):
-    logger.info(f"Searching for books with query: {query}")
-    books = google_search_books(query)
-    # Convert the books to BookRead schema
-    book_list = []
-    for book in books:
-        volume_info = book.get("volumeInfo", {})
+    logger.info(f"Buscando livros com consulta: {query}")
+    livros = google_buscar_livros(query)
+    # Converter os livros para schema BookRead
+    lista_livros = []
+    for livro in livros:
+        info_volume = livro.get("volumeInfo", {})
         # Extrair gêneros do campo categories da API do Google Books
-        categories = volume_info.get("categories", [])
-        genres = categories if isinstance(categories, list) else []
+        categorias = info_volume.get("categories", [])
+        generos = categorias if isinstance(categorias, list) else []
         # Extrair ano de publicação
-        published_date = volume_info.get("publishedDate", "")
+        data_publicacao = info_volume.get("publishedDate", "")
         # Se for uma data completa, extrair apenas o ano
-        if published_date:
+        if data_publicacao:
             import re
-            year_match = re.search(r'(\d{4})', published_date) if isinstance(published_date, str) else None
-            published_date = year_match.group(1) if year_match else published_date
+            correspondencia_ano = re.search(r'(\d{4})', data_publicacao) if isinstance(data_publicacao, str) else None
+            data_publicacao = correspondencia_ano.group(1) if correspondencia_ano else data_publicacao
         
-        book_data = BookRead(
-            id=book.get("id", "N/A"),
-            title=volume_info.get("title", "N/A"),
-            authors=volume_info.get("authors", ["N/A"]),
-            description=volume_info.get("description", "N/A"),
-            image_url=volume_info.get("imageLinks", {}).get("thumbnail", None),
-            genres=genres if genres else None,
-            published_date=published_date if published_date else None,
+        dados_livro = BookRead(
+            id=livro.get("id", "N/A"),
+            title=info_volume.get("title", "N/A"),
+            authors=info_volume.get("authors", ["N/A"]),
+            description=info_volume.get("description", "N/A"),
+            image_url=info_volume.get("imageLinks", {}).get("thumbnail", None),
+            genres=generos if generos else None,
+            published_date=data_publicacao if data_publicacao else None,
         )
-        book_list.append(book_data)
-    return book_list
+        lista_livros.append(dados_livro)
+    return lista_livros
 
 @router.get("/books/{book_id}", response_model=BookRead, tags=["books"])
 async def get_book(book_id: str, session: Session = Depends(get_session)):
-    logger.info(f"Getting book with book_id: {book_id}")
-    book = get_book_by_id(book_id)
-    if book:
-        volume_info = book.get("volumeInfo", {})
+    logger.info(f"Obtendo livro com book_id: {book_id}")
+    livro = obter_livro_por_id(book_id)
+    if livro:
+        info_volume = livro.get("volumeInfo", {})
         # Extrair gêneros do campo categories da API do Google Books
-        categories = volume_info.get("categories", [])
-        genres = categories if isinstance(categories, list) else []
+        categorias = info_volume.get("categories", [])
+        generos = categorias if isinstance(categorias, list) else []
         # Extrair ano de publicação
-        published_date = volume_info.get("publishedDate", "")
+        data_publicacao = info_volume.get("publishedDate", "")
         # Se for uma data completa, extrair apenas o ano
-        if published_date:
+        if data_publicacao:
             import re
-            year_match = re.search(r'(\d{4})', published_date) if isinstance(published_date, str) else None
-            published_date = year_match.group(1) if year_match else published_date
+            correspondencia_ano = re.search(r'(\d{4})', data_publicacao) if isinstance(data_publicacao, str) else None
+            data_publicacao = correspondencia_ano.group(1) if correspondencia_ano else data_publicacao
         
-        book_data = BookRead(
-            id=book.get("id", "N/A"),
-            title=volume_info.get("title", "N/A"),
-            authors=volume_info.get("authors", ["N/A"]),
-            description=volume_info.get("description", "N/A"),
-            image_url=volume_info.get("imageLinks", {}).get("thumbnail", None),
-            genres=genres if genres else None,
-            published_date=published_date if published_date else None,
+        dados_livro = BookRead(
+            id=livro.get("id", "N/A"),
+            title=info_volume.get("title", "N/A"),
+            authors=info_volume.get("authors", ["N/A"]),
+            description=info_volume.get("description", "N/A"),
+            image_url=info_volume.get("imageLinks", {}).get("thumbnail", None),
+            genres=generos if generos else None,
+            published_date=data_publicacao if data_publicacao else None,
         )
-        return book_data
+        return dados_livro
     else:
-        raise HTTPException(status_code=404, detail="Book not found")
+        raise HTTPException(status_code=404, detail="Livro não encontrado")
 
 @router.get("/movies/search", response_model=List[Movie], tags=["movies"])
 async def search_movies(
@@ -215,31 +215,31 @@ async def search_movies(
     sort_order: Optional[str] = None,
     session: Session = Depends(get_session),
 ):
-    logger.info("OMDb search_movies called with query=%s", query)
+    logger.info("OMDb search_movies chamado com query=%s", query)
 
-    normalized_sort_by = sort_by if sort_by in VALID_OMDB_SORT else None
-    normalized_sort_order = sort_order.upper() if sort_order and sort_order.upper() in VALID_SORT_ORDER else None
+    sort_by_normalizado = sort_by if sort_by in VALID_OMDB_SORT else None
+    sort_order_normalizado = sort_order.upper() if sort_order and sort_order.upper() in VALID_SORT_ORDER else None
 
-    movie_data = fetch_movie_data(
+    dados_filmes = buscar_dados_filme(
         query,
-        limit=limit,
-        start_year=start_year,
-        end_year=end_year,
-        genres=[genre] if genre else None,
-        sort_by=normalized_sort_by,
-        sort_order=normalized_sort_order,
+        limite=limit,
+        ano_inicio=start_year,
+        ano_fim=end_year,
+        generos=[genre] if genre else None,
+        ordenar_por=sort_by_normalizado,
+        ordem_ordenacao=sort_order_normalizado,
     )
-    if not movie_data or "results" not in movie_data:
-        raise HTTPException(status_code=404, detail="No movies found")
+    if not dados_filmes or "results" not in dados_filmes:
+        raise HTTPException(status_code=404, detail="Nenhum filme encontrado")
 
     # Buscar detalhes completos de cada filme para obter gêneros
     # A busca inicial do OMDb (s=query) não retorna gêneros, apenas busca detalhada (i=imdbID)
     import asyncio
     import concurrent.futures
     
-    results = movie_data["results"]
+    resultados = dados_filmes["results"]
     
-    async def fetch_movie_with_details(item: Dict[str, Any]) -> Movie:
+    async def buscar_filme_com_detalhes(item: Dict[str, Any]) -> Movie:
         """Busca detalhes completos do filme se tiver IMDb ID"""
         imdb_id = item.get("imdbID") or item.get("imdbid")
         
@@ -251,264 +251,264 @@ async def search_movies(
         loop = asyncio.get_event_loop()
         with concurrent.futures.ThreadPoolExecutor() as executor:
             try:
-                details = await loop.run_in_executor(
+                detalhes = await loop.run_in_executor(
                     executor, 
-                    fetch_movie_details, 
+                    buscar_detalhes_filme, 
                     imdb_id
                 )
                 # Se encontrou detalhes válidos, usar eles (têm gêneros)
-                if details and details.get("Response") == "True":
-                    return _omdb_title_to_movie(details)
+                if detalhes and detalhes.get("Response") == "True":
+                    return _omdb_title_to_movie(detalhes)
             except Exception as e:
-                logger.warning(f"Error fetching details for {imdb_id}: {e}")
+                logger.warning(f"Erro ao buscar detalhes para {imdb_id}: {e}")
         
         # Se falhou, usar resultado da busca inicial (sem gêneros)
         return _omdb_title_to_movie(item)
     
     # Buscar todos os detalhes em paralelo e filtrar None (itens inválidos)
-    movies = await asyncio.gather(*[fetch_movie_with_details(item) for item in results])
+    filmes = await asyncio.gather(*[buscar_filme_com_detalhes(item) for item in resultados])
     
     # Filtrar resultados None (itens que não são filmes válidos) e remover duplicatas
-    seen_ids = set()
-    valid_movies = []
-    for m in movies:
-        if m is not None and m.id:
+    ids_vistos = set()
+    filmes_validos = []
+    for filme in filmes:
+        if filme is not None and filme.id:
             # Remover duplicatas baseadas no ID
-            if m.id not in seen_ids:
-                seen_ids.add(m.id)
-                valid_movies.append(m)
+            if filme.id not in ids_vistos:
+                ids_vistos.add(filme.id)
+                filmes_validos.append(filme)
     
-    return valid_movies
+    return filmes_validos
 
 @router.get("/movies/{external_id}", response_model=Movie, tags=["movies"])
 async def get_movie(external_id: str, session: Session = Depends(get_session)):
-    logger.info(f"get_movie called with external_id: {external_id}")
-    movie_data = fetch_movie_details(external_id)
-    if not movie_data:
-        raise HTTPException(status_code=404, detail="Movie not found")
+    logger.info(f"get_movie chamado com external_id: {external_id}")
+    dados_filme = buscar_detalhes_filme(id_externo)
+    if not dados_filme:
+        raise HTTPException(status_code=404, detail="Filme não encontrado")
 
-    return _omdb_title_to_movie(movie_data)
+    return _omdb_title_to_movie(dados_filme)
 
 @router.post("/users/", response_model=UserRead, status_code=status.HTTP_201_CREATED, tags=["users"])
-def create_user(user: UserCreate, session: Session = Depends(get_session)):
-    logger.info(f"Creating user with username: {user.username}")
-    logger.info(f"User creation attempt: {user.username}, {user.email}")
+def create_user(usuario: UserCreate, session: Session = Depends(get_session)):
+    logger.info(f"Criando usuário com username: {usuario.username}")
+    logger.info(f"Tentativa de criação de usuário: {usuario.username}, {usuario.email}")
     # Verifica se username já existe
-    db_user = session.exec(select(User).where(User.username == user.username)).first()
-    if db_user:
+    usuario_db = session.exec(select(User).where(User.username == usuario.username)).first()
+    if usuario_db:
         raise HTTPException(status_code=400, detail="Username já existe")
     # Verifica se email já existe
-    db_email = session.exec(select(User).where(User.email == user.email)).first()
-    if db_email:
+    email_db = session.exec(select(User).where(User.email == usuario.email)).first()
+    if email_db:
         raise HTTPException(status_code=400, detail="Email já existe")
-    db_user = User(
-        username=user.username,
-        email=user.email,
-        hashed_password=get_password_hash(user.password)
+    usuario_db = User(
+        username=usuario.username,
+        email=usuario.email,
+        hashed_password=get_password_hash(usuario.password)
     )
-    logger.info(f"Adding user to session: {user.username}")
-    session.add(db_user)
+    logger.info(f"Adicionando usuário à sessão: {usuario.username}")
+    session.add(usuario_db)
     try:
-        logger.info(f"Committing user to database: {user.username}")
+        logger.info(f"Fazendo commit do usuário no banco de dados: {usuario.username}")
         session.commit()
     except Exception as exc:
         # Em caso de violação de integridade ou outros erros, retorna 400 genérico
         session.rollback()
-        logger.exception(f"Error creating user: {user.username}", exc_info=True)
+        logger.exception(f"Erro ao criar usuário: {usuario.username}", exc_info=True)
         raise HTTPException(status_code=400, detail="Não foi possível criar a conta. Verifique os dados e tente novamente.") from exc
-    logger.info(f"Refreshing user: {user.username}")
-    session.refresh(db_user)
-    logger.info(f"User created successfully: {user.username}")
-    return db_user
+    logger.info(f"Atualizando usuário: {usuario.username}")
+    session.refresh(usuario_db)
+    logger.info(f"Usuário criado com sucesso: {usuario.username}")
+    return usuario_db
 
 @router.post("/token", response_model=Token, tags=["auth"])
 async def login_for_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
     session: Session = Depends(get_session)
 ):
-    logger.info(f"Login attempt for user: {form_data.username}")
+    logger.info(f"Tentativa de login para usuário: {form_data.username}")
     """Endpoint de login que retorna token JWT"""
-    user = authenticate_user(session, form_data.username, form_data.password)
-    if not user:
+    usuario = authenticate_user(session, form_data.username, form_data.password)
+    if not usuario:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": user.username}, expires_delta=access_token_expires
+    expiracao_token = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    token_acesso = create_access_token(
+        dados={"sub": usuario.username}, expires_delta=expiracao_token
     )
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {"access_token": token_acesso, "token_type": "bearer"}
 
 @router.post("/login", response_model=Token, tags=["auth"])
-async def login(user_login: UserLogin, session: Session = Depends(get_session)):
-    logger.info(f"Login attempt for user: {user_login.username} (JSON)")
+async def login(login_usuario: UserLogin, session: Session = Depends(get_session)):
+    logger.info(f"Tentativa de login para usuário: {login_usuario.username} (JSON)")
     """Endpoint de login alternativo usando JSON"""
-    user = authenticate_user(session, user_login.username, user_login.password)
-    if not user:
+    usuario = authenticate_user(session, login_usuario.username, login_usuario.password)
+    if not usuario:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": user.username}, expires_delta=access_token_expires
+    expiracao_token = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    token_acesso = create_access_token(
+        dados={"sub": usuario.username}, expires_delta=expiracao_token
     )
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {"access_token": token_acesso, "token_type": "bearer"}
 
 @router.get("/users/me/", response_model=UserRead, tags=["users"])
-async def read_users_me(current_user: User = Depends(get_current_active_user)):
-    logger.info(f"Reading current user: {current_user.username}")
+async def read_users_me(usuario_atual: User = Depends(get_current_active_user)):
+    logger.info(f"Lendo usuário atual: {usuario_atual.username}")
     """Obtém informações do usuário atual"""
-    return current_user
+    return usuario_atual
 
 @router.put("/users/{user_id}", response_model=UserRead, tags=["users"])
 def update_user(
     user_id: int, 
-    user_update: UserUpdate, 
-    current_user: User = Depends(get_current_active_user),
+    atualizacao_usuario: UserUpdate, 
+    usuario_atual: User = Depends(get_current_active_user),
     session: Session = Depends(get_session)
 ):
-    logger.info(f"Updating user with id: {user_id}")
+    logger.info(f"Atualizando usuário com id: {user_id}")
     
     # Verificar se o usuário está tentando atualizar seu próprio perfil
-    if current_user.id != user_id:
+    if usuario_atual.id != user_id:
         raise HTTPException(status_code=403, detail="Você não tem permissão para atualizar este perfil")
     
-    user = session.get(User, user_id)
-    if not user:
+    usuario = session.get(User, user_id)
+    if not usuario:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
     
     # Verificar senha atual se houver alterações
-    has_changes = user_update.username is not None or user_update.email is not None or user_update.password is not None
+    tem_alteracoes = atualizacao_usuario.username is not None or atualizacao_usuario.email is not None or atualizacao_usuario.password is not None
     
-    if has_changes:
-        if not user_update.current_password or not user_update.current_password.strip():
+    if tem_alteracoes:
+        if not atualizacao_usuario.current_password or not atualizacao_usuario.current_password.strip():
             raise HTTPException(status_code=400, detail="Senha atual é obrigatória para fazer alterações")
         
         # Verificar se a senha atual está correta
         from auth import verify_password
-        if not verify_password(user_update.current_password.strip(), user.hashed_password):
+        if not verify_password(atualizacao_usuario.current_password.strip(), usuario.hashed_password):
             raise HTTPException(status_code=401, detail="Senha atual incorreta")
     
     # Atualizar campos
-    if user_update.username is not None:
-        username = user_update.username.strip()
+    if atualizacao_usuario.username is not None:
+        username = atualizacao_usuario.username.strip()
         if not username:
             raise HTTPException(status_code=400, detail="Nome de usuário não pode estar vazio")
         # Verificar se o novo username já existe
-        existing_user = session.exec(select(User).where(User.username == username)).first()
-        if existing_user and existing_user.id != user_id:
+        usuario_existente = session.exec(select(User).where(User.username == username)).first()
+        if usuario_existente and usuario_existente.id != user_id:
             raise HTTPException(status_code=400, detail="Username já está em uso")
-        user.username = username
+        usuario.username = username
     
-    if user_update.email is not None:
-        email = user_update.email.strip()
+    if atualizacao_usuario.email is not None:
+        email = atualizacao_usuario.email.strip()
         if not email:
             raise HTTPException(status_code=400, detail="Email não pode estar vazio")
         # Validar formato de email básico
         if '@' not in email or '.' not in email.split('@')[1]:
             raise HTTPException(status_code=400, detail="Email inválido")
         # Verificar se o novo email já existe
-        existing_user = session.exec(select(User).where(User.email == email)).first()
-        if existing_user and existing_user.id != user_id:
+        usuario_existente = session.exec(select(User).where(User.email == email)).first()
+        if usuario_existente and usuario_existente.id != user_id:
             raise HTTPException(status_code=400, detail="Email já está em uso")
-        user.email = email
+        usuario.email = email
     
-    if user_update.password is not None:
-        password = user_update.password.strip()
-        if len(password) < 6:
+    if atualizacao_usuario.password is not None:
+        senha = atualizacao_usuario.password.strip()
+        if len(senha) < 6:
             raise HTTPException(status_code=400, detail="A senha deve ter pelo menos 6 caracteres")
-        user.hashed_password = get_password_hash(password)
+        usuario.hashed_password = get_password_hash(senha)
     
-    session.add(user)
+    session.add(usuario)
     session.commit()
-    session.refresh(user)
-    return user
+    session.refresh(usuario)
+    return usuario
 
 @router.get("/users/search", response_model=List[UserRead], tags=["users"])
 def search_users(
-    query: str,
+    consulta: str,
     limit: int = 10,
     session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_active_user)
+    usuario_atual: User = Depends(get_current_active_user)
 ):
     """Busca usuários por username (parcial match)"""
-    logger.info(f"Searching users with query: {query}")
-    if not query or not query.strip():
+    logger.info(f"Buscando usuários com consulta: {consulta}")
+    if not consulta or not consulta.strip():
         return []
     
-    query_trimmed = query.strip()
-    # Busca usuários cujo username contém a query (case-insensitive)
+    consulta_limpa = consulta.strip()
+    # Busca usuários cujo username contém a consulta (case-insensitive)
     # Usando func.lower para garantir compatibilidade
-    users = session.exec(
+    usuarios = session.exec(
         select(User)
-        .where(func.lower(User.username).contains(query_trimmed.lower()))
+        .where(func.lower(User.username).contains(consulta_limpa.lower()))
         .limit(limit)
     ).all()
     
-    return users
+    return usuarios
 
 @router.post("/users/{user_id}/follow", tags=["users"])
 def follow_user(
     user_id: int,
-    current_user: User = Depends(get_current_active_user),
+    usuario_atual: User = Depends(get_current_active_user),
     session: Session = Depends(get_session)
 ):
     """Seguir um usuário"""
-    logger.info(f"User {current_user.id} following user {user_id}")
+    logger.info(f"Usuário {usuario_atual.id} seguindo usuário {user_id}")
     
-    if current_user.id == user_id:
+    if usuario_atual.id == user_id:
         raise HTTPException(status_code=400, detail="Você não pode seguir a si mesmo")
     
     # Verificar se o usuário existe
-    target_user = session.get(User, user_id)
-    if not target_user:
+    usuario_alvo = session.get(User, user_id)
+    if not usuario_alvo:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
     
     # Verificar se já está seguindo
-    existing_follow = session.exec(
+    seguimento_existente = session.exec(
         select(Follow)
-        .where(Follow.follower_id == current_user.id)
+        .where(Follow.follower_id == usuario_atual.id)
         .where(Follow.following_id == user_id)
     ).first()
     
-    if existing_follow:
+    if seguimento_existente:
         raise HTTPException(status_code=400, detail="Você já está seguindo este usuário")
     
-    # Criar o follow
-    follow = Follow(
-        follower_id=current_user.id,
+    # Criar o seguimento
+    seguimento = Follow(
+        follower_id=usuario_atual.id,
         following_id=user_id
     )
-    session.add(follow)
+    session.add(seguimento)
     session.commit()
-    session.refresh(follow)
+    session.refresh(seguimento)
     
     return {"message": "Usuário seguido com sucesso", "following": True}
 
 @router.delete("/users/{user_id}/follow", tags=["users"])
 def unfollow_user(
     user_id: int,
-    current_user: User = Depends(get_current_active_user),
+    usuario_atual: User = Depends(get_current_active_user),
     session: Session = Depends(get_session)
 ):
     """Parar de seguir um usuário"""
-    logger.info(f"User {current_user.id} unfollowing user {user_id}")
+    logger.info(f"Usuário {usuario_atual.id} deixando de seguir usuário {user_id}")
     
     # Verificar se está seguindo
-    follow = session.exec(
+    seguimento = session.exec(
         select(Follow)
-        .where(Follow.follower_id == current_user.id)
+        .where(Follow.follower_id == usuario_atual.id)
         .where(Follow.following_id == user_id)
     ).first()
     
-    if not follow:
+    if not seguimento:
         raise HTTPException(status_code=404, detail="Você não está seguindo este usuário")
     
-    session.delete(follow)
+    session.delete(seguimento)
     session.commit()
     
     return {"message": "Deixou de seguir o usuário", "following": False}
@@ -516,20 +516,20 @@ def unfollow_user(
 @router.get("/users/{user_id}/follow", tags=["users"])
 def check_follow_status(
     user_id: int,
-    current_user: User = Depends(get_current_active_user),
+    usuario_atual: User = Depends(get_current_active_user),
     session: Session = Depends(get_session)
 ):
     """Verificar se o usuário atual está seguindo outro usuário"""
-    if current_user.id == user_id:
+    if usuario_atual.id == user_id:
         return {"following": False, "can_follow": False}
     
-    follow = session.exec(
+    seguimento = session.exec(
         select(Follow)
-        .where(Follow.follower_id == current_user.id)
+        .where(Follow.follower_id == usuario_atual.id)
         .where(Follow.following_id == user_id)
     ).first()
     
-    return {"following": follow is not None, "can_follow": True}
+    return {"following": seguimento is not None, "can_follow": True}
 
 @router.get("/users/{user_id}/followers", response_model=List[UserRead], tags=["users"])
 def get_followers(
@@ -537,7 +537,7 @@ def get_followers(
     session: Session = Depends(get_session)
 ):
     """Buscar seguidores de um usuário"""
-    logger.info(f"Getting followers for user {user_id}")
+    logger.info(f"Obtendo seguidores para o usuário {user_id}")
     
     # Verificar se o usuário existe
     target_user = session.get(User, user_id)
@@ -568,7 +568,7 @@ def get_following(
     session: Session = Depends(get_session)
 ):
     """Buscar usuários que um usuário está seguindo"""
-    logger.info(f"Getting following for user {user_id}")
+    logger.info(f"Obtendo usuários seguidos pelo usuário {user_id}")
     
     # Verificar se o usuário existe
     target_user = session.get(User, user_id)
@@ -600,7 +600,7 @@ def get_user_activities(
     session: Session = Depends(get_session)
 ):
     """Buscar atividades recentes de um usuário (avaliações)"""
-    logger.info(f"Getting activities for user {user_id}")
+    logger.info(f"Obtendo atividades para o usuário {user_id}")
     
     # Verificar se o usuário existe
     target_user = session.get(User, user_id)
@@ -650,7 +650,7 @@ def get_community_timeline(
     session: Session = Depends(get_session)
 ):
     """Buscar timeline da comunidade (atividades de todos os usuários ou apenas dos seguidos)"""
-    logger.info(f"Getting community timeline for user {current_user.id}, only_following={only_following}")
+    logger.info(f"Obtendo timeline da comunidade para o usuário {current_user.id}, apenas_seguindo={only_following}")
     
     # Se only_following=True, buscar apenas atividades dos usuários seguidos
     if only_following:
@@ -724,201 +724,201 @@ def get_community_timeline(
 
 @router.post("/ratings/", response_model=RatingRead, status_code=status.HTTP_201_CREATED, tags=["ratings"])
 async def create_rating(
-    rating: RatingCreate, 
+    avaliacao: RatingCreate, 
     session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_active_user)
+    usuario_atual: User = Depends(get_current_active_user)
 ):
-    logger.info(f"Creating rating for user: {current_user.username}")
-    if not rating.book_id and not rating.movie_id and not getattr(rating, "book_external_id", None) and not getattr(rating, "movie_external_id", None):
+    logger.info(f"Criando avaliação para usuário: {usuario_atual.username}")
+    if not avaliacao.book_id and not avaliacao.movie_id and not getattr(avaliacao, "book_external_id", None) and not getattr(avaliacao, "movie_external_id", None):
         raise HTTPException(status_code=400, detail="Uma avaliação deve estar associada a um livro (id interno ou externo) ou filme (id interno ou externo).")
     
     # Resolver book_external_id para um registro local se necessário
-    resolved_book_id = rating.book_id
-    if not resolved_book_id and getattr(rating, "book_external_id", None):
-        external_id = rating.book_external_id
+    livro_id_resolvido = avaliacao.book_id
+    if not livro_id_resolvido and getattr(avaliacao, "book_external_id", None):
+        id_externo = avaliacao.book_external_id
         # verificar se já existe
-        db_book = session.exec(select(DBBook).where(DBBook.external_id == external_id)).first()
-        if not db_book:
+        livro_db = session.exec(select(DBBook).where(DBBook.external_id == id_externo)).first()
+        if not livro_db:
             # buscar detalhes do livro externo e criar registro mínimo
-            book = None
+            livro = None
             try:
-                book = await get_book(external_id, session)
+                livro = await get_book(id_externo, session)
             except Exception:
-                logger.exception("Falha ao buscar detalhes do livro externo %s", external_id)
-            title = None
-            authors = None
-            image_url = None
-            genres = None
-            if book:
-                title = book.title
-                # book.authors pode ser lista
-                if isinstance(book.authors, list) and book.authors:
-                    authors = ", ".join(book.authors)
-                elif isinstance(book.authors, str):
-                    authors = book.authors
-                image_url = getattr(book, "image_url", None)
-                genres = getattr(book, "genres", None)
-            db_book = DBBook(
-                title=title or "Sem título",
-                author=authors,
-                cover_url=image_url,
-                external_id=external_id,
-                genres=genres
+                logger.exception("Falha ao buscar detalhes do livro externo %s", id_externo)
+            titulo = None
+            autores = None
+            url_imagem = None
+            generos = None
+            if livro:
+                titulo = livro.title
+                # livro.authors pode ser lista
+                if isinstance(livro.authors, list) and livro.authors:
+                    autores = ", ".join(livro.authors)
+                elif isinstance(livro.authors, str):
+                    autores = livro.authors
+                url_imagem = getattr(livro, "image_url", None)
+                generos = getattr(livro, "genres", None)
+            livro_db = DBBook(
+                title=titulo or "Sem título",
+                author=autores,
+                cover_url=url_imagem,
+                external_id=id_externo,
+                genres=generos
             )
-            session.add(db_book)
+            session.add(livro_db)
             session.commit()
-            session.refresh(db_book)
-        resolved_book_id = db_book.id
+            session.refresh(livro_db)
+        livro_id_resolvido = livro_db.id
 
     # Resolver movie_external_id para um registro local se necessário
-    resolved_movie_id = rating.movie_id
-    if not resolved_movie_id and getattr(rating, "movie_external_id", None):
-        external_id = rating.movie_external_id
+    filme_id_resolvido = avaliacao.movie_id
+    if not filme_id_resolvido and getattr(avaliacao, "movie_external_id", None):
+        id_externo = avaliacao.movie_external_id
         # verificar se já existe
-        db_movie = session.exec(select(DBMovie).where(DBMovie.external_id == external_id)).first()
-        if not db_movie:
+        filme_db = session.exec(select(DBMovie).where(DBMovie.external_id == id_externo)).first()
+        if not filme_db:
             # buscar detalhes do filme externo e criar registro mínimo
-            movie_data = fetch_movie_details(external_id)
-            if movie_data:
-                movie_obj = _omdb_title_to_movie(movie_data)
+            dados_filme = buscar_detalhes_filme(id_externo)
+            if dados_filme:
+                objeto_filme = _omdb_title_to_movie(dados_filme)
                 # Converter release_date de string para date se necessário
-                release_date = None
-                if movie_obj.release_date:
+                data_lancamento = None
+                if objeto_filme.release_date:
                     try:
                         # Tentar parsear como YYYY-MM-DD ou YYYY
-                        if len(movie_obj.release_date) == 4:
+                        if len(objeto_filme.release_date) == 4:
                             from datetime import date
-                            release_date = date(int(movie_obj.release_date), 1, 1)
-                        elif '-' in movie_obj.release_date:
+                            data_lancamento = date(int(objeto_filme.release_date), 1, 1)
+                        elif '-' in objeto_filme.release_date:
                             from datetime import datetime
-                            release_date = datetime.strptime(movie_obj.release_date, '%Y-%m-%d').date()
+                            data_lancamento = datetime.strptime(objeto_filme.release_date, '%Y-%m-%d').date()
                     except (ValueError, TypeError):
                         pass
                 
-                # Extrair gêneros do objeto movie_obj
-                genres = getattr(movie_obj, "genres", None)
+                # Extrair gêneros do objeto objeto_filme
+                generos = getattr(objeto_filme, "genres", None)
                 
-                db_movie = DBMovie(
-                    title=movie_obj.title,
-                    description=movie_obj.overview,
-                    cover_url=movie_obj.poster_path,
-                    external_id=external_id,
-                    release_date=release_date,
-                    genres=genres,
+                filme_db = DBMovie(
+                    title=objeto_filme.title,
+                    description=objeto_filme.overview,
+                    cover_url=objeto_filme.poster_path,
+                    external_id=id_externo,
+                    release_date=data_lancamento,
+                    genres=generos,
                 )
-                session.add(db_movie)
+                session.add(filme_db)
                 session.commit()
-                session.refresh(db_movie)
-                resolved_movie_id = db_movie.id
+                session.refresh(filme_db)
+                filme_id_resolvido = filme_db.id
         else:
-            resolved_movie_id = db_movie.id
+            filme_id_resolvido = filme_db.id
 
     # Usar o ID do usuário autenticado e ids resolvidos
-    rating_data = {
-        "user_id": current_user.id,
-        "book_id": resolved_book_id,
-        "movie_id": resolved_movie_id,
-        "score": rating.score,
-        "comment": rating.comment,
+    dados_avaliacao = {
+        "user_id": usuario_atual.id,
+        "book_id": livro_id_resolvido,
+        "movie_id": filme_id_resolvido,
+        "score": avaliacao.score,
+        "comment": avaliacao.comment,
     }
     
-    db_rating = Rating(**rating_data)
-    session.add(db_rating)
+    avaliacao_db = Rating(**dados_avaliacao)
+    session.add(avaliacao_db)
     session.commit()
-    session.refresh(db_rating)
-    return db_rating
+    session.refresh(avaliacao_db)
+    return avaliacao_db
 
 
 @router.put("/ratings/{rating_id}", response_model=RatingRead, tags=["ratings"])
 async def update_rating(
     rating_id: int,
-    rating_update: RatingUpdate,
+    atualizacao_avaliacao: RatingUpdate,
     session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_active_user)
+    usuario_atual: User = Depends(get_current_active_user)
 ):
-    logger.info(f"Updating rating {rating_id} for user: {current_user.username}")
-    db_rating = session.get(Rating, rating_id)
-    if not db_rating:
+    logger.info(f"Atualizando avaliação {rating_id} para usuário: {usuario_atual.username}")
+    avaliacao_db = session.get(Rating, rating_id)
+    if not avaliacao_db:
         raise HTTPException(status_code=404, detail="Avaliação não encontrada.")
-    if db_rating.user_id != current_user.id:
+    if avaliacao_db.user_id != usuario_atual.id:
         raise HTTPException(status_code=403, detail="Você não tem permissão para editar esta avaliação.")
 
-    if rating_update.score is not None:
-        db_rating.score = rating_update.score
-    if rating_update.comment is not None:
-        db_rating.comment = rating_update.comment or None
+    if atualizacao_avaliacao.score is not None:
+        avaliacao_db.score = atualizacao_avaliacao.score
+    if atualizacao_avaliacao.comment is not None:
+        avaliacao_db.comment = atualizacao_avaliacao.comment or None
 
-    session.add(db_rating)
+    session.add(avaliacao_db)
     session.commit()
-    session.refresh(db_rating)
-    return db_rating
+    session.refresh(avaliacao_db)
+    return avaliacao_db
 
 
 @router.delete("/ratings/{rating_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["ratings"])
 async def delete_rating(
     rating_id: int,
     session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_active_user)
+    usuario_atual: User = Depends(get_current_active_user)
 ):
-    logger.info(f"Deleting rating {rating_id} for user: {current_user.username}")
-    db_rating = session.get(Rating, rating_id)
-    if not db_rating:
+    logger.info(f"Deletando avaliação {rating_id} para usuário: {usuario_atual.username}")
+    avaliacao_db = session.get(Rating, rating_id)
+    if not avaliacao_db:
         raise HTTPException(status_code=404, detail="Avaliação não encontrada.")
-    if db_rating.user_id != current_user.id:
+    if avaliacao_db.user_id != usuario_atual.id:
         raise HTTPException(status_code=403, detail="Você não tem permissão para excluir esta avaliação.")
 
-    session.delete(db_rating)
+    session.delete(avaliacao_db)
     session.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 @router.get("/users/{user_id}/ratings", response_model=List[Dict[str, Any]], tags=["ratings"])
 async def get_user_ratings(user_id: int, session: Session = Depends(get_session)):
-    logger.info(f"Getting ratings for user: {user_id}")
-    ratings = session.exec(select(Rating).where(Rating.user_id == user_id)).all()
-    ratings_with_external_id = []
-    for rating in ratings:
-        rating_dict = {
-            "id": rating.id,
-            "user_id": rating.user_id,
-            "book_id": rating.book_id,
-            "movie_id": rating.movie_id,
-            "score": rating.score,
-            "comment": rating.comment,
-            "created_at": rating.created_at,
+    logger.info(f"Obtendo avaliações para usuário: {user_id}")
+    avaliacoes = session.exec(select(Rating).where(Rating.user_id == user_id)).all()
+    avaliacoes_com_id_externo = []
+    for avaliacao in avaliacoes:
+        dicionario_avaliacao = {
+            "id": avaliacao.id,
+            "user_id": avaliacao.user_id,
+            "book_id": avaliacao.book_id,
+            "movie_id": avaliacao.movie_id,
+            "score": avaliacao.score,
+            "comment": avaliacao.comment,
+            "created_at": avaliacao.created_at,
             "book_external_id": None,
             "movie_external_id": None,
         }
-        if rating.book_id:
-            db_book = session.get(DBBook, rating.book_id)
-            if db_book and db_book.external_id:
-                rating_dict["book_external_id"] = db_book.external_id
-        if rating.movie_id:
-            db_movie = session.get(DBMovie, rating.movie_id)
-            if db_movie and db_movie.external_id:
-                rating_dict["movie_external_id"] = db_movie.external_id
-        ratings_with_external_id.append(rating_dict)
-    return ratings_with_external_id
+        if avaliacao.book_id:
+            livro_db = session.get(DBBook, avaliacao.book_id)
+            if livro_db and livro_db.external_id:
+                dicionario_avaliacao["book_external_id"] = livro_db.external_id
+        if avaliacao.movie_id:
+            filme_db = session.get(DBMovie, avaliacao.movie_id)
+            if filme_db and filme_db.external_id:
+                dicionario_avaliacao["movie_external_id"] = filme_db.external_id
+        avaliacoes_com_id_externo.append(dicionario_avaliacao)
+    return avaliacoes_com_id_externo
 
 @router.get("/books", response_model=List[Book])
-async def search_books(query: str):
-    logger.info(f"Searching for books with query: {query} (external API)")
-    """Searches for books using the Google Books API."""
-    book_data = fetch_book_data(query)
-    if not book_data or "items" not in book_data:
-        raise HTTPException(status_code=404, detail="No books found")
+async def search_books(consulta: str):
+    logger.info(f"Buscando livros com consulta: {consulta} (API externa)")
+    """Busca livros usando a API do Google Books."""
+    dados_livros = buscar_dados_livro(consulta)
+    if not dados_livros or "items" not in dados_livros:
+        raise HTTPException(status_code=404, detail="Nenhum livro encontrado")
 
-    books = []
-    for item in book_data["items"]:
-        volume_info = item["volumeInfo"]
-        book = Book(
+    livros = []
+    for item in dados_livros["items"]:
+        info_volume = item["volumeInfo"]
+        livro = Book(
             id=item["id"],
-            title=volume_info.get("title", "N/A"),
-            authors=volume_info.get("authors", ["N/A"]),
-            description=volume_info.get("description", "N/A"),
-            image_url=volume_info.get("imageLinks", {}).get("thumbnail", None),
+            title=info_volume.get("title", "N/A"),
+            authors=info_volume.get("authors", ["N/A"]),
+            description=info_volume.get("description", "N/A"),
+            image_url=info_volume.get("imageLinks", {}).get("thumbnail", None),
         )
-        books.append(book)
-    return books
+        livros.append(livro)
+    return livros
 
 
 @router.get("/movies", response_model=List[Movie])
@@ -931,21 +931,21 @@ async def search_movies_public(
     sort_by: Optional[str] = None,
     sort_order: Optional[str] = None,
 ):
-    """Public movie search using OMDb API (no authentication required)."""
+    """Busca pública de filmes usando a API do OMDb (não requer autenticação)."""
     normalized_sort_by = sort_by if sort_by in VALID_OMDB_SORT else None
     normalized_sort_order = sort_order.upper() if sort_order and sort_order.upper() in VALID_SORT_ORDER else None
 
-    movie_data = fetch_movie_data(
+    movie_data = buscar_dados_filme(
         query,
-        limit=limit,
-        start_year=start_year,
-        end_year=end_year,
-        genres=[genre] if genre else None,
-        sort_by=normalized_sort_by,
-        sort_order=normalized_sort_order,
+        limite=limit,
+        ano_inicio=start_year,
+        ano_fim=end_year,
+        generos=[genre] if genre else None,
+        ordenar_por=normalized_sort_by,
+        ordem_ordenacao=normalized_sort_order,
     )
     if not movie_data or "results" not in movie_data:
-        raise HTTPException(status_code=404, detail="No movies found")
+        raise HTTPException(status_code=404, detail="Nenhum filme encontrado")
 
     # Buscar detalhes completos de cada filme para obter gêneros
     # A busca inicial do OMDb (s=query) não retorna gêneros, apenas busca detalhada (i=imdbID)
@@ -968,14 +968,14 @@ async def search_movies_public(
             try:
                 details = await loop.run_in_executor(
                     executor, 
-                    fetch_movie_details, 
+                    buscar_detalhes_filme, 
                     imdb_id
                 )
                 # Se encontrou detalhes válidos, usar eles (têm gêneros)
                 if details and details.get("Response") == "True":
                     return _omdb_title_to_movie(details)
             except Exception as e:
-                logger.warning(f"Error fetching details for {imdb_id}: {e}")
+                logger.warning(f"Erro ao buscar detalhes para {imdb_id}: {e}")
         
         # Se falhou, usar resultado da busca inicial (sem gêneros)
         return _omdb_title_to_movie(item)
@@ -997,8 +997,8 @@ async def search_movies_public(
 
 @router.get("/users/{user_id}/library", response_model=List[BookRead], tags=["library"])
 async def get_user_library(user_id: int, session: Session = Depends(get_session)):
-    """Get user's book library (kept for backward compatibility)."""
-    logger.info(f"Getting book library for user: {user_id}")
+    """Obtém a biblioteca de livros do usuário (mantido para compatibilidade com versões anteriores)."""
+    logger.info(f"Obtendo biblioteca de livros para o usuário: {user_id}")
     entries = session.exec(select(UserLibrary).where(UserLibrary.user_id == user_id)).all()
     books: List[BookRead] = []
     for entry in entries:
@@ -1012,14 +1012,14 @@ async def get_user_library(user_id: int, session: Session = Depends(get_session)
 
 @router.get("/users/{user_id}/library/movies", response_model=List[Movie], tags=["library"])
 async def get_user_movie_library(user_id: int, session: Session = Depends(get_session)):
-    """Get user's movie library."""
-    logger.info(f"Getting movie library for user: {user_id}")
+    """Obtém a biblioteca de filmes do usuário."""
+    logger.info(f"Obtendo biblioteca de filmes para o usuário: {user_id}")
     entries = session.exec(select(UserMovieLibrary).where(UserMovieLibrary.user_id == user_id)).all()
     movies: List[Movie] = []
     seen_ids = set()
     for entry in entries:
         try:
-            movie_data = fetch_movie_details(entry.movie_external_id)
+            movie_data = buscar_detalhes_filme(entry.movie_external_id)
             if movie_data:
                 movie = _omdb_title_to_movie(movie_data)
                 # Filtrar None e remover duplicatas
@@ -1032,7 +1032,7 @@ async def get_user_movie_library(user_id: int, session: Session = Depends(get_se
 
 @router.get("/users/{user_id}/reviews", response_model=List[Dict[str, Any]], tags=["reviews"])
 async def get_user_reviews(user_id: int, session: Session = Depends(get_session)):
-    logger.info(f"Getting reviews for user: {user_id}")
+    logger.info(f"Obtendo avaliações para o usuário: {user_id}")
     # Fetch ratings for the user
     ratings = session.exec(select(Rating).where(Rating.user_id == user_id)).all()
     # Enriquecer com external_ids e dados completos do livro/filme
@@ -1083,95 +1083,95 @@ async def get_user_reviews(user_id: int, session: Session = Depends(get_session)
 
 @router.post("/library/add", tags=["library"])
 async def add_book_to_library(book_id: Dict[str, str], current_user: User = Depends(get_current_active_user), session: Session = Depends(get_session)):
-    logger.info(f"Adding book {book_id} to library for user {current_user.username}")
-    book_id_str = book_id.get("book_id")
-    # Check if the book exists
-    book = await get_book(book_id_str, session)
-    if not book:
-        raise HTTPException(status_code=404, detail="Book not found")
+    logger.info(f"Adicionando livro {book_id} à biblioteca do usuário {current_user.username}")
+    id_livro_str = book_id.get("book_id")
+    # Verificar se o livro existe
+    livro = await get_book(id_livro_str, session)
+    if not livro:
+        raise HTTPException(status_code=404, detail="Livro não encontrado")
 
-    # Check if already in library
-    existing = session.exec(
+    # Verificar se já está na biblioteca
+    existente = session.exec(
         select(UserLibrary).where(
-            (UserLibrary.user_id == current_user.id) & (UserLibrary.book_external_id == book_id_str)
+            (UserLibrary.user_id == current_user.id) & (UserLibrary.book_external_id == id_livro_str)
         )
     ).first()
-    if existing:
-        return {"message": "Book already in library"}
-    entry = UserLibrary(user_id=current_user.id, book_external_id=book_id_str)
-    session.add(entry)
+    if existente:
+        return {"message": "Livro já está na biblioteca"}
+    entrada = UserLibrary(user_id=current_user.id, book_external_id=id_livro_str)
+    session.add(entrada)
     session.commit()
-    session.refresh(entry)
-    return {"message": "Book added to library", "book_id": book_id_str}
+    session.refresh(entrada)
+    return {"message": "Livro adicionado à biblioteca", "book_id": id_livro_str}
 
 @router.delete("/library/remove", tags=["library"])
 async def remove_book_from_library(book_id: str, current_user: User = Depends(get_current_active_user), session: Session = Depends(get_session)):
-    logger.info(f"Removing book {book_id} from library for user {current_user.username}")
+    logger.info(f"Removendo livro {book_id} da biblioteca do usuário {current_user.username}")
     
-    # Find the library entry
-    library_entry = session.exec(
+    # Encontrar a entrada da biblioteca
+    entrada_biblioteca = session.exec(
         select(UserLibrary).where(
             (UserLibrary.user_id == current_user.id) & (UserLibrary.book_external_id == book_id)
         )
     ).first()
     
-    if not library_entry:
-        raise HTTPException(status_code=404, detail="Book not found in library")
+    if not entrada_biblioteca:
+        raise HTTPException(status_code=404, detail="Livro não encontrado na biblioteca")
     
-    session.delete(library_entry)
+    session.delete(entrada_biblioteca)
     session.commit()
-    return {"message": "Book removed from library", "book_id": book_id}
+    return {"message": "Livro removido da biblioteca", "book_id": book_id}
 
 @router.post("/library/movies/add", tags=["library"])
 async def add_movie_to_library(movie_id: Dict[str, str], current_user: User = Depends(get_current_active_user), session: Session = Depends(get_session)):
-    logger.info(f"Adding movie {movie_id} to library for user {current_user.username}")
-    movie_id_str = movie_id.get("movie_id")
-    # Check if the movie exists
-    movie_data = fetch_movie_details(movie_id_str)
-    if not movie_data:
-        raise HTTPException(status_code=404, detail="Movie not found")
+    logger.info(f"Adicionando filme {movie_id} à biblioteca do usuário {current_user.username}")
+    id_filme_str = movie_id.get("movie_id")
+    # Verificar se o filme existe
+    dados_filme = buscar_detalhes_filme(id_filme_str)
+    if not dados_filme:
+        raise HTTPException(status_code=404, detail="Filme não encontrado")
 
-    # Check if already in library
-    existing = session.exec(
+    # Verificar se já está na biblioteca
+    existente = session.exec(
         select(UserMovieLibrary).where(
-            (UserMovieLibrary.user_id == current_user.id) & (UserMovieLibrary.movie_external_id == movie_id_str)
+            (UserMovieLibrary.user_id == current_user.id) & (UserMovieLibrary.movie_external_id == id_filme_str)
         )
     ).first()
-    if existing:
-        return {"message": "Movie already in library"}
-    entry = UserMovieLibrary(user_id=current_user.id, movie_external_id=movie_id_str)
-    session.add(entry)
+    if existente:
+        return {"message": "Filme já está na biblioteca"}
+    entrada = UserMovieLibrary(user_id=current_user.id, movie_external_id=id_filme_str)
+    session.add(entrada)
     session.commit()
-    session.refresh(entry)
-    return {"message": "Movie added to library", "movie_id": movie_id_str}
+    session.refresh(entrada)
+    return {"message": "Filme adicionado à biblioteca", "movie_id": id_filme_str}
 
 @router.delete("/library/movies/remove", tags=["library"])
 async def remove_movie_from_library(movie_id: str, current_user: User = Depends(get_current_active_user), session: Session = Depends(get_session)):
-    logger.info(f"Removing movie {movie_id} from library for user {current_user.username}")
+    logger.info(f"Removendo filme {movie_id} da biblioteca do usuário {current_user.username}")
     
-    # Find the library entry
-    library_entry = session.exec(
+    # Encontrar a entrada da biblioteca
+    entrada_biblioteca = session.exec(
         select(UserMovieLibrary).where(
             (UserMovieLibrary.user_id == current_user.id) & (UserMovieLibrary.movie_external_id == movie_id)
         )
     ).first()
     
-    if not library_entry:
-        raise HTTPException(status_code=404, detail="Movie not found in library")
+    if not entrada_biblioteca:
+        raise HTTPException(status_code=404, detail="Filme não encontrado na biblioteca")
     
-    session.delete(library_entry)
+    session.delete(entrada_biblioteca)
     session.commit()
-    return {"message": "Movie removed from library", "movie_id": movie_id}
+    return {"message": "Filme removido da biblioteca", "movie_id": movie_id}
 
 @router.put("/books/{book_id}/update-genres", tags=["books"])
 async def update_book_genres(book_id: int, session: Session = Depends(get_session)):
     """
     Atualiza os gêneros de um livro existente no banco de dados buscando da API do Google Books.
     """
-    logger.info(f"Updating genres for book with id: {book_id}")
+    logger.info(f"Atualizando gêneros do livro com id: {book_id}")
     db_book = session.get(DBBook, book_id)
     if not db_book:
-        raise HTTPException(status_code=404, detail="Book not found")
+        raise HTTPException(status_code=404, detail="Livro não encontrado")
     
     if not db_book.external_id:
         raise HTTPException(status_code=400, detail="Book does not have an external_id")
@@ -1188,25 +1188,25 @@ async def update_book_genres(book_id: int, session: Session = Depends(get_sessio
         else:
             return {"message": "No genres found in API response"}
     except Exception as e:
-        logger.exception("Error updating book genres")
-        raise HTTPException(status_code=500, detail=f"Error updating genres: {str(e)}")
+        logger.exception("Erro ao atualizar gêneros do livro")
+        raise HTTPException(status_code=500, detail=f"Erro ao atualizar gêneros: {str(e)}")
 
 @router.put("/movies/{movie_id}/update-genres", tags=["movies"])
 async def update_movie_genres(movie_id: int, session: Session = Depends(get_session)):
     """
     Atualiza os gêneros de um filme existente no banco de dados buscando da API do OMDb.
     """
-    logger.info(f"Updating genres for movie with id: {movie_id}")
+    logger.info(f"Atualizando gêneros do filme com id: {movie_id}")
     db_movie = session.get(DBMovie, movie_id)
     if not db_movie:
-        raise HTTPException(status_code=404, detail="Movie not found")
+        raise HTTPException(status_code=404, detail="Filme não encontrado")
     
     if not db_movie.external_id:
         raise HTTPException(status_code=400, detail="Movie does not have an external_id")
     
     # Buscar dados atualizados da API
     try:
-        movie_data = fetch_movie_details(db_movie.external_id)
+        movie_data = buscar_detalhes_filme(db_movie.external_id)
         if movie_data:
             movie_obj = _omdb_title_to_movie(movie_data)
             if movie_obj and movie_obj.genres:
@@ -1218,17 +1218,17 @@ async def update_movie_genres(movie_id: int, session: Session = Depends(get_sess
             else:
                 return {"message": "No genres found in API response"}
         else:
-            return {"message": "Movie not found in external API"}
+            return {"message": "Filme não encontrado na API externa"}
     except Exception as e:
-        logger.exception("Error updating movie genres")
-        raise HTTPException(status_code=500, detail=f"Error updating genres: {str(e)}")
+        logger.exception("Erro ao atualizar gêneros do filme")
+        raise HTTPException(status_code=500, detail=f"Erro ao atualizar gêneros: {str(e)}")
 
 @router.post("/movies/update-all-genres", tags=["movies"])
 async def update_all_movies_genres(session: Session = Depends(get_session)):
     """
     Atualiza os gêneros de todos os filmes no banco de dados que têm external_id mas não têm gêneros.
     """
-    logger.info("Updating genres for all movies")
+    logger.info("Atualizando gêneros para todos os filmes")
     # Buscar todos os filmes com external_id
     all_movies = session.exec(select(DBMovie).where(DBMovie.external_id.isnot(None))).all()
     
@@ -1243,7 +1243,7 @@ async def update_all_movies_genres(session: Session = Depends(get_session)):
     
     for db_movie in movies_to_update:
         try:
-            movie_data = fetch_movie_details(db_movie.external_id)
+            movie_data = buscar_detalhes_filme(db_movie.external_id)
             if movie_data:
                 movie_obj = _omdb_title_to_movie(movie_data)
                 if movie_obj and movie_obj.genres:
@@ -1251,7 +1251,7 @@ async def update_all_movies_genres(session: Session = Depends(get_session)):
                     session.add(db_movie)
                     updated_count += 1
         except Exception as e:
-            logger.exception(f"Error updating genres for movie {db_movie.id}: {e}")
+            logger.exception(f"Erro ao atualizar gêneros do filme {db_movie.id}: {e}")
             failed_count += 1
     
     session.commit()
@@ -1268,7 +1268,7 @@ async def update_all_books_genres(session: Session = Depends(get_session)):
     """
     Atualiza os gêneros de todos os livros no banco de dados que têm external_id mas não têm gêneros.
     """
-    logger.info("Updating genres for all books")
+    logger.info("Atualizando gêneros para todos os livros")
     # Buscar todos os livros com external_id
     all_books = session.exec(select(DBBook).where(DBBook.external_id.isnot(None))).all()
     
@@ -1289,7 +1289,7 @@ async def update_all_books_genres(session: Session = Depends(get_session)):
                 session.add(db_book)
                 updated_count += 1
         except Exception as e:
-            logger.exception(f"Error updating genres for book {db_book.id}: {e}")
+            logger.exception(f"Erro ao atualizar gêneros do livro {db_book.id}: {e}")
             failed_count += 1
     
     session.commit()
@@ -1306,13 +1306,13 @@ async def get_book_recommendations(user_id: int, session: Session = Depends(get_
     Busca recomendações de livros baseadas nos livros da biblioteca pessoal do usuário.
     Usa os gêneros e autores dos livros na biblioteca para encontrar livros similares.
     """
-    logger.info(f"Getting book recommendations for user: {user_id}")
+    logger.info(f"Obtendo recomendações de livros para o usuário: {user_id}")
     
     # Buscar livros da biblioteca do usuário
     library_entries = session.exec(select(UserLibrary).where(UserLibrary.user_id == user_id)).all()
     
     if not library_entries:
-        logger.info(f"User {user_id} has no books in library")
+        logger.info(f"Usuário {user_id} não tem livros na biblioteca")
         return []
     
     # Coletar external_ids e buscar detalhes dos livros
@@ -1336,10 +1336,10 @@ async def get_book_recommendations(user_id: int, session: Session = Depends(get_
                     else:
                         all_authors.add(book_data.authors)
         except Exception as e:
-            logger.exception(f"Error fetching book {external_id} for recommendations: {e}")
+            logger.exception(f"Erro ao buscar livro {external_id} para recomendações: {e}")
     
     if not all_genres and not all_authors:
-        logger.info(f"No genres or authors found in user {user_id} library")
+        logger.info(f"Nenhum gênero ou autor encontrado na biblioteca do usuário {user_id}")
         return []
     
     # Buscar livros similares baseado nos gêneros e autores
@@ -1352,28 +1352,28 @@ async def get_book_recommendations(user_id: int, session: Session = Depends(get_
             # Buscar livros do mesmo gênero
             # Codificar apenas o valor do gênero, mantendo o prefixo "subject:"
             encoded_genre = quote_plus(genre)
-            search_query = f"subject:{encoded_genre}"
-            books = google_search_books(search_query)
+            consulta_busca = f"subject:{encoded_genre}"
+            livros = google_buscar_livros(consulta_busca)
             
-            for book in books[:10]:  # Limitar a 10 livros por gênero
-                book_id = book.get("id")
-                if book_id and book_id not in seen_book_ids:
-                    seen_book_ids.add(book_id)
-                    volume_info = book.get("volumeInfo", {})
-                    categories = volume_info.get("categories", [])
-                    genres = categories if isinstance(categories, list) else []
+            for livro in livros[:10]:  # Limitar a 10 livros por gênero
+                id_livro = livro.get("id")
+                if id_livro and id_livro not in seen_book_ids:
+                    seen_book_ids.add(id_livro)
+                    info_volume = livro.get("volumeInfo", {})
+                    categorias = info_volume.get("categories", [])
+                    generos = categorias if isinstance(categorias, list) else []
                     
-                    book_read = BookRead(
-                        id=book_id,
-                        title=volume_info.get("title", "N/A"),
-                        authors=volume_info.get("authors", ["N/A"]),
-                        description=volume_info.get("description", "N/A"),
-                        image_url=volume_info.get("imageLinks", {}).get("thumbnail", None),
-                        genres=genres if genres else None,
+                    livro_lido = BookRead(
+                        id=id_livro,
+                        title=info_volume.get("title", "N/A"),
+                        authors=info_volume.get("authors", ["N/A"]),
+                        description=info_volume.get("description", "N/A"),
+                        image_url=info_volume.get("imageLinks", {}).get("thumbnail", None),
+                        genres=generos if generos else None,
                     )
-                    recommended_books.append(book_read)
+                    recommended_books.append(livro_lido)
         except Exception as e:
-            logger.exception(f"Error searching books by genre {genre}: {e}")
+            logger.exception(f"Erro ao buscar livros por gênero {genre}: {e}")
     
     # Buscar por autores (se ainda não tivermos muitas recomendações)
     if len(recommended_books) < 20:
@@ -1381,31 +1381,31 @@ async def get_book_recommendations(user_id: int, session: Session = Depends(get_
             try:
                 # Codificar apenas o valor do autor, mantendo o prefixo "inauthor:"
                 encoded_author = quote_plus(author)
-                search_query = f"inauthor:{encoded_author}"
-                books = google_search_books(search_query)
+                consulta_busca = f"inauthor:{encoded_author}"
+                livros = google_buscar_livros(consulta_busca)
                 
-                for book in books[:10]:  # Limitar a 10 livros por autor
-                    book_id = book.get("id")
-                    if book_id and book_id not in seen_book_ids:
-                        seen_book_ids.add(book_id)
-                        volume_info = book.get("volumeInfo", {})
-                        categories = volume_info.get("categories", [])
-                        genres = categories if isinstance(categories, list) else []
+                for livro in livros[:10]:  # Limitar a 10 livros por autor
+                    id_livro = livro.get("id")
+                    if id_livro and id_livro not in seen_book_ids:
+                        seen_book_ids.add(id_livro)
+                        info_volume = livro.get("volumeInfo", {})
+                        categorias = info_volume.get("categories", [])
+                        generos = categorias if isinstance(categorias, list) else []
                         
-                        book_read = BookRead(
-                            id=book_id,
-                            title=volume_info.get("title", "N/A"),
-                            authors=volume_info.get("authors", ["N/A"]),
-                            description=volume_info.get("description", "N/A"),
-                            image_url=volume_info.get("imageLinks", {}).get("thumbnail", None),
-                            genres=genres if genres else None,
+                        livro_lido = BookRead(
+                            id=id_livro,
+                            title=info_volume.get("title", "N/A"),
+                            authors=info_volume.get("authors", ["N/A"]),
+                            description=info_volume.get("description", "N/A"),
+                            image_url=info_volume.get("imageLinks", {}).get("thumbnail", None),
+                            genres=generos if generos else None,
                         )
-                        recommended_books.append(book_read)
+                        recommended_books.append(livro_lido)
                         
                         if len(recommended_books) >= 30:  # Limitar total de recomendações
                             break
             except Exception as e:
-                logger.exception(f"Error searching books by author {author}: {e}")
+                logger.exception(f"Erro ao buscar livros por autor {author}: {e}")
             
             if len(recommended_books) >= 30:
                 break
@@ -1419,13 +1419,13 @@ async def get_movie_recommendations(user_id: int, session: Session = Depends(get
     Busca recomendações de filmes baseadas nos filmes da biblioteca pessoal do usuário.
     Usa os gêneros dos filmes na biblioteca para encontrar filmes similares.
     """
-    logger.info(f"Getting movie recommendations for user: {user_id}")
+    logger.info(f"Obtendo recomendações de filmes para o usuário: {user_id}")
     
     # Buscar filmes da biblioteca do usuário
     library_entries = session.exec(select(UserMovieLibrary).where(UserMovieLibrary.user_id == user_id)).all()
     
     if not library_entries:
-        logger.info(f"User {user_id} has no movies in library")
+        logger.info(f"Usuário {user_id} não tem filmes na biblioteca")
         return []
     
     # Coletar external_ids e buscar detalhes dos filmes
@@ -1435,7 +1435,7 @@ async def get_movie_recommendations(user_id: int, session: Session = Depends(get
     
     for external_id in library_movie_ids:
         try:
-            movie_data = fetch_movie_details(external_id)
+            movie_data = buscar_detalhes_filme(id_externo)
             if movie_data:
                 movie_obj = _omdb_title_to_movie(movie_data)
                 library_movies.append(movie_obj)
@@ -1446,10 +1446,10 @@ async def get_movie_recommendations(user_id: int, session: Session = Depends(get
                     genres_list = [g.strip() for g in genres_str.split(",") if g.strip()]
                     all_genres.update(genres_list)
         except Exception as e:
-            logger.exception(f"Error fetching movie {external_id} for recommendations: {e}")
+            logger.exception(f"Erro ao buscar filme {external_id} para recomendações: {e}")
     
     if not all_genres:
-        logger.info(f"No genres found in user {user_id} movie library")
+        logger.info(f"Nenhum gênero encontrado na biblioteca de filmes do usuário {user_id}")
         return []
     
     # Buscar filmes similares baseado nos gêneros
@@ -1463,9 +1463,9 @@ async def get_movie_recommendations(user_id: int, session: Session = Depends(get
         try:
             # Buscar filmes populares e filtrar por gênero
             # Usar busca genérica e depois filtrar resultados
-            search_results = fetch_movie_data(genre, limit=20)
-            if search_results and "results" in search_results:
-                for movie_item in search_results["results"][:15]:
+            resultados_busca = buscar_dados_filme(genre, limite=20)
+            if resultados_busca and "results" in resultados_busca:
+                for movie_item in resultados_busca["results"][:15]:
                     movie_id = movie_item.get("imdbID")
                     if movie_id and movie_id not in seen_movie_ids:
                         # Verificar se o filme tem o gênero desejado
@@ -1478,7 +1478,7 @@ async def get_movie_recommendations(user_id: int, session: Session = Depends(get
                             if len(recommended_movies) >= 30:
                                 break
         except Exception as e:
-            logger.exception(f"Error searching movies by genre {genre}: {e}")
+            logger.exception(f"Erro ao buscar filmes por gênero {genre}: {e}")
         
         if len(recommended_movies) >= 30:
             break
@@ -1489,9 +1489,9 @@ async def get_movie_recommendations(user_id: int, session: Session = Depends(get
             # Buscar filmes populares (usar termos genéricos)
             popular_terms = ["action", "drama", "comedy", "thriller"]
             for term in popular_terms[:2]:
-                search_results = fetch_movie_data(term, limit=15)
-                if search_results and "results" in search_results:
-                    for movie_item in search_results["results"]:
+                resultados_busca = buscar_dados_filme(term, limite=15)
+                if resultados_busca and "results" in resultados_busca:
+                    for movie_item in resultados_busca["results"]:
                         movie_id = movie_item.get("imdbID")
                         if movie_id and movie_id not in seen_movie_ids:
                             seen_movie_ids.add(movie_id)
@@ -1503,7 +1503,7 @@ async def get_movie_recommendations(user_id: int, session: Session = Depends(get
                 if len(recommended_movies) >= 30:
                     break
         except Exception as e:
-            logger.exception(f"Error searching popular movies: {e}")
+            logger.exception(f"Erro ao buscar filmes populares: {e}")
     
     # Limitar e retornar recomendações
     return recommended_movies[:30]

@@ -49,210 +49,210 @@ const Dashboard = () => {
     }
     
     try {
-      const result = await profileService.getProfile(user.id);
-      if (result.success && result.data) {
-        const avatarUrl = result.data.avatar_url;
-        const fullAvatarUrl = avatarUrl && !avatarUrl.startsWith('http') 
-          ? `http://localhost:8001${avatarUrl}` 
-          : avatarUrl;
+      const resultado = await profileService.getProfile(user.id);
+      if (resultado.success && resultado.data) {
+        const urlAvatar = resultado.data.avatar_url;
+        const urlAvatarCompleta = urlAvatar && !urlAvatar.startsWith('http') 
+          ? `http://localhost:8001${urlAvatar}` 
+          : urlAvatar;
         setUserWithProfile({
           ...user,
-          avatar_url: fullAvatarUrl || null
+          avatar_url: urlAvatarCompleta || null
         });
       } else {
         setUserWithProfile({ ...user, avatar_url: null });
       }
-    } catch (error) {
-      console.error('Erro ao carregar perfil do usuário:', error);
+    } catch (erro) {
+      console.error('Erro ao carregar perfil do usuário:', erro);
       setUserWithProfile({ ...user, avatar_url: null });
     }
   };
 
-  const extractGenresFromReview = (review) => {
-    if (!review) return [];
+  const extrairGenerosDeAvaliacao = (avaliacao) => {
+    if (!avaliacao) return [];
     
     // Tentar obter gêneros de várias fontes possíveis
-    const possibleGenres = [
-      review.genre,
-      review.genres,
-      review.category,
-      review.book_genre,
-      review.movie_genre,
-      review.book?.genre,
-      review.movie?.genre,
-      review.book?.genres,
-      review.movie?.genres,
-      review.metadata?.genre,
-      review.metadata?.genres,
+    const generosPossiveis = [
+      avaliacao.genre,
+      avaliacao.genres,
+      avaliacao.category,
+      avaliacao.book_genre,
+      avaliacao.movie_genre,
+      avaliacao.book?.genre,
+      avaliacao.movie?.genre,
+      avaliacao.book?.genres,
+      avaliacao.movie?.genres,
+      avaliacao.metadata?.genre,
+      avaliacao.metadata?.genres,
     ];
 
-    const extracted = possibleGenres
-      .flatMap((value) => {
-        if (!value) return [];
-        if (Array.isArray(value)) return value;
-        if (typeof value === 'string') {
+    const extraidos = generosPossiveis
+      .flatMap((valor) => {
+        if (!valor) return [];
+        if (Array.isArray(valor)) return valor;
+        if (typeof valor === 'string') {
           // Se for uma string, tentar dividir por vírgula, barra ou pipe
-          return value.split(/[,/|]/);
+          return valor.split(/[,/|]/);
         }
         return [];
       })
-      .map((genre) => genre?.trim())
+      .map((genero) => genero?.trim())
       .filter(Boolean);
     
-    return extracted;
+    return extraidos;
   };
 
-  const buildInsightsFromReviews = (reviews = []) => {
-    console.log("buildInsightsFromReviews called with:", reviews);
-    if (!reviews || !reviews.length) {
-      console.log("No reviews found");
+  const construirInsightsDeAvaliacoes = (avaliacoes = []) => {
+    console.log("construirInsightsDeAvaliacoes chamado com:", avaliacoes);
+    if (!avaliacoes || !avaliacoes.length) {
+      console.log("Nenhuma avaliação encontrada");
       return {
         avgRating: null,
         favoriteGenres: [],
       };
     }
 
-    const genreCounts = {};
-    let ratingSum = 0;
-    let ratingCount = 0;
+    const contagemGeneros = {};
+    let somaAvaliacoes = 0;
+    let contagemAvaliacoes = 0;
 
-    reviews.forEach((review) => {
+    avaliacoes.forEach((avaliacao) => {
       // Tentar obter o rating de várias formas possíveis
-      const ratingValue = Number(
-        review.rating ?? review.score ?? review.stars ?? review.value
+      const valorAvaliacao = Number(
+        avaliacao.rating ?? avaliacao.score ?? avaliacao.stars ?? avaliacao.value
       );
 
-      console.log("Processing review:", review, "ratingValue:", ratingValue);
+      console.log("Processando avaliação:", avaliacao, "valorAvaliacao:", valorAvaliacao);
 
-      if (!Number.isNaN(ratingValue) && ratingValue > 0) {
-        ratingSum += ratingValue;
-        ratingCount += 1;
+      if (!Number.isNaN(valorAvaliacao) && valorAvaliacao > 0) {
+        somaAvaliacoes += valorAvaliacao;
+        contagemAvaliacoes += 1;
       }
 
-      const genres = extractGenresFromReview(review);
-      console.log("Extracted genres:", genres);
-      genres.forEach((genre) => {
-        genreCounts[genre] = (genreCounts[genre] || 0) + 1;
+      const generos = extrairGenerosDeAvaliacao(avaliacao);
+      console.log("Gêneros extraídos:", generos);
+      generos.forEach((genero) => {
+        contagemGeneros[genero] = (contagemGeneros[genero] || 0) + 1;
       });
     });
 
-    const favoriteGenres = Object.entries(genreCounts)
+    const generosFavoritos = Object.entries(contagemGeneros)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 3)
-      .map(([label, count]) => ({ label, count }));
+      .map(([rotulo, contagem]) => ({ label: rotulo, count: contagem }));
 
-    const avgRating = ratingCount > 0 ? ratingSum / ratingCount : null;
-    console.log("Final insights - avgRating:", avgRating, "ratingCount:", ratingCount, "favoriteGenres:", favoriteGenres);
+    const mediaAvaliacao = contagemAvaliacoes > 0 ? somaAvaliacoes / contagemAvaliacoes : null;
+    console.log("Insights finais - mediaAvaliacao:", mediaAvaliacao, "contagemAvaliacoes:", contagemAvaliacoes, "generosFavoritos:", generosFavoritos);
 
     return {
-      avgRating,
-      favoriteGenres,
+      avgRating: mediaAvaliacao,
+      favoriteGenres: generosFavoritos,
     };
   };
 
-  const formatRelativeTime = (dateString) => {
-    if (!dateString) return 'agora mesmo';
-    const date = new Date(dateString);
-    if (Number.isNaN(date.getTime())) return 'recentemente';
+  const formatarTempoRelativo = (stringData) => {
+    if (!stringData) return 'agora mesmo';
+    const data = new Date(stringData);
+    if (Number.isNaN(data.getTime())) return 'recentemente';
 
-    const diffMs = Date.now() - date.getTime();
-    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+    const diferencaMs = Date.now() - data.getTime();
+    const diferencaMinutos = Math.floor(diferencaMs / (1000 * 60));
 
-    if (diffMinutes < 1) return 'agora';
-    if (diffMinutes < 60) return `há ${diffMinutes} min`;
+    if (diferencaMinutos < 1) return 'agora';
+    if (diferencaMinutos < 60) return `há ${diferencaMinutos} min`;
 
-    const diffHours = Math.floor(diffMinutes / 60);
-    if (diffHours < 24) return `há ${diffHours}h`;
+    const diferencaHoras = Math.floor(diferencaMinutos / 60);
+    if (diferencaHoras < 24) return `há ${diferencaHoras}h`;
 
-    const diffDays = Math.floor(diffHours / 24);
-    if (diffDays === 1) return 'ontem';
-    if (diffDays < 7) return `há ${diffDays} dias`;
+    const diferencaDias = Math.floor(diferencaHoras / 24);
+    if (diferencaDias === 1) return 'ontem';
+    if (diferencaDias < 7) return `há ${diferencaDias} dias`;
 
-    return date.toLocaleDateString('pt-BR');
+    return data.toLocaleDateString('pt-BR');
   };
 
   const loadCommunityTimeline = async () => {
     if (!user) return;
     
     try {
-      const [generalResult, followingResult] = await Promise.all([
+      const [resultadoGeral, resultadoSeguindo] = await Promise.all([
         timelineService.getCommunityTimeline(20, false),
         timelineService.getCommunityTimeline(20, true)
       ]);
       
-      const processTimeline = (data) => {
-        if (!data || !Array.isArray(data)) return [];
-        return data.map((activity) => {
-          const date = activity.created_at ? new Date(activity.created_at) : new Date();
+      const processarTimeline = (dados) => {
+        if (!dados || !Array.isArray(dados)) return [];
+        return dados.map((atividade) => {
+          const data = atividade.created_at ? new Date(atividade.created_at) : new Date();
           return {
-            id: activity.id,
-            nickname: activity.username || `Usuário #${activity.user_id}`,
-            action: activity.action || 'avaliou',
-            highlight: activity.highlight || null,
-            rating: activity.rating || null,
-            timestamp: formatRelativeTime(date),
-            avatar: activity.avatar 
-              ? (activity.avatar.startsWith('http') 
-                  ? activity.avatar 
-                  : `http://localhost:8001${activity.avatar}`)
+            id: atividade.id,
+            nickname: atividade.username || `Usuário #${atividade.user_id}`,
+            action: atividade.action || 'avaliou',
+            highlight: atividade.highlight || null,
+            rating: atividade.rating || null,
+            timestamp: formatarTempoRelativo(data),
+            avatar: atividade.avatar 
+              ? (atividade.avatar.startsWith('http') 
+                  ? atividade.avatar 
+                  : `http://localhost:8001${atividade.avatar}`)
               : null
           };
         });
       };
       
-      if (generalResult.success && generalResult.data) {
-        setCommunityFeed(processTimeline(generalResult.data));
+      if (resultadoGeral.success && resultadoGeral.data) {
+        setCommunityFeed(processarTimeline(resultadoGeral.data));
       } else {
         setCommunityFeed([]);
       }
       
-      if (followingResult.success && followingResult.data) {
-        setFollowingFeed(processTimeline(followingResult.data));
+      if (resultadoSeguindo.success && resultadoSeguindo.data) {
+        setFollowingFeed(processarTimeline(resultadoSeguindo.data));
       } else {
         setFollowingFeed([]);
       }
-    } catch (error) {
-      console.error('Erro ao carregar timeline:', error);
+    } catch (erro) {
+      console.error('Erro ao carregar timeline:', erro);
       setCommunityFeed([]);
       setFollowingFeed([]);
     }
   };
 
   const loadStats = async () => {
-	console.log("Dashboard loadStats called");
+	console.log("Dashboard loadStats chamado");
     if (!user) return;
     
     try {
-      const userId = parseInt(user.id, 10);
-      const [reviewsResult, booksResult, moviesResult] = await Promise.all([
+      const idUsuario = parseInt(user.id, 10);
+      const [resultadoAvaliacoes, resultadoLivros, resultadoFilmes] = await Promise.all([
         reviewService.getUserReviews(user.id),
-        externalApiService.getUserLibrary(userId),
-        externalApiService.getUserMovieLibrary(userId)
+        externalApiService.getUserLibrary(idUsuario),
+        externalApiService.getUserMovieLibrary(idUsuario)
       ]);
       
-      console.log("Reviews result:", reviewsResult);
+      console.log("Resultado de avaliações:", resultadoAvaliacoes);
       
-      if (reviewsResult.success) {
-        const reviews = reviewsResult.data || [];
-        console.log("Reviews data:", reviews);
-        const books = booksResult.success && Array.isArray(booksResult.data) ? booksResult.data.length : 0;
-        const movies = moviesResult.success && Array.isArray(moviesResult.data) ? moviesResult.data.length : 0;
+      if (resultadoAvaliacoes.success) {
+        const avaliacoes = resultadoAvaliacoes.data || [];
+        console.log("Dados de avaliações:", avaliacoes);
+        const livros = resultadoLivros.success && Array.isArray(resultadoLivros.data) ? resultadoLivros.data.length : 0;
+        const filmes = resultadoFilmes.success && Array.isArray(resultadoFilmes.data) ? resultadoFilmes.data.length : 0;
         
         setStats({
-          books: books,
-          movies: movies,
-          ratings: reviews.length,
+          books: livros,
+          movies: filmes,
+          ratings: avaliacoes.length,
        });
         
-        const insightsResult = buildInsightsFromReviews(reviews);
-        console.log("Insights result:", insightsResult);
+        const resultadoInsights = construirInsightsDeAvaliacoes(avaliacoes);
+        console.log("Resultado de insights:", resultadoInsights);
         setInsights({
-          favoriteGenres: insightsResult.favoriteGenres,
-          avgRating: insightsResult.avgRating,
-          totalReviews: reviews.length,
+          favoriteGenres: resultadoInsights.favoriteGenres,
+          avgRating: resultadoInsights.avgRating,
+          totalReviews: avaliacoes.length,
         });
       } else {
-        console.error('Erro ao carregar estatísticas:', reviewsResult.error);
+        console.error('Erro ao carregar estatísticas:', resultadoAvaliacoes.error);
         // Definir valores padrão em caso de erro
         setInsights({
           favoriteGenres: [],
@@ -260,8 +260,8 @@ const Dashboard = () => {
           totalReviews: 0,
         });
       }
-    } catch (error) {
-      console.error('Erro ao carregar estatísticas:', error);
+    } catch (erro) {
+      console.error('Erro ao carregar estatísticas:', erro);
       // Definir valores padrão em caso de erro
       setInsights({
         favoriteGenres: [],

@@ -40,17 +40,17 @@ const Login = () => {
     }
 
     try {
-      const result = await login(formData.username, formData.password);
-      console.log("Login API response:", result);
-      if (result.success) {
-        console.log("Login successful");
+      const resultado = await login(formData.username, formData.password);
+      console.log("Resposta da API de login:", resultado);
+      if (resultado.success) {
+        console.log("Login bem-sucedido");
         navigate('/dashboard');
       } else {
-        console.log("Login failed");
-        setError(result.error);
+        console.log("Login falhou");
+        setError(resultado.error);
       }
-    } catch (err) {
-      console.error("Login error:", err);
+    } catch (erro) {
+      console.error("Erro no login:", erro);
       setError('Erro inesperado. Tente novamente.');
     } finally {
       setLoading(false);

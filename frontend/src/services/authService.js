@@ -39,51 +39,51 @@ api.interceptors.response.use(
 
 export const authService = {
   // Login do usuário
-  async login(username, password) {
-	console.log("authService.login called with:", username, password);
+  async login(username, senha) {
+	console.log("authService.login chamado com:", username, senha);
     try {
-      const response = await api.post('/login', {
+      const resposta = await api.post('/login', {
         username,
-        password,
+        password: senha,
       });
-	  console.log("authService.login API response:", response);
+	  console.log("authService.login resposta da API:", resposta);
       
-      const { access_token } = response.data;
+      const { access_token } = resposta.data;
       localStorage.setItem('access_token', access_token);
-	  console.log("authService.login access_token set:", access_token);
+	  console.log("authService.login access_token definido:", access_token);
       
       // Buscar dados do usuário
-      const userResponse = await api.get('/users/me/');
-	  console.log("authService.login userResponse:", userResponse);
-      localStorage.setItem('user', JSON.stringify(userResponse.data));
-	  console.log("authService.login user set:", userResponse.data);
+      const respostaUsuario = await api.get('/users/me/');
+	  console.log("authService.login respostaUsuario:", respostaUsuario);
+      localStorage.setItem('user', JSON.stringify(respostaUsuario.data));
+	  console.log("authService.login usuário definido:", respostaUsuario.data);
       
-      return { success: true, user: userResponse.data };
-    } catch (error) {
-	  console.error("authService.login error:", error);
+      return { success: true, user: respostaUsuario.data };
+    } catch (erro) {
+	  console.error("authService.login erro:", erro);
       return {
         success: false,
-        error: error.response?.data?.detail || 'Erro ao fazer login',
+        error: erro.response?.data?.detail || 'Erro ao fazer login',
       };
     }
   },
 
   // Registro de novo usuário
-  async register(username, email, password) {
-	console.log("authService.register called with:", username, email, password);
+  async register(username, email, senha) {
+	console.log("authService.register chamado com:", username, email, senha);
     try {
-      const response = await api.post('/users/', {
+      const resposta = await api.post('/users/', {
         username,
         email,
-        password,
+        password: senha,
       });
-	  console.log("authService.register API response:", response);
-      return { success: true, user: response.data };
-    } catch (error) {
-	  console.error("authService.register error:", error);
+	  console.log("authService.register resposta da API:", resposta);
+      return { success: true, user: resposta.data };
+    } catch (erro) {
+	  console.error("authService.register erro:", erro);
       return {
         success: false,
-        error: error.response?.data?.detail || 'Erro ao criar conta',
+        error: erro.response?.data?.detail || 'Erro ao criar conta',
       };
     }
   },
@@ -101,8 +101,8 @@ export const authService = {
 
   // Obter usuário atual
   getCurrentUser() {
-    const user = localStorage.getItem('user');
-    return user ? JSON.parse(user) : null;
+    const usuario = localStorage.getItem('user');
+    return usuario ? JSON.parse(usuario) : null;
   },
 
   // Obter token

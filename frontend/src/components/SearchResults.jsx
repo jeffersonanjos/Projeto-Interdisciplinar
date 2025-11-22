@@ -7,32 +7,32 @@ import DetailsModal from './DetailsModal';
 
 const SearchResults = ({ results, type }) => {
   const { toast, showToast } = useToast();
-  const [showDetailsModal, setShowDetailsModal] = useState(false);
-  const [selectedDetailsItem, setSelectedDetailsItem] = useState(null);
+  const [mostrarModalDetalhes, setMostrarModalDetalhes] = useState(false);
+  const [itemDetalhesSelecionado, setItemDetalhesSelecionado] = useState(null);
   if (!results || results.length === 0) {
-    return <p>No results found.</p>;
+    return <p>Nenhum resultado encontrado.</p>;
   }
 
   const handleAddToLibrary = async (item) => {
-    const isBook = type === 'book';
+    const ehLivro = type === 'book';
     try {
-      const res = isBook
+      const resultado = ehLivro
         ? await externalApiService.addBookToLibrary(item.id)
         : await externalApiService.addMovieToLibrary(item.id);
-      if (res.success) {
-        showToast(`${isBook ? 'Livro' : 'Filme'} adicionado à biblioteca!`);
+      if (resultado.success) {
+        showToast(`${ehLivro ? 'Livro' : 'Filme'} adicionado à biblioteca!`);
       } else {
-        showToast(res.error || `Erro ao adicionar ${isBook ? 'livro' : 'filme'} à biblioteca`);
+        showToast(resultado.error || `Erro ao adicionar ${ehLivro ? 'livro' : 'filme'} à biblioteca`);
       }
-    } catch (error) {
-      console.error(`Error adding ${isBook ? 'book' : 'movie'} to library:`, error);
-      showToast(`Erro ao adicionar ${isBook ? 'livro' : 'filme'} à biblioteca.`);
+    } catch (erro) {
+      console.error(`Erro ao adicionar ${ehLivro ? 'livro' : 'filme'} à biblioteca:`, erro);
+      showToast(`Erro ao adicionar ${ehLivro ? 'livro' : 'filme'} à biblioteca.`);
     }
   };
 
-  const isBook = type === 'book';
+  const ehLivro = type === 'book';
   // Placeholder SVG melhorado e mais bonito
-  const createDefaultCover = (title = 'Sem Imagem') => {
+  const criarCapaPadrao = (titulo = 'Sem Imagem') => {
     const svg = `
       <svg width="200" height="300" xmlns="http://www.w3.org/2000/svg">
         <defs>
@@ -52,14 +52,14 @@ const SearchResults = ({ results, type }) => {
     `;
     return `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svg)))}`;
   };
-  const defaultCover = createDefaultCover('Sem Imagem');
+  const capaPadrao = criarCapaPadrao('Sem Imagem');
 
-  const handleMovieDetails = (movie) => {
-    if (!movie?.id) return;
-    window.open(`https://www.imdb.com/title/${movie.id}`, '_blank', 'noopener,noreferrer');
+  const handleMovieDetails = (filme) => {
+    if (!filme?.id) return;
+    window.open(`https://www.imdb.com/title/${filme.id}`, '_blank', 'noopener,noreferrer');
   };
 
-  const handleImageError = (e, result) => {
+  const handleImageError = (e, resultado) => {
     const img = e.target;
     
     // Evitar loop infinito
@@ -68,12 +68,12 @@ const SearchResults = ({ results, type }) => {
     }
     
     // Se for filme e ainda não tentou todas as fontes
-    if (!isBook && result.id) {
+    if (!ehLivro && resultado.id) {
       // Tentar 1: API de pôsteres do OMDb (se ainda não tentou)
       if (!img.dataset.triedOmdb) {
         img.dataset.triedOmdb = 'true';
-        const omdbPosterUrl = `http://img.omdbapi.com/?apikey=a3f0b40b&i=${result.id}`;
-        img.src = omdbPosterUrl;
+        const urlPosterOmdb = `http://img.omdbapi.com/?apikey=a3f0b40b&i=${resultado.id}`;
+        img.src = urlPosterOmdb;
         return;
       }
       
@@ -84,110 +84,110 @@ const SearchResults = ({ results, type }) => {
     
     // Fallback final: usar placeholder personalizado com título do filme
     img.dataset.finalFallback = 'true';
-    img.src = createDefaultCover(result.title || 'Sem Imagem');
+    img.src = criarCapaPadrao(resultado.title || 'Sem Imagem');
   };
 
   // Filtrar resultados para garantir que correspondam ao tipo esperado
   // e remover duplicatas baseadas no ID
-  const filteredResults = useMemo(() => {
-    const seen = new Set();
-    const filtered = [];
+  const resultadosFiltrados = useMemo(() => {
+    const vistos = new Set();
+    const filtrados = [];
     
-    for (const result of results) {
+    for (const resultado of results) {
       // Criar uma chave única para detecção de duplicatas
-      const id = result.id || result.external_id;
-      const uniqueKey = id ? `${type}-${id}` : null;
+      const id = resultado.id || resultado.external_id;
+      const chaveUnica = id ? `${type}-${id}` : null;
       
       // Verificar se já vimos este item
-      if (uniqueKey && seen.has(uniqueKey)) {
+      if (chaveUnica && vistos.has(chaveUnica)) {
         continue; // Pular duplicatas
       }
       
       // Filtro rigoroso baseado no tipo esperado
-      if (isBook) {
+      if (ehLivro) {
         // É um livro se tem authors ou image_url, E NÃO tem poster_path (característica de filme)
         // Também garantir que NÃO tem release_date (característica de filme)
-        const hasBookCharacteristics = (result.authors || result.image_url);
-        const hasNoMovieCharacteristics = !result.poster_path && !result.release_date;
-        if (hasBookCharacteristics && hasNoMovieCharacteristics) {
-          if (uniqueKey) seen.add(uniqueKey);
-          filtered.push(result);
+        const temCaracteristicasLivro = (resultado.authors || resultado.image_url);
+        const naoTemCaracteristicasFilme = !resultado.poster_path && !resultado.release_date;
+        if (temCaracteristicasLivro && naoTemCaracteristicasFilme) {
+          if (chaveUnica) vistos.add(chaveUnica);
+          filtrados.push(resultado);
         }
       } else {
         // É um filme se tem poster_path ou release_date, E NÃO tem authors
         // Também garantir que não tem image_url (característica de livro)
         // Validação adicional: verificar se tem IMDb ID (característica de filme)
-        const hasMovieCharacteristics = (result.poster_path || result.release_date || result.id);
-        const hasNoBookCharacteristics = !result.authors && !result.image_url;
-        if (hasMovieCharacteristics && hasNoBookCharacteristics) {
-          if (uniqueKey) seen.add(uniqueKey);
-          filtered.push(result);
+        const temCaracteristicasFilme = (resultado.poster_path || resultado.release_date || resultado.id);
+        const naoTemCaracteristicasLivro = !resultado.authors && !resultado.image_url;
+        if (temCaracteristicasFilme && naoTemCaracteristicasLivro) {
+          if (chaveUnica) vistos.add(chaveUnica);
+          filtrados.push(resultado);
         }
       }
     }
     
-    return filtered;
-  }, [results, type, isBook]);
+    return filtrados;
+  }, [results, type, ehLivro]);
 
   return (
     <div className="search-results-container">
       <div className="book-grid library-compact">
-        {filteredResults.map((result, index) => {
-          const authors =
-            Array.isArray(result.authors) ? result.authors.join(', ') : (result.authors || 'Autor desconhecido');
-          const coverImage = isBook ? (result.image_url || defaultCover) : (result.poster_path || defaultCover);
+        {resultadosFiltrados.map((resultado, indice) => {
+          const autores =
+            Array.isArray(resultado.authors) ? resultado.authors.join(', ') : (resultado.authors || 'Autor desconhecido');
+          const imagemCapa = ehLivro ? (resultado.image_url || capaPadrao) : (resultado.poster_path || capaPadrao);
           // Usar uma chave única combinando tipo e ID, com fallback para índice
-          const uniqueKey = `${type}-${result.id || result.external_id || index}`;
+          const chaveUnica = `${type}-${resultado.id || resultado.external_id || indice}`;
           return (
-            <div key={uniqueKey} className="book-item">
+            <div key={chaveUnica} className="book-item">
               <img 
-                src={coverImage} 
-                alt={result.title} 
+                src={imagemCapa} 
+                alt={resultado.title} 
                 className="book-cover"
-                onError={(e) => handleImageError(e, result)}
+                onError={(e) => handleImageError(e, resultado)}
                 onClick={() => {
-                  setSelectedDetailsItem({ ...result, type });
-                  setShowDetailsModal(true);
+                  setItemDetalhesSelecionado({ ...resultado, type });
+                  setMostrarModalDetalhes(true);
                 }}
                 style={{ cursor: 'pointer' }}
               />
               <div 
                 className="book-content"
                 onClick={() => {
-                  setSelectedDetailsItem({ ...result, type });
-                  setShowDetailsModal(true);
+                  setItemDetalhesSelecionado({ ...resultado, type });
+                  setMostrarModalDetalhes(true);
                 }}
                 style={{ cursor: 'pointer', flex: 1 }}
               >
-                <h3 className="book-title">{result.title || 'Sem título'}</h3>
-                {isBook ? (
-                  <p className="book-authors">Autores: {authors}</p>
+                <h3 className="book-title">{resultado.title || 'Sem título'}</h3>
+                {ehLivro ? (
+                  <p className="book-authors">Autores: {autores}</p>
                 ) : (
                   <p className="book-authors">
-                    {result.release_date ? `Lançamento: ${result.release_date}` : 'Sem data'}
-                    {result.rating && (
+                    {resultado.release_date ? `Lançamento: ${resultado.release_date}` : 'Sem data'}
+                    {resultado.rating && (
                       <span> • Nota IMDb: {
-                        typeof result.rating === 'number' 
-                          ? result.rating.toFixed(1) 
-                          : (result.rating?.score ? result.rating.score.toFixed(1) : result.rating)
+                        typeof resultado.rating === 'number' 
+                          ? resultado.rating.toFixed(1) 
+                          : (resultado.rating?.score ? resultado.rating.score.toFixed(1) : resultado.rating)
                       }</span>
                     )}
                   </p>
                 )}
                 {(() => {
                   // Processar gêneros de forma robusta
-                  let genres = [];
-                  if (result.genres) {
-                    if (Array.isArray(result.genres)) {
-                      genres = result.genres.filter(g => g && g.trim());
-                    } else if (typeof result.genres === 'string') {
-                      genres = result.genres.split(/[,|]/).map(g => g.trim()).filter(g => g);
+                  let generos = [];
+                  if (resultado.genres) {
+                    if (Array.isArray(resultado.genres)) {
+                      generos = resultado.genres.filter(g => g && g.trim());
+                    } else if (typeof resultado.genres === 'string') {
+                      generos = resultado.genres.split(/[,|]/).map(g => g.trim()).filter(g => g);
                     }
                   }
-                  return genres.length > 0 && (
+                  return generos.length > 0 && (
                     <div className="taskbar-genres__chips">
-                      {genres.slice(0, 3).map((genre, index) => (
-                        <span key={index} className="taskbar-genres__chip">{genre}</span>
+                      {generos.slice(0, 3).map((genero, indice) => (
+                        <span key={indice} className="taskbar-genres__chip">{genero}</span>
                       ))}
                     </div>
                   );
@@ -198,18 +198,18 @@ const SearchResults = ({ results, type }) => {
                 className="rate-button"
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleAddToLibrary(result);
+                  handleAddToLibrary(resultado);
                 }}
               >
                 Adicionar
               </button>
-              {!isBook && (
+              {!ehLivro && (
                 <button
                   type="button"
                   className="rate-button secondary"
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleMovieDetails(result);
+                    handleMovieDetails(resultado);
                   }}
                   style={{ marginTop: '5px' }}
                 >
@@ -220,17 +220,17 @@ const SearchResults = ({ results, type }) => {
           );
         })}
       </div>
-      {filteredResults.length === 0 && results.length > 0 && (
+      {resultadosFiltrados.length === 0 && results.length > 0 && (
         <p style={{ textAlign: 'center', padding: '20px', color: 'var(--text-secondary)' }}>
           Nenhum {type === 'book' ? 'livro' : 'filme'} válido encontrado nos resultados.
         </p>
       )}
       <DetailsModal
-        item={selectedDetailsItem}
-        isOpen={showDetailsModal}
+        item={itemDetalhesSelecionado}
+        isOpen={mostrarModalDetalhes}
         onClose={() => {
-          setShowDetailsModal(false);
-          setSelectedDetailsItem(null);
+          setMostrarModalDetalhes(false);
+          setItemDetalhesSelecionado(null);
         }}
       />
       <Toast message={toast} />

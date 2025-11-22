@@ -4,47 +4,47 @@ import { ratingService } from '../services/apiService';
 import './UserReviews.css';
 
 const UserReviews = () => {
-  const { user } = useAuth();
-  const [reviews, setReviews] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const { user: usuario } = useAuth();
+  const [avaliacoes, setAvaliacoes] = useState([]);
+  const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState(null);
 
   useEffect(() => {
-    const loadReviews = async () => {
-      if (!user) return;
+    const carregarAvaliacoes = async () => {
+      if (!usuario) return;
 
       try {
-        setLoading(true);
-        const response = await ratingService.getUserRatings(user.id);
-        if (response.success) {
-          setReviews(response.data);
+        setCarregando(true);
+        const resposta = await ratingService.getUserRatings(usuario.id);
+        if (resposta.success) {
+          setAvaliacoes(resposta.data);
         } else {
-          setError('Erro ao carregar avaliações');
-          console.error('Erro ao carregar avaliações:', response.message);
+          setErro('Erro ao carregar avaliações');
+          console.error('Erro ao carregar avaliações:', resposta.message);
         }
-      } catch (error) {
-        setError('Erro ao carregar avaliações');
-        console.error('Erro ao carregar avaliações:', error);
+      } catch (erro) {
+        setErro('Erro ao carregar avaliações');
+        console.error('Erro ao carregar avaliações:', erro);
       } finally {
-        setLoading(false);
+        setCarregando(false);
       }
     };
 
-    loadReviews();
-  }, [user]);
+    carregarAvaliacoes();
+  }, [usuario]);
 
-  if (loading) {
+  if (carregando) {
     return <div>Carregando...</div>;
   }
 
-  if (error) {
-    return <div className="error">{error}</div>;
+  if (erro) {
+    return <div className="error">{erro}</div>;
   }
 
   return (
     <div className="user-reviews-container">
       <h2>Minhas Avaliações</h2>
-      {reviews.length === 0 ? (
+      {avaliacoes.length === 0 ? (
         <p>Nenhuma avaliação encontrada.</p>
       ) : (
         <table className="reviews-table">
@@ -56,14 +56,14 @@ const UserReviews = () => {
             </tr>
           </thead>
           <tbody>
-            {reviews.map(review => (
-              <tr key={review.id}>
+            {avaliacoes.map(avaliacao => (
+              <tr key={avaliacao.id}>
                 <td>
-                  {review.book_id && <span>Livro: {review.book_id}</span>}
-                  {review.movie_id && <span>Filme: {review.movie_id}</span>}
+                  {avaliacao.book_id && <span>Livro: {avaliacao.book_id}</span>}
+                  {avaliacao.movie_id && <span>Filme: {avaliacao.movie_id}</span>}
                 </td>
-                <td>{review.score}</td>
-                <td>{review.comment || '-'}</td>
+                <td>{avaliacao.score}</td>
+                <td>{avaliacao.comment || '-'}</td>
               </tr>
             ))}
           </tbody>

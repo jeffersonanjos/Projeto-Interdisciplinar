@@ -946,6 +946,26 @@
   max-width: 500px;
   max-height: 80vh;
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Quando o perfil é exibido dentro do modal de busca, aumentar a altura máxima */
+.taskbar-modal--search:has(.taskbar-search__user-profile) {
+  max-height: 90vh;
+  max-width: 600px;
+}
+
+.taskbar-modal--search .taskbar-search__user-profile {
+  max-height: none;
+  overflow: visible;
+  flex: 1;
+  min-height: 0;
+}
+
+.taskbar-modal--search .taskbar-search__user-profile .taskbar-profile__content {
+  max-height: none;
+  overflow: visible;
 }
 
 .taskbar-search__content {
@@ -953,6 +973,9 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+  min-height: 0;
+  flex: 1;
+  overflow: visible;
 }
 
 .taskbar-search__input-container {
@@ -1098,6 +1121,24 @@
 
 .taskbar-search__user-profile {
   width: 100%;
+  min-height: 0;
+  overflow: visible;
+}
+
+/* Garantir que o perfil dentro do modal de busca não seja cortado */
+.taskbar-search__user-profile .taskbar-profile__content {
+  overflow: visible;
+  max-height: none;
+}
+
+.taskbar-search__user-profile .taskbar-profile__main {
+  overflow: visible;
+  max-height: none;
+}
+
+.taskbar-search__user-profile .taskbar-profile__info {
+  overflow: visible;
+  max-height: none;
 }
 
 .taskbar-search__back-button {
@@ -1136,6 +1177,15 @@
 @media (max-width: 640px) {
   .taskbar-modal--search {
     max-width: 90vw;
+  }
+
+  .taskbar-modal--search:has(.taskbar-search__user-profile) {
+    max-width: 95vw;
+    max-height: 85vh;
+  }
+
+  .taskbar-modal--search .taskbar-search__user-profile .taskbar-profile__content {
+    grid-template-columns: 1fr;
   }
 }
 

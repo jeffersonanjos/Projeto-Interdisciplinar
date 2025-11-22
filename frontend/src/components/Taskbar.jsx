@@ -9,576 +9,576 @@ import Toast from './Toast';
 import './Taskbar.css';
 import './Profile.css';
 
-const Taskbar = ({ user, metrics, timeline, followingTimeline = [] }) => {
-  const [openModal, setOpenModal] = useState(null);
-  const [isVisible, setIsVisible] = useState(true);
-  const { user: authUser, logout, updateUser } = useAuth();
+const Taskbar = ({ user: usuario, metrics: metricas, timeline: linhaDoTempo, followingTimeline: linhaDoTempoSeguindo = [] }) => {
+  const [modalAberto, setModalAberto] = useState(null);
+  const [estaVisivel, setEstaVisivel] = useState(true);
+  const { user: usuarioAuth, logout, updateUser } = useAuth();
   const navigate = useNavigate();
-  const fileInputRef = useRef(null);
+  const referenciaInputArquivo = useRef(null);
   const { toast, showToast } = useToast();
   
-  // Profile state
-  const [profile, setProfile] = useState(null);
-  const [stats, setStats] = useState({ books: 0, movies: 0, ratings: 0 });
-  const [loading, setLoading] = useState(false);
-  const [editing, setEditing] = useState(false);
-  const [editingAccount, setEditingAccount] = useState(false);
-  const [formData, setFormData] = useState({ bio: '', avatar_url: '' });
-  const [accountFormData, setAccountFormData] = useState({ username: '', email: '', password: '', confirmPassword: '' });
-  const [uploadingAvatar, setUploadingAvatar] = useState(false);
-  const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [passwordModalData, setPasswordModalData] = useState({ currentPassword: '', error: '' });
-  const [pendingUpdate, setPendingUpdate] = useState(null);
-  const [personalTimeline, setPersonalTimeline] = useState([]);
-  const [personalTimelineLoading, setPersonalTimelineLoading] = useState(false);
+  // Estado do perfil
+  const [perfil, setPerfil] = useState(null);
+  const [estatisticas, setEstatisticas] = useState({ books: 0, movies: 0, ratings: 0 });
+  const [carregando, setCarregando] = useState(false);
+  const [editando, setEditando] = useState(false);
+  const [editandoConta, setEditandoConta] = useState(false);
+  const [dadosFormulario, setDadosFormulario] = useState({ bio: '', avatar_url: '' });
+  const [dadosFormularioConta, setDadosFormularioConta] = useState({ username: '', email: '', password: '', confirmPassword: '' });
+  const [enviandoAvatar, setEnviandoAvatar] = useState(false);
+  const [mostrarModalSenha, setMostrarModalSenha] = useState(false);
+  const [dadosModalSenha, setDadosModalSenha] = useState({ currentPassword: '', error: '' });
+  const [atualizacaoPendente, setAtualizacaoPendente] = useState(null);
+  const [linhaDoTempoPessoal, setLinhaDoTempoPessoal] = useState([]);
+  const [carregandoLinhaDoTempoPessoal, setCarregandoLinhaDoTempoPessoal] = useState(false);
   
-  // User search state
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState([]);
-  const [searchLoading, setSearchLoading] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [selectedUserProfile, setSelectedUserProfile] = useState(null);
-  const [selectedUserStats, setSelectedUserStats] = useState({ books: 0, movies: 0, ratings: 0 });
-  const [selectedUserLoading, setSelectedUserLoading] = useState(false);
-  const [isFollowing, setIsFollowing] = useState(false);
-  const [canFollow, setCanFollow] = useState(false);
-  const [selectedUserActivities, setSelectedUserActivities] = useState([]);
-  const [followers, setFollowers] = useState([]);
-  const [following, setFollowing] = useState([]);
-  const [showFollowersModal, setShowFollowersModal] = useState(false);
-  const [showFollowingModal, setShowFollowingModal] = useState(false);
+  // Estado de busca de usuários
+  const [consultaBusca, setConsultaBusca] = useState('');
+  const [resultadosBusca, setResultadosBusca] = useState([]);
+  const [carregandoBusca, setCarregandoBusca] = useState(false);
+  const [usuarioSelecionado, setUsuarioSelecionado] = useState(null);
+  const [perfilUsuarioSelecionado, setPerfilUsuarioSelecionado] = useState(null);
+  const [estatisticasUsuarioSelecionado, setEstatisticasUsuarioSelecionado] = useState({ books: 0, movies: 0, ratings: 0 });
+  const [carregandoUsuarioSelecionado, setCarregandoUsuarioSelecionado] = useState(false);
+  const [estaSeguindo, setEstaSeguindo] = useState(false);
+  const [podeSeguir, setPodeSeguir] = useState(false);
+  const [atividadesUsuarioSelecionado, setAtividadesUsuarioSelecionado] = useState([]);
+  const [seguidores, setSeguidores] = useState([]);
+  const [seguindo, setSeguindo] = useState([]);
+  const [mostrarModalSeguidores, setMostrarModalSeguidores] = useState(false);
+  const [mostrarModalSeguindo, setMostrarModalSeguindo] = useState(false);
 
-  const initials = user?.username
-    ? user.username.slice(0, 2).toUpperCase()
+  const iniciais = usuario?.username
+    ? usuario.username.slice(0, 2).toUpperCase()
     : '??';
 
-  const avgRating =
-    metrics?.avgRating !== null && metrics?.avgRating !== undefined && !Number.isNaN(Number(metrics.avgRating))
-      ? Number(metrics.avgRating).toFixed(1)
+  const mediaAvaliacao =
+    metricas?.avgRating !== null && metricas?.avgRating !== undefined && !Number.isNaN(Number(metricas.avgRating))
+      ? Number(metricas.avgRating).toFixed(1)
       : '--';
 
-  const favoriteGenres = metrics?.favoriteGenres?.length
-    ? metrics.favoriteGenres
+  const generosFavoritos = metricas?.favoriteGenres?.length
+    ? metricas.favoriteGenres
     : [];
 
-  const safeTimeline = Array.isArray(timeline) && timeline.length
-    ? timeline.slice(0, 6)
+  const linhaDoTempoSegura = Array.isArray(linhaDoTempo) && linhaDoTempo.length
+    ? linhaDoTempo.slice(0, 6)
     : [];
-  const safeFollowingTimeline = Array.isArray(followingTimeline) && followingTimeline.length
-    ? followingTimeline.slice(0, 6)
+  const linhaDoTempoSeguindoSegura = Array.isArray(linhaDoTempoSeguindo) && linhaDoTempoSeguindo.length
+    ? linhaDoTempoSeguindo.slice(0, 6)
     : [];
 
-  const toggleModal = (type) => {
-    if (type === 'profile') {
-      if (openModal !== 'profile') {
-        loadProfile();
-        loadStats();
-        loadPersonalTimeline();
-        if (authUser) {
-          setAccountFormData({
-            username: authUser.username || '',
-            email: authUser.email || '',
+  const alternarModal = (tipo) => {
+    if (tipo === 'profile') {
+      if (modalAberto !== 'profile') {
+        carregarPerfil();
+        carregarEstatisticas();
+        carregarLinhaDoTempoPessoal();
+        if (usuarioAuth) {
+          setDadosFormularioConta({
+            username: usuarioAuth.username || '',
+            email: usuarioAuth.email || '',
             password: '',
             confirmPassword: ''
           });
         }
       }
     }
-    if (type === 'search') {
-      if (openModal !== 'search') {
-        setSearchQuery('');
-        setSearchResults([]);
-        setSelectedUser(null);
-        setSelectedUserProfile(null);
+    if (tipo === 'search') {
+      if (modalAberto !== 'search') {
+        setConsultaBusca('');
+        setResultadosBusca([]);
+        setUsuarioSelecionado(null);
+        setPerfilUsuarioSelecionado(null);
       }
     }
-    setOpenModal((prev) => (prev === type ? null : type));
+    setModalAberto((anterior) => (anterior === tipo ? null : tipo));
   };
 
-  const loadPersonalTimeline = async () => {
-    if (!authUser) return;
-    setPersonalTimelineLoading(true);
+  const carregarLinhaDoTempoPessoal = async () => {
+    if (!usuarioAuth) return;
+    setCarregandoLinhaDoTempoPessoal(true);
     try {
-      const result = await userService.getUserActivities(authUser.id, 6);
-      if (result.success && result.data) {
+      const resultado = await userService.getUserActivities(usuarioAuth.id, 6);
+      if (resultado.success && resultado.data) {
         // Buscar avatar do perfil ou do usuário
-        const profileAvatar = profile?.avatar_url 
-          ? (profile.avatar_url.startsWith('http') 
-              ? profile.avatar_url 
-              : `http://localhost:8001${profile.avatar_url}`)
+        const avatarPerfil = perfil?.avatar_url 
+          ? (perfil.avatar_url.startsWith('http') 
+              ? perfil.avatar_url 
+              : `http://localhost:8001${perfil.avatar_url}`)
           : null;
-        const userAvatar = authUser.avatar_url 
-          ? (authUser.avatar_url.startsWith('http') 
-              ? authUser.avatar_url 
-              : `http://localhost:8001${authUser.avatar_url}`)
+        const avatarUsuario = usuarioAuth.avatar_url 
+          ? (usuarioAuth.avatar_url.startsWith('http') 
+              ? usuarioAuth.avatar_url 
+              : `http://localhost:8001${usuarioAuth.avatar_url}`)
           : null;
-        const finalAvatar = profileAvatar || userAvatar;
+        const avatarFinal = avatarPerfil || avatarUsuario;
         
-        const timeline = result.data.map((activity) => {
-          const date = activity.created_at ? new Date(activity.created_at) : new Date();
+        const linhaDoTempo = resultado.data.map((atividade) => {
+          const data = atividade.created_at ? new Date(atividade.created_at) : new Date();
           return {
-            id: activity.id,
-            nickname: authUser.username,
-            action: activity.action || 'avaliou',
-            highlight: activity.highlight || null,
-            rating: activity.rating || null,
-            timestamp: formatRelativeTime(date),
-            avatar: finalAvatar
+            id: atividade.id,
+            nickname: usuarioAuth.username,
+            action: atividade.action || 'avaliou',
+            highlight: atividade.highlight || null,
+            rating: atividade.rating || null,
+            timestamp: formatarTempoRelativo(data),
+            avatar: avatarFinal
           };
         });
-        setPersonalTimeline(timeline);
+        setLinhaDoTempoPessoal(linhaDoTempo);
       } else {
-        setPersonalTimeline([]);
+        setLinhaDoTempoPessoal([]);
       }
-    } catch (error) {
-      console.error('Erro ao carregar timeline pessoal:', error);
-      setPersonalTimeline([]);
+    } catch (erro) {
+      console.error('Erro ao carregar timeline pessoal:', erro);
+      setLinhaDoTempoPessoal([]);
     } finally {
-      setPersonalTimelineLoading(false);
+      setCarregandoLinhaDoTempoPessoal(false);
     }
   };
 
-  const closeModal = () => {
-    setOpenModal(null);
-    setEditing(false);
-    setEditingAccount(false);
+  const fecharModal = () => {
+    setModalAberto(null);
+    setEditando(false);
+    setEditandoConta(false);
   };
-  const toggleVisibility = () => {
-    setIsVisible((prev) => {
-      if (prev) {
+  const alternarVisibilidade = () => {
+    setEstaVisivel((anterior) => {
+      if (anterior) {
         // Ao ocultar, fecha os modais
-        setOpenModal(null);
+        setModalAberto(null);
       }
-      return !prev;
+      return !anterior;
     });
   };
 
-  // Profile functions
-  const loadProfile = async () => {
-    if (!authUser) return;
-    setLoading(true);
+  // Funções do perfil
+  const carregarPerfil = async () => {
+    if (!usuarioAuth) return;
+    setCarregando(true);
     try {
-      const result = await profileService.getProfile(authUser.id);
-      if (result.success && result.data) {
-        setProfile(result.data);
-        setFormData({
-          bio: result.data.bio || '',
-          avatar_url: result.data.avatar_url || ''
+      const resultado = await profileService.getProfile(usuarioAuth.id);
+      if (resultado.success && resultado.data) {
+        setPerfil(resultado.data);
+        setDadosFormulario({
+          bio: resultado.data.bio || '',
+          avatar_url: resultado.data.avatar_url || ''
         });
-        if (result.data.avatar_url && !result.data.avatar_url.startsWith('http')) {
-          setFormData(prev => ({
-            ...prev,
-            avatar_url: `http://localhost:8001${result.data.avatar_url}`
+        if (resultado.data.avatar_url && !resultado.data.avatar_url.startsWith('http')) {
+          setDadosFormulario(anterior => ({
+            ...anterior,
+            avatar_url: `http://localhost:8001${resultado.data.avatar_url}`
           }));
         }
       }
-    } catch (error) {
-      console.error('Erro ao carregar perfil:', error);
+    } catch (erro) {
+      console.error('Erro ao carregar perfil:', erro);
     } finally {
-      setLoading(false);
+      setCarregando(false);
     }
   };
 
-  const loadStats = async () => {
-    if (!authUser) return;
+  const carregarEstatisticas = async () => {
+    if (!usuarioAuth) return;
     try {
-      const [ratingsResult, libraryResult] = await Promise.all([
-        ratingService.getUserRatings(authUser.id),
-        externalApiService.getUserLibrary(parseInt(authUser.id))
+      const [resultadoAvaliacoes, resultadoBiblioteca] = await Promise.all([
+        ratingService.getUserRatings(usuarioAuth.id),
+        externalApiService.getUserLibrary(parseInt(usuarioAuth.id))
       ]);
-      const ratingsArr = ratingsResult.success ? ratingsResult.data : [];
-      const libraryArr = libraryResult.success ? libraryResult.data : [];
-      setStats({
-        books: Array.isArray(libraryArr) ? libraryArr.length : 0,
+      const arrayAvaliacoes = resultadoAvaliacoes.success ? resultadoAvaliacoes.data : [];
+      const arrayBiblioteca = resultadoBiblioteca.success ? resultadoBiblioteca.data : [];
+      setEstatisticas({
+        books: Array.isArray(arrayBiblioteca) ? arrayBiblioteca.length : 0,
         movies: 0,
-        ratings: ratingsArr.length
+        ratings: arrayAvaliacoes.length
       });
-    } catch (error) {
-      console.error('Erro ao carregar estatísticas:', error);
+    } catch (erro) {
+      console.error('Erro ao carregar estatísticas:', erro);
     }
   };
 
-  const handleSave = async (e) => {
+  const lidarComSalvar = async (e) => {
     e.preventDefault();
-    if (!authUser) return;
+    if (!usuarioAuth) return;
     try {
-      const result = await profileService.createOrUpdateProfile(authUser.id, { bio: formData.bio });
-      if (result.success) {
-        setProfile(result.data);
-        setEditing(false);
+      const resultado = await profileService.createOrUpdateProfile(usuarioAuth.id, { bio: dadosFormulario.bio });
+      if (resultado.success) {
+        setPerfil(resultado.data);
+        setEditando(false);
         showToast('Perfil atualizado com sucesso!');
       } else {
-        showToast('Erro ao salvar perfil: ' + result.error);
+        showToast('Erro ao salvar perfil: ' + resultado.error);
       }
-    } catch (error) {
+    } catch (erro) {
       showToast('Erro ao salvar perfil');
-      console.error("Profile handleSave error:", error);
+      console.error("Profile lidarComSalvar erro:", erro);
     }
   };
 
-  const handleAvatarClick = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
+  const lidarComCliqueAvatar = () => {
+    if (referenciaInputArquivo.current) {
+      referenciaInputArquivo.current.click();
     }
   };
 
-  const handleRemoveAvatar = async () => {
-    if (!authUser) return;
+  const lidarComRemoverAvatar = async () => {
+    if (!usuarioAuth) return;
     if (!window.confirm('Tem certeza que deseja remover seu avatar?')) {
       return;
     }
     try {
-      const result = await profileService.removeAvatar(authUser.id);
-      if (result.success) {
-        setFormData({ ...formData, avatar_url: '' });
-        if (profile) {
-          setProfile({ ...profile, avatar_url: null });
+      const resultado = await profileService.removeAvatar(usuarioAuth.id);
+      if (resultado.success) {
+        setDadosFormulario({ ...dadosFormulario, avatar_url: '' });
+        if (perfil) {
+          setPerfil({ ...perfil, avatar_url: null });
         }
         if (updateUser) {
-          updateUser({ ...authUser, avatar_url: null });
+          updateUser({ ...usuarioAuth, avatar_url: null });
         }
         showToast('Avatar removido com sucesso!');
       } else {
-        showToast('Erro ao remover avatar: ' + result.error);
+        showToast('Erro ao remover avatar: ' + resultado.error);
       }
-    } catch (error) {
+    } catch (erro) {
       showToast('Erro ao remover avatar');
-      console.error("Profile handleRemoveAvatar error:", error);
+      console.error("Profile lidarComRemoverAvatar erro:", erro);
     }
   };
 
-  const handleFileChange = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file || !authUser) return;
-    if (!file.type.startsWith('image/')) {
+  const lidarComMudancaArquivo = async (e) => {
+    const arquivo = e.target.files?.[0];
+    if (!arquivo || !usuarioAuth) return;
+    if (!arquivo.type.startsWith('image/')) {
       showToast('Por favor, selecione um arquivo de imagem');
       return;
     }
-    setUploadingAvatar(true);
+    setEnviandoAvatar(true);
     try {
-      const result = await profileService.uploadAvatar(authUser.id, file);
-      if (result.success) {
-        const avatarUrl = result.data.avatar_url;
-        const fullAvatarUrl = avatarUrl.startsWith('http') ? avatarUrl : `http://localhost:8001${avatarUrl}`;
-        setFormData({ ...formData, avatar_url: fullAvatarUrl });
-        if (profile) {
-          setProfile({ ...profile, avatar_url: fullAvatarUrl });
+      const resultado = await profileService.uploadAvatar(usuarioAuth.id, arquivo);
+      if (resultado.success) {
+        const urlAvatar = resultado.data.avatar_url;
+        const urlAvatarCompleta = urlAvatar.startsWith('http') ? urlAvatar : `http://localhost:8001${urlAvatar}`;
+        setDadosFormulario({ ...dadosFormulario, avatar_url: urlAvatarCompleta });
+        if (perfil) {
+          setPerfil({ ...perfil, avatar_url: urlAvatarCompleta });
         }
         if (updateUser) {
-          updateUser({ ...authUser, avatar_url: fullAvatarUrl });
+          updateUser({ ...usuarioAuth, avatar_url: urlAvatarCompleta });
         }
         showToast('Avatar atualizado com sucesso!');
       } else {
-        showToast('Erro ao fazer upload do avatar: ' + result.error);
+        showToast('Erro ao fazer upload do avatar: ' + resultado.error);
       }
-    } catch (error) {
+    } catch (erro) {
       showToast('Erro ao fazer upload do avatar');
-      console.error("Profile handleFileChange error:", error);
+      console.error("Profile lidarComMudancaArquivo erro:", erro);
     } finally {
-      setUploadingAvatar(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+      setEnviandoAvatar(false);
+      if (referenciaInputArquivo.current) {
+        referenciaInputArquivo.current.value = '';
       }
     }
   };
 
-  const handleDeleteProfile = async () => {
-    if (!authUser) return;
-    const confirmMessage = 'Tem certeza que deseja deletar sua conta? Esta ação não pode ser desfeita e todos os seus dados serão perdidos.';
-    if (!window.confirm(confirmMessage)) {
+  const lidarComDeletarPerfil = async () => {
+    if (!usuarioAuth) return;
+    const mensagemConfirmacao = 'Tem certeza que deseja deletar sua conta? Esta ação não pode ser desfeita e todos os seus dados serão perdidos.';
+    if (!window.confirm(mensagemConfirmacao)) {
       return;
     }
-    const doubleConfirm = 'Esta é sua última chance. Tem certeza absoluta?';
-    if (!window.confirm(doubleConfirm)) {
+    const confirmacaoDupla = 'Esta é sua última chance. Tem certeza absoluta?';
+    if (!window.confirm(confirmacaoDupla)) {
       return;
     }
     try {
-      const result = await profileService.deleteProfile(authUser.id);
-      if (result.success) {
+      const resultado = await profileService.deleteProfile(usuarioAuth.id);
+      if (resultado.success) {
         showToast('Conta deletada com sucesso');
         setTimeout(() => {
           logout();
           navigate('/login');
         }, 1500);
       } else {
-        showToast('Erro ao deletar conta: ' + result.error);
+        showToast('Erro ao deletar conta: ' + resultado.error);
       }
-    } catch (error) {
+    } catch (erro) {
       showToast('Erro ao deletar conta');
-      console.error("Profile handleDeleteProfile error:", error);
+      console.error("Profile lidarComDeletarPerfil erro:", erro);
     }
   };
 
-  const handleAccountEdit = () => {
-    setEditingAccount(true);
-    setAccountFormData({
-      username: authUser?.username || '',
-      email: authUser?.email || '',
+  const lidarComEditarConta = () => {
+    setEditandoConta(true);
+    setDadosFormularioConta({
+      username: usuarioAuth?.username || '',
+      email: usuarioAuth?.email || '',
       password: '',
       confirmPassword: ''
     });
   };
 
-  const handleAccountSave = () => {
-    if (!authUser) return;
-    if (!accountFormData.username || !accountFormData.email) {
+  const lidarComSalvarConta = () => {
+    if (!usuarioAuth) return;
+    if (!dadosFormularioConta.username || !dadosFormularioConta.email) {
       showToast('Nome de usuário e email são obrigatórios');
       return;
     }
-    if (accountFormData.password) {
-      if (accountFormData.password !== accountFormData.confirmPassword) {
+    if (dadosFormularioConta.password) {
+      if (dadosFormularioConta.password !== dadosFormularioConta.confirmPassword) {
         showToast('As senhas não coincidem');
         return;
       }
-      if (accountFormData.password.length < 1) {
+      if (dadosFormularioConta.password.length < 1) {
         showToast('A senha deve ter pelo menos 1 caractere');
         return;
       }
     }
-    const updateData = {
-      username: accountFormData.username !== authUser.username ? accountFormData.username : undefined,
-      email: accountFormData.email !== authUser.email ? accountFormData.email : undefined,
-      password: accountFormData.password || undefined
+    const dadosAtualizacao = {
+      username: dadosFormularioConta.username !== usuarioAuth.username ? dadosFormularioConta.username : undefined,
+      email: dadosFormularioConta.email !== usuarioAuth.email ? dadosFormularioConta.email : undefined,
+      password: dadosFormularioConta.password || undefined
     };
-    const hasChanges = updateData.username || updateData.email || updateData.password;
-    if (!hasChanges) {
+    const temAlteracoes = dadosAtualizacao.username || dadosAtualizacao.email || dadosAtualizacao.password;
+    if (!temAlteracoes) {
       showToast('Nenhuma alteração foi feita');
       return;
     }
-    setPendingUpdate(updateData);
-    setPasswordModalData({ currentPassword: '', error: '' });
-    setShowPasswordModal(true);
+    setAtualizacaoPendente(dadosAtualizacao);
+    setDadosModalSenha({ currentPassword: '', error: '' });
+    setMostrarModalSenha(true);
   };
 
-  const handlePasswordConfirm = async () => {
-    if (!passwordModalData.currentPassword) {
-      setPasswordModalData({ ...passwordModalData, error: 'Por favor, digite sua senha atual' });
+  const lidarComConfirmarSenha = async () => {
+    if (!dadosModalSenha.currentPassword) {
+      setDadosModalSenha({ ...dadosModalSenha, error: 'Por favor, digite sua senha atual' });
       return;
     }
-    if (!authUser || !pendingUpdate) return;
+    if (!usuarioAuth || !atualizacaoPendente) return;
     try {
-      const updatePayload = {
-        current_password: passwordModalData.currentPassword
+      const cargaAtualizacao = {
+        current_password: dadosModalSenha.currentPassword
       };
-      if (pendingUpdate.username !== undefined) {
-        updatePayload.username = pendingUpdate.username;
+      if (atualizacaoPendente.username !== undefined) {
+        cargaAtualizacao.username = atualizacaoPendente.username;
       }
-      if (pendingUpdate.email !== undefined) {
-        updatePayload.email = pendingUpdate.email;
+      if (atualizacaoPendente.email !== undefined) {
+        cargaAtualizacao.email = atualizacaoPendente.email;
       }
-      if (pendingUpdate.password !== undefined) {
-        updatePayload.password = pendingUpdate.password;
+      if (atualizacaoPendente.password !== undefined) {
+        cargaAtualizacao.password = atualizacaoPendente.password;
       }
-      const result = await userService.updateUser(authUser.id, updatePayload);
-      if (result.success) {
+      const resultado = await userService.updateUser(usuarioAuth.id, cargaAtualizacao);
+      if (resultado.success) {
         showToast('Dados atualizados com sucesso!');
-        setShowPasswordModal(false);
-        setEditingAccount(false);
-        setPasswordModalData({ currentPassword: '', error: '' });
-        setPendingUpdate(null);
-        if (result.data) {
-          localStorage.setItem('user', JSON.stringify(result.data));
+        setMostrarModalSenha(false);
+        setEditandoConta(false);
+        setDadosModalSenha({ currentPassword: '', error: '' });
+        setAtualizacaoPendente(null);
+        if (resultado.data) {
+          localStorage.setItem('user', JSON.stringify(resultado.data));
         }
         try {
           const { authService } = await import('../services/authService');
-          const userResponse = await authService.getCurrentUser();
-          if (userResponse) {
-            localStorage.setItem('user', JSON.stringify(userResponse));
+          const respostaUsuario = await authService.getCurrentUser();
+          if (respostaUsuario) {
+            localStorage.setItem('user', JSON.stringify(respostaUsuario));
           }
           window.location.reload();
-        } catch (error) {
-          console.error('Erro ao atualizar dados do usuário:', error);
+        } catch (erro) {
+          console.error('Erro ao atualizar dados do usuário:', erro);
           window.location.reload();
         }
       } else {
-        setPasswordModalData({ ...passwordModalData, error: result.error || 'Erro ao atualizar dados' });
+        setDadosModalSenha({ ...dadosModalSenha, error: resultado.error || 'Erro ao atualizar dados' });
       }
-    } catch (error) {
-      console.error("Profile handlePasswordConfirm error:", error);
-      setPasswordModalData({ ...passwordModalData, error: 'Erro ao atualizar dados' });
+    } catch (erro) {
+      console.error("Profile lidarComConfirmarSenha erro:", erro);
+      setDadosModalSenha({ ...dadosModalSenha, error: 'Erro ao atualizar dados' });
     }
   };
 
-  const handlePasswordModalCancel = () => {
-    setShowPasswordModal(false);
-    setPasswordModalData({ currentPassword: '', error: '' });
-    setPendingUpdate(null);
+  const lidarComCancelarModalSenha = () => {
+    setMostrarModalSenha(false);
+    setDadosModalSenha({ currentPassword: '', error: '' });
+    setAtualizacaoPendente(null);
   };
 
-  // User search functions
-  const handleSearchUsers = async () => {
-    if (!searchQuery.trim()) {
-      setSearchResults([]);
+  // Funções de busca de usuários
+  const lidarComBuscarUsuarios = async () => {
+    if (!consultaBusca.trim()) {
+      setResultadosBusca([]);
       return;
     }
-    setSearchLoading(true);
+    setCarregandoBusca(true);
     try {
-      const result = await userService.searchUsers(searchQuery.trim(), 10);
-      if (result.success) {
-        setSearchResults(result.data || []);
+      const resultado = await userService.searchUsers(consultaBusca.trim(), 10);
+      if (resultado.success) {
+        setResultadosBusca(resultado.data || []);
       } else {
-        setSearchResults([]);
-        showToast('Erro ao buscar usuários: ' + (result.error || 'Erro desconhecido'));
+        setResultadosBusca([]);
+        showToast('Erro ao buscar usuários: ' + (resultado.error || 'Erro desconhecido'));
       }
-    } catch (error) {
-      console.error('Erro ao buscar usuários:', error);
-      setSearchResults([]);
+    } catch (erro) {
+      console.error('Erro ao buscar usuários:', erro);
+      setResultadosBusca([]);
       showToast('Erro ao buscar usuários');
     } finally {
-      setSearchLoading(false);
+      setCarregandoBusca(false);
     }
   };
 
-  const handleSelectUser = async (user) => {
-    setSelectedUser(user);
-    setSelectedUserLoading(true);
+  const lidarComSelecionarUsuario = async (usuario) => {
+    setUsuarioSelecionado(usuario);
+    setCarregandoUsuarioSelecionado(true);
     try {
-      const userId = parseInt(user.id, 10);
-      const [profileResult, ratingsResult, libraryResult, moviesResult, followStatusResult, activitiesResult, followersResult, followingResult] = await Promise.all([
-        profileService.getProfile(user.id),
-        ratingService.getUserRatings(user.id),
-        externalApiService.getUserLibrary(userId),
-        externalApiService.getUserMovieLibrary(userId),
-        userService.checkFollowStatus(user.id),
-        userService.getUserActivities(user.id, 6),
-        userService.getFollowers(user.id),
-        userService.getFollowing(user.id)
+      const idUsuario = parseInt(usuario.id, 10);
+      const [resultadoPerfil, resultadoAvaliacoes, resultadoBiblioteca, resultadoFilmes, resultadoStatusFollow, resultadoAtividades, resultadoSeguidores, resultadoSeguindo] = await Promise.all([
+        profileService.getProfile(usuario.id),
+        ratingService.getUserRatings(usuario.id),
+        externalApiService.getUserLibrary(idUsuario),
+        externalApiService.getUserMovieLibrary(idUsuario),
+        userService.checkFollowStatus(usuario.id),
+        userService.getUserActivities(usuario.id, 6),
+        userService.getFollowers(usuario.id),
+        userService.getFollowing(usuario.id)
       ]);
       
-      if (profileResult.success && profileResult.data) {
-        setSelectedUserProfile(profileResult.data);
+      if (resultadoPerfil.success && resultadoPerfil.data) {
+        setPerfilUsuarioSelecionado(resultadoPerfil.data);
       } else {
-        setSelectedUserProfile(null);
+        setPerfilUsuarioSelecionado(null);
       }
       
-      const ratingsArr = ratingsResult.success ? ratingsResult.data : [];
-      const libraryArr = libraryResult.success ? libraryResult.data : [];
-      const moviesArr = moviesResult.success ? moviesResult.data : [];
-      setSelectedUserStats({
-        books: Array.isArray(libraryArr) ? libraryArr.length : 0,
-        movies: Array.isArray(moviesArr) ? moviesArr.length : 0,
-        ratings: ratingsArr.length
+      const arrayAvaliacoes = resultadoAvaliacoes.success ? resultadoAvaliacoes.data : [];
+      const arrayBiblioteca = resultadoBiblioteca.success ? resultadoBiblioteca.data : [];
+      const arrayFilmes = resultadoFilmes.success ? resultadoFilmes.data : [];
+      setEstatisticasUsuarioSelecionado({
+        books: Array.isArray(arrayBiblioteca) ? arrayBiblioteca.length : 0,
+        movies: Array.isArray(arrayFilmes) ? arrayFilmes.length : 0,
+        ratings: arrayAvaliacoes.length
       });
       
       // Atualizar status de follow
-      if (followStatusResult.success && followStatusResult.data) {
-        setIsFollowing(followStatusResult.data.following || false);
-        setCanFollow(followStatusResult.data.can_follow || false);
+      if (resultadoStatusFollow.success && resultadoStatusFollow.data) {
+        setEstaSeguindo(resultadoStatusFollow.data.following || false);
+        setPodeSeguir(resultadoStatusFollow.data.can_follow || false);
       } else {
-        setIsFollowing(false);
-        setCanFollow(false);
+        setEstaSeguindo(false);
+        setPodeSeguir(false);
       }
       
       // Carregar seguidores e seguindo
-      if (followersResult.success && followersResult.data) {
-        setFollowers(followersResult.data);
+      if (resultadoSeguidores.success && resultadoSeguidores.data) {
+        setSeguidores(resultadoSeguidores.data);
       } else {
-        setFollowers([]);
+        setSeguidores([]);
       }
       
-      if (followingResult.success && followingResult.data) {
-        setFollowing(followingResult.data);
+      if (resultadoSeguindo.success && resultadoSeguindo.data) {
+        setSeguindo(resultadoSeguindo.data);
       } else {
-        setFollowing([]);
+        setSeguindo([]);
       }
       
       // Processar atividades
-      if (activitiesResult.success && activitiesResult.data) {
-        const profileAvatar = profileResult.success && profileResult.data 
-          ? (profileResult.data.avatar_url?.startsWith('http') 
-              ? profileResult.data.avatar_url 
-              : profileResult.data.avatar_url 
-                ? `http://localhost:8001${profileResult.data.avatar_url}` 
+      if (resultadoAtividades.success && resultadoAtividades.data) {
+        const avatarPerfil = resultadoPerfil.success && resultadoPerfil.data 
+          ? (resultadoPerfil.data.avatar_url?.startsWith('http') 
+              ? resultadoPerfil.data.avatar_url 
+              : resultadoPerfil.data.avatar_url 
+                ? `http://localhost:8001${resultadoPerfil.data.avatar_url}` 
                 : null)
           : null;
-        const userAvatar = user.avatar_url 
-          ? (user.avatar_url.startsWith('http') ? user.avatar_url : `http://localhost:8001${user.avatar_url}`)
+        const avatarUsuario = usuario.avatar_url 
+          ? (usuario.avatar_url.startsWith('http') ? usuario.avatar_url : `http://localhost:8001${usuario.avatar_url}`)
           : null;
         
-        const activities = activitiesResult.data.map((activity) => {
-          const date = activity.created_at ? new Date(activity.created_at) : new Date();
+        const atividades = resultadoAtividades.data.map((atividade) => {
+          const data = atividade.created_at ? new Date(atividade.created_at) : new Date();
           return {
-            id: activity.id,
-            nickname: user.username,
-            action: activity.action || 'avaliou',
-            highlight: activity.highlight || null,
-            rating: activity.rating || null,
-            timestamp: formatRelativeTime(date),
-            avatar: profileAvatar || userAvatar || null
+            id: atividade.id,
+            nickname: usuario.username,
+            action: atividade.action || 'avaliou',
+            highlight: atividade.highlight || null,
+            rating: atividade.rating || null,
+            timestamp: formatarTempoRelativo(data),
+            avatar: avatarPerfil || avatarUsuario || null
           };
         });
-        setSelectedUserActivities(activities);
+        setAtividadesUsuarioSelecionado(atividades);
       } else {
-        setSelectedUserActivities([]);
+        setAtividadesUsuarioSelecionado([]);
       }
-    } catch (error) {
-      console.error('Erro ao carregar perfil do usuário:', error);
+    } catch (erro) {
+      console.error('Erro ao carregar perfil do usuário:', erro);
     } finally {
-      setSelectedUserLoading(false);
+      setCarregandoUsuarioSelecionado(false);
     }
   };
 
-  const formatRelativeTime = (date) => {
-    if (!date) return 'há algum tempo';
-    const now = new Date();
-    const diffMs = now - date;
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
+  const formatarTempoRelativo = (data) => {
+    if (!data) return 'há algum tempo';
+    const agora = new Date();
+    const diferencaMs = agora - data;
+    const diferencaMinutos = Math.floor(diferencaMs / 60000);
+    const diferencaHoras = Math.floor(diferencaMs / 3600000);
+    const diferencaDias = Math.floor(diferencaMs / 86400000);
 
-    if (diffMins < 1) return 'agora';
-    if (diffMins < 60) return `há ${diffMins} min`;
-    if (diffHours < 24) return `há ${diffHours}h`;
-    if (diffDays === 1) return 'ontem';
-    if (diffDays < 7) return `há ${diffDays} dias`;
+    if (diferencaMinutos < 1) return 'agora';
+    if (diferencaMinutos < 60) return `há ${diferencaMinutos} min`;
+    if (diferencaHoras < 24) return `há ${diferencaHoras}h`;
+    if (diferencaDias === 1) return 'ontem';
+    if (diferencaDias < 7) return `há ${diferencaDias} dias`;
 
-    return date.toLocaleDateString('pt-BR');
+    return data.toLocaleDateString('pt-BR');
   };
 
-  const handleFollowToggle = async () => {
-    if (!selectedUser || !canFollow) return;
+  const lidarComAlternarSeguir = async () => {
+    if (!usuarioSelecionado || !podeSeguir) return;
     
     try {
-      let result;
-      if (isFollowing) {
-        result = await userService.unfollowUser(selectedUser.id);
+      let resultado;
+      if (estaSeguindo) {
+        resultado = await userService.unfollowUser(usuarioSelecionado.id);
       } else {
-        result = await userService.followUser(selectedUser.id);
+        resultado = await userService.followUser(usuarioSelecionado.id);
       }
       
-      if (result.success) {
-        setIsFollowing(result.data.following || !isFollowing);
-        showToast(isFollowing ? 'Deixou de seguir o usuário' : 'Agora você está seguindo este usuário');
+      if (resultado.success) {
+        setEstaSeguindo(resultado.data.following || !estaSeguindo);
+        showToast(estaSeguindo ? 'Deixou de seguir o usuário' : 'Agora você está seguindo este usuário');
       } else {
-        showToast(result.error || 'Erro ao atualizar status de follow');
+        showToast(resultado.error || 'Erro ao atualizar status de follow');
       }
-    } catch (error) {
-      console.error('Erro ao atualizar follow:', error);
+    } catch (erro) {
+      console.error('Erro ao atualizar follow:', erro);
       showToast('Erro ao atualizar status de follow');
     }
   };
 
   useEffect(() => {
-    if (openModal === 'search' && searchQuery.trim()) {
-      const timeoutId = setTimeout(() => {
-        handleSearchUsers();
+    if (modalAberto === 'search' && consultaBusca.trim()) {
+      const idTimeout = setTimeout(() => {
+        lidarComBuscarUsuarios();
       }, 300);
-      return () => clearTimeout(timeoutId);
-    } else if (openModal === 'search' && !searchQuery.trim()) {
-      setSearchResults([]);
+      return () => clearTimeout(idTimeout);
+    } else if (modalAberto === 'search' && !consultaBusca.trim()) {
+      setResultadosBusca([]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchQuery, openModal]);
+  }, [consultaBusca, modalAberto]);
 
   return (
     <>
-      <div className={`taskbar ${!isVisible ? 'taskbar--hidden' : ''}`} role="navigation" aria-label="Atalhos do painel">
+      <div className={`taskbar ${!estaVisivel ? 'taskbar--hidden' : ''}`} role="navigation" aria-label="Atalhos do painel">
         <div className="taskbar-icons">
           <button
             type="button"
-            className={`taskbar-icon ${openModal === 'timeline' ? 'active' : ''}`}
-            onClick={() => toggleModal('timeline')}
-            aria-pressed={openModal === 'timeline'}
+            className={`taskbar-icon ${modalAberto === 'timeline' ? 'active' : ''}`}
+            onClick={() => alternarModal('timeline')}
+            aria-pressed={modalAberto === 'timeline'}
             aria-label="Abrir linha do tempo"
           >
             <span className="taskbar-icon__glyph" aria-hidden="true">
@@ -588,9 +588,9 @@ const Taskbar = ({ user, metrics, timeline, followingTimeline = [] }) => {
 
           <button
             type="button"
-            className={`taskbar-icon ${openModal === 'metrics' ? 'active' : ''}`}
-            onClick={() => toggleModal('metrics')}
-            aria-pressed={openModal === 'metrics'}
+            className={`taskbar-icon ${modalAberto === 'metrics' ? 'active' : ''}`}
+            onClick={() => alternarModal('metrics')}
+            aria-pressed={modalAberto === 'metrics'}
             aria-label="Abrir métricas"
           >
             <span className="taskbar-icon__glyph" aria-hidden="true">
@@ -600,9 +600,9 @@ const Taskbar = ({ user, metrics, timeline, followingTimeline = [] }) => {
 
           <button
             type="button"
-            className={`taskbar-icon ${openModal === 'search' ? 'active' : ''}`}
-            onClick={() => toggleModal('search')}
-            aria-pressed={openModal === 'search'}
+            className={`taskbar-icon ${modalAberto === 'search' ? 'active' : ''}`}
+            onClick={() => alternarModal('search')}
+            aria-pressed={modalAberto === 'search'}
             aria-label="Buscar usuários"
             title="Buscar usuários"
           >
@@ -618,36 +618,36 @@ const Taskbar = ({ user, metrics, timeline, followingTimeline = [] }) => {
           <button
             type="button"
             className="taskbar-profile"
-            onClick={() => toggleModal('profile')}
+            onClick={() => alternarModal('profile')}
             title="Abrir perfil"
           >
             <div className="taskbar-profile__avatar">
-              {user?.avatar_url && (
+              {usuario?.avatar_url && (
                 <img 
-                  src={user.avatar_url.startsWith('http') ? user.avatar_url : `http://localhost:8001${user.avatar_url}`} 
-                  alt={`Avatar de ${user.username}`}
+                  src={usuario.avatar_url.startsWith('http') ? usuario.avatar_url : `http://localhost:8001${usuario.avatar_url}`} 
+                  alt={`Avatar de ${usuario.username}`}
                   onError={(e) => {
                     e.target.style.display = 'none';
-                    const placeholder = e.target.nextElementSibling;
-                    if (placeholder) {
-                      placeholder.style.display = 'flex';
+                    const marcador = e.target.nextElementSibling;
+                    if (marcador) {
+                      marcador.style.display = 'flex';
                     }
                   }}
                 />
               )}
-              <span style={{ display: user?.avatar_url ? 'none' : 'flex' }}>{initials}</span>
+              <span style={{ display: usuario?.avatar_url ? 'none' : 'flex' }}>{iniciais}</span>
             </div>
             <div className="taskbar-profile__info">
-              <span className="taskbar-profile__name">{user?.username || 'Usuário'}</span>
-              <span className="taskbar-profile__email">{user?.email || 'email não informado'}</span>
+              <span className="taskbar-profile__name">{usuario?.username || 'Usuário'}</span>
+              <span className="taskbar-profile__email">{usuario?.email || 'email não informado'}</span>
             </div>
           </button>
 
-          {isVisible && (
+          {estaVisivel && (
             <button
               type="button"
               className="taskbar-toggle"
-              onClick={toggleVisibility}
+              onClick={alternarVisibilidade}
               aria-label="Ocultar taskbar"
               title="Ocultar taskbar"
             >
@@ -657,11 +657,11 @@ const Taskbar = ({ user, metrics, timeline, followingTimeline = [] }) => {
         </div>
       </div>
 
-      {!isVisible && (
+      {!estaVisivel && (
         <button
           type="button"
           className="taskbar-toggle taskbar-toggle--hidden"
-          onClick={toggleVisibility}
+          onClick={alternarVisibilidade}
           aria-label="Mostrar taskbar"
           title="Mostrar taskbar"
         >
@@ -669,26 +669,26 @@ const Taskbar = ({ user, metrics, timeline, followingTimeline = [] }) => {
         </button>
       )}
 
-      {openModal && isVisible && (
-        <div className="taskbar-modal__backdrop" onClick={closeModal} role="presentation" />
+      {modalAberto && estaVisivel && (
+        <div className="taskbar-modal__backdrop" onClick={fecharModal} role="presentation" />
       )}
 
-      {openModal === 'timeline' && isVisible && (
+      {modalAberto === 'timeline' && estaVisivel && (
         <div className="taskbar-modal taskbar-modal--timeline">
           <header className="taskbar-modal__header">
             <span>Hub da Comunidade</span>
-            <button type="button" className="taskbar-modal__close" onClick={closeModal}>
+            <button type="button" className="taskbar-modal__close" onClick={fecharModal}>
               ✕
             </button>
           </header>
           
-          {safeFollowingTimeline.length > 0 && (
+          {linhaDoTempoSeguindoSegura.length > 0 && (
             <>
               <div className="taskbar-timeline__section-header">
                 <span>Pessoas que você segue</span>
               </div>
               <ul className="taskbar-timeline">
-                {safeFollowingTimeline.map((event) => (
+                {linhaDoTempoSeguindoSegura.map((event) => (
                   <li key={event.id} className="taskbar-timeline__event">
                     <div className="taskbar-timeline__avatar">
                       {event.avatar ? (
@@ -721,8 +721,8 @@ const Taskbar = ({ user, metrics, timeline, followingTimeline = [] }) => {
             <span>Atividades Gerais</span>
           </div>
           <ul className="taskbar-timeline">
-            {safeTimeline.length ? (
-              safeTimeline.map((event) => (
+            {linhaDoTempoSegura.length ? (
+              linhaDoTempoSegura.map((event) => (
                 <li key={event.id} className="taskbar-timeline__event">
                   <div className="taskbar-timeline__avatar">
                     {event.avatar ? (
@@ -753,11 +753,11 @@ const Taskbar = ({ user, metrics, timeline, followingTimeline = [] }) => {
         </div>
       )}
 
-      {openModal === 'metrics' && isVisible && (
+      {modalAberto === 'metrics' && estaVisivel && (
         <div className="taskbar-modal taskbar-modal--metrics">
           <header className="taskbar-modal__header">
             <span>Painel de Métricas</span>
-            <button type="button" className="taskbar-modal__close" onClick={closeModal}>
+            <button type="button" className="taskbar-modal__close" onClick={fecharModal}>
               ✕
             </button>
           </header>
@@ -765,22 +765,22 @@ const Taskbar = ({ user, metrics, timeline, followingTimeline = [] }) => {
           <div className="taskbar-metrics">
             <div className="taskbar-metrics__card">
               <span className="taskbar-metrics__label">Média geral</span>
-              <strong className="taskbar-metrics__value">{avgRating}</strong>
+              <strong className="taskbar-metrics__value">{mediaAvaliacao}</strong>
             </div>
             <div className="taskbar-metrics__card">
               <span className="taskbar-metrics__label">Total de avaliações</span>
-              <strong className="taskbar-metrics__value">{metrics?.totalReviews ?? 0}</strong>
+              <strong className="taskbar-metrics__value">{metricas?.totalReviews ?? 0}</strong>
             </div>
           </div>
 
           <div className="taskbar-genres">
             <span className="taskbar-genres__title">Gêneros preferidos</span>
             <div className="taskbar-genres__chips">
-              {favoriteGenres.length > 0 ? (
-                favoriteGenres.map((genre) => (
-                  <span key={genre.label} className="taskbar-genres__chip">
-                    {genre.label}
-                    {genre.count ? ` · ${genre.count}` : ''}
+              {generosFavoritos.length > 0 ? (
+                generosFavoritos.map((genero) => (
+                  <span key={genero.label} className="taskbar-genres__chip">
+                    {genero.label}
+                    {genero.count ? ` · ${genero.count}` : ''}
                   </span>
                 ))
               ) : (
@@ -793,55 +793,55 @@ const Taskbar = ({ user, metrics, timeline, followingTimeline = [] }) => {
         </div>
       )}
 
-      {openModal === 'profile' && isVisible && (
+      {modalAberto === 'profile' && estaVisivel && (
         <div className="taskbar-modal taskbar-modal--profile">
           <header className="taskbar-modal__header">
             <span>Meu Perfil</span>
-            <button type="button" className="taskbar-modal__close" onClick={closeModal}>
+            <button type="button" className="taskbar-modal__close" onClick={fecharModal}>
               ✕
             </button>
           </header>
 
-          {loading ? (
+          {carregando ? (
             <div className="taskbar-profile__loading">Carregando perfil...</div>
           ) : (
             <div className="taskbar-profile__content">
               <div className="taskbar-profile__sidebar">
                 <div className="taskbar-profile__avatar-container" style={{ position: 'relative' }}>
-                  {uploadingAvatar ? (
+                  {enviandoAvatar ? (
                     <div className="avatar-loading">Carregando...</div>
-                  ) : formData.avatar_url ? (
+                  ) : dadosFormulario.avatar_url ? (
                     <img 
-                      src={formData.avatar_url.startsWith('http') ? formData.avatar_url : `http://localhost:8001${formData.avatar_url}`}
+                      src={dadosFormulario.avatar_url.startsWith('http') ? dadosFormulario.avatar_url : `http://localhost:8001${dadosFormulario.avatar_url}`}
                       alt="Avatar" 
                       className="avatar-image"
-                      onClick={handleAvatarClick}
+                      onClick={lidarComCliqueAvatar}
                       style={{ cursor: 'pointer' }}
                       onError={(e) => {
                         e.target.style.display = 'none';
-                        const placeholder = e.target.parentElement.querySelector('.avatar-placeholder');
-                        if (placeholder) {
-                          placeholder.style.display = 'flex';
+                        const marcador = e.target.parentElement.querySelector('.avatar-placeholder');
+                        if (marcador) {
+                          marcador.style.display = 'flex';
                         }
                       }}
                     />
                   ) : null}
                   <div 
                     className="avatar-placeholder" 
-                    onClick={handleAvatarClick}
+                    onClick={lidarComCliqueAvatar}
                     style={{ 
-                      display: (formData.avatar_url && !uploadingAvatar) ? 'none' : 'flex',
+                      display: (dadosFormulario.avatar_url && !enviandoAvatar) ? 'none' : 'flex',
                       cursor: 'pointer'
                     }}
                   >
-                    {authUser?.username?.charAt(0).toUpperCase() || 'U'}
+                    {usuarioAuth?.username?.charAt(0).toUpperCase() || 'U'}
                   </div>
-                  {formData.avatar_url && !uploadingAvatar && (
+                  {dadosFormulario.avatar_url && !enviandoAvatar && (
                     <button
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleRemoveAvatar();
+                        lidarComRemoverAvatar();
                       }}
                       className="remove-avatar-button"
                       title="Remover avatar"
@@ -850,25 +850,25 @@ const Taskbar = ({ user, metrics, timeline, followingTimeline = [] }) => {
                     </button>
                   )}
                   <input
-                    ref={fileInputRef}
+                    ref={referenciaInputArquivo}
                     type="file"
                     accept="image/*"
-                    onChange={handleFileChange}
+                    onChange={lidarComMudancaArquivo}
                     style={{ display: 'none' }}
                   />
                 </div>
                 
                 <div className="taskbar-profile__stats">
                   <div className="stat-card">
-                    <h3>{stats.books}</h3>
+                    <h3>{estatisticas.books}</h3>
                     <p>Livros</p>
                   </div>
                   <div className="stat-card">
-                    <h3>{stats.movies}</h3>
+                    <h3>{estatisticas.movies}</h3>
                     <p>Filmes</p>
                   </div>
                   <div className="stat-card">
-                    <h3>{stats.ratings}</h3>
+                    <h3>{estatisticas.ratings}</h3>
                     <p>Avaliações</p>
                   </div>
                 </div>
@@ -876,16 +876,16 @@ const Taskbar = ({ user, metrics, timeline, followingTimeline = [] }) => {
 
               <div className="taskbar-profile__main">
                 <div className="taskbar-profile__info">
-                  {!editingAccount ? (
+                  {!editandoConta ? (
                     <>
-                      <h3>{authUser?.username}</h3>
-                      <p className="profile-email">{authUser?.email}</p>
-                      {!editing && (
-                        <button onClick={() => setEditing(true)} className="edit-button">
+                      <h3>{usuarioAuth?.username}</h3>
+                      <p className="profile-email">{usuarioAuth?.email}</p>
+                      {!editando && (
+                        <button onClick={() => setEditando(true)} className="edit-button">
                           Editar Perfil
                         </button>
                       )}
-                      <button onClick={handleAccountEdit} className="edit-account-button">
+                      <button onClick={lidarComEditarConta} className="edit-account-button">
                         Editar Dados da Conta
                       </button>
                     </>
@@ -896,8 +896,8 @@ const Taskbar = ({ user, metrics, timeline, followingTimeline = [] }) => {
                         <input
                           id="username-modal"
                           type="text"
-                          value={accountFormData.username}
-                          onChange={(e) => setAccountFormData({ ...accountFormData, username: e.target.value })}
+                          value={dadosFormularioConta.username}
+                          onChange={(e) => setDadosFormularioConta({ ...dadosFormularioConta, username: e.target.value })}
                           className="form-input"
                         />
                       </div>
@@ -906,8 +906,8 @@ const Taskbar = ({ user, metrics, timeline, followingTimeline = [] }) => {
                         <input
                           id="email-modal"
                           type="email"
-                          value={accountFormData.email}
-                          onChange={(e) => setAccountFormData({ ...accountFormData, email: e.target.value })}
+                          value={dadosFormularioConta.email}
+                          onChange={(e) => setDadosFormularioConta({ ...dadosFormularioConta, email: e.target.value })}
                           className="form-input"
                         />
                       </div>
@@ -916,20 +916,20 @@ const Taskbar = ({ user, metrics, timeline, followingTimeline = [] }) => {
                         <input
                           id="password-modal"
                           type="password"
-                          value={accountFormData.password}
-                          onChange={(e) => setAccountFormData({ ...accountFormData, password: e.target.value })}
+                          value={dadosFormularioConta.password}
+                          onChange={(e) => setDadosFormularioConta({ ...dadosFormularioConta, password: e.target.value })}
                           className="form-input"
                           placeholder="Nova senha"
                         />
                       </div>
-                      {accountFormData.password && (
+                      {dadosFormularioConta.password && (
                         <div className="form-group">
                           <label htmlFor="confirmPassword-modal">Confirmar Nova Senha</label>
                           <input
                             id="confirmPassword-modal"
                             type="password"
-                            value={accountFormData.confirmPassword}
-                            onChange={(e) => setAccountFormData({ ...accountFormData, confirmPassword: e.target.value })}
+                            value={dadosFormularioConta.confirmPassword}
+                            onChange={(e) => setDadosFormularioConta({ ...dadosFormularioConta, confirmPassword: e.target.value })}
                             className="form-input"
                             placeholder="Confirme a nova senha"
                           />
@@ -939,8 +939,8 @@ const Taskbar = ({ user, metrics, timeline, followingTimeline = [] }) => {
                         <button 
                           type="button" 
                           onClick={() => {
-                            setEditingAccount(false);
-                            setAccountFormData({ username: authUser?.username || '', email: authUser?.email || '', password: '', confirmPassword: '' });
+                            setEditandoConta(false);
+                            setDadosFormularioConta({ username: usuarioAuth?.username || '', email: usuarioAuth?.email || '', password: '', confirmPassword: '' });
                           }} 
                           className="cancel-button"
                         >
@@ -948,7 +948,7 @@ const Taskbar = ({ user, metrics, timeline, followingTimeline = [] }) => {
                         </button>
                         <button 
                           type="button" 
-                          onClick={handleAccountSave} 
+                          onClick={lidarComSalvarConta} 
                           className="save-button"
                         >
                           Salvar
@@ -957,14 +957,14 @@ const Taskbar = ({ user, metrics, timeline, followingTimeline = [] }) => {
                     </div>
                   )}
                   
-                  {editing ? (
-                    <form onSubmit={handleSave} className="profile-form">
+                  {editando ? (
+                    <form onSubmit={lidarComSalvar} className="profile-form">
                       <div className="form-group">
                         <label htmlFor="bio-modal">Biografia</label>
                         <textarea
                           id="bio-modal"
-                          value={formData.bio}
-                          onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                          value={dadosFormulario.bio}
+                          onChange={(e) => setDadosFormulario({ ...dadosFormulario, bio: e.target.value })}
                           className="form-textarea"
                           rows="6"
                           placeholder="Conte um pouco sobre você..."
@@ -972,7 +972,7 @@ const Taskbar = ({ user, metrics, timeline, followingTimeline = [] }) => {
                       </div>
 
                       <div className="form-actions">
-                        <button type="button" onClick={() => setEditing(false)} className="cancel-button">
+                        <button type="button" onClick={() => setEditando(false)} className="cancel-button">
                           Cancelar
                         </button>
                         <button type="submit" className="save-button">
@@ -983,14 +983,14 @@ const Taskbar = ({ user, metrics, timeline, followingTimeline = [] }) => {
                   ) : (
                     <>
                       <div className="profile-bio">
-                        {profile?.bio ? (
-                          <p>{profile.bio}</p>
+                        {perfil?.bio ? (
+                          <p>{perfil.bio}</p>
                         ) : (
                           <p className="no-bio">Nenhuma biografia adicionada ainda.</p>
                         )}
                       </div>
 
-                      {personalTimeline.length > 0 && (
+                      {linhaDoTempoPessoal.length > 0 && (
                         <div className="taskbar-profile__activities">
                           <h4 style={{ 
                             fontSize: '10px', 
@@ -1000,44 +1000,44 @@ const Taskbar = ({ user, metrics, timeline, followingTimeline = [] }) => {
                           }}>
                             Minhas Atividades Recentes
                           </h4>
-                          {personalTimelineLoading ? (
+                          {carregandoLinhaDoTempoPessoal ? (
                             <div className="taskbar-profile__loading">Carregando...</div>
                           ) : (
                             <ul className="taskbar-timeline" style={{ margin: 0, padding: 0 }}>
-                              {personalTimeline.map((activity) => (
-                                <li key={activity.id} className="taskbar-timeline__event">
+                              {linhaDoTempoPessoal.map((atividade) => (
+                                <li key={atividade.id} className="taskbar-timeline__event">
                                   <div className="taskbar-timeline__avatar">
-                                    {activity.avatar ? (
+                                    {atividade.avatar ? (
                                       <img 
-                                        src={activity.avatar.startsWith('http') 
-                                          ? activity.avatar 
-                                          : `http://localhost:8001${activity.avatar}`} 
-                                        alt={`Avatar de ${activity.nickname}`}
+                                        src={atividade.avatar.startsWith('http') 
+                                          ? atividade.avatar 
+                                          : `http://localhost:8001${atividade.avatar}`} 
+                                        alt={`Avatar de ${atividade.nickname}`}
                                         onError={(e) => {
                                           e.target.style.display = 'none';
-                                          const placeholder = e.target.nextElementSibling;
-                                          if (placeholder) {
-                                            placeholder.style.display = 'flex';
+                                          const marcador = e.target.nextElementSibling;
+                                          if (marcador) {
+                                            marcador.style.display = 'flex';
                                           }
                                         }}
                                       />
                                     ) : null}
-                                    <span style={{ display: activity.avatar ? 'none' : 'flex' }}>
-                                      {activity.nickname?.slice(0, 2).toUpperCase() || '??'}
+                                    <span style={{ display: atividade.avatar ? 'none' : 'flex' }}>
+                                      {atividade.nickname?.slice(0, 2).toUpperCase() || '??'}
                                     </span>
                                   </div>
                                   <div className="taskbar-timeline__details">
-                                    <strong>{activity.nickname}</strong>
+                                    <strong>{atividade.nickname}</strong>
                                     <p>
-                                      {activity.action}
-                                      {activity.highlight ? (
+                                      {atividade.action}
+                                      {atividade.highlight ? (
                                         <span className="taskbar-timeline__highlight">
-                                          {` "${activity.highlight}"`}
+                                          {` "${atividade.highlight}"`}
                                         </span>
                                       ) : null}
-                                      {activity.rating ? ` · ${activity.rating}★` : ''}
+                                      {atividade.rating ? ` · ${atividade.rating}★` : ''}
                                     </p>
-                                    <span className="taskbar-timeline__time">{activity.timestamp}</span>
+                                    <span className="taskbar-timeline__time">{atividade.timestamp}</span>
                                   </div>
                                 </li>
                               ))}
@@ -1062,13 +1062,13 @@ const Taskbar = ({ user, metrics, timeline, followingTimeline = [] }) => {
           )}
 
           {/* Modal de confirmação de senha */}
-          {showPasswordModal && (
-            <div className="modal-overlay" onClick={handlePasswordModalCancel}>
+          {mostrarModalSenha && (
+            <div className="modal-overlay" onClick={lidarComCancelarModalSenha}>
               <div className="modal-content" onClick={(e) => e.stopPropagation()}>
                 <button
                   type="button"
                   className="modal-close-button"
-                  onClick={handlePasswordModalCancel}
+                  onClick={lidarComCancelarModalSenha}
                   aria-label="Fechar modal"
                 >
                   ×
@@ -1077,9 +1077,9 @@ const Taskbar = ({ user, metrics, timeline, followingTimeline = [] }) => {
                 <p className="modal-description">
                   Para sua segurança, confirme sua senha atual para fazer alterações na conta.
                 </p>
-                {passwordModalData.error && (
+                {dadosModalSenha.error && (
                   <div className="modal-feedback error">
-                    {passwordModalData.error}
+                    {dadosModalSenha.error}
                   </div>
                 )}
                 <div className="form-group">
@@ -1087,13 +1087,13 @@ const Taskbar = ({ user, metrics, timeline, followingTimeline = [] }) => {
                   <input
                     id="currentPassword-modal"
                     type="password"
-                    value={passwordModalData.currentPassword}
-                    onChange={(e) => setPasswordModalData({ ...passwordModalData, currentPassword: e.target.value, error: '' })}
+                    value={dadosModalSenha.currentPassword}
+                    onChange={(e) => setDadosModalSenha({ ...dadosModalSenha, currentPassword: e.target.value, error: '' })}
                     className="form-input"
                     placeholder="Digite sua senha atual"
                     onKeyPress={(e) => {
                       if (e.key === 'Enter') {
-                        handlePasswordConfirm();
+                        lidarComConfirmarSenha();
                       }
                     }}
                   />
@@ -1101,14 +1101,14 @@ const Taskbar = ({ user, metrics, timeline, followingTimeline = [] }) => {
                 <div className="modal-actions">
                   <button
                     type="button"
-                    onClick={handlePasswordModalCancel}
+                    onClick={lidarComCancelarModalSenha}
                     className="cancel-button"
                   >
                     Cancelar
                   </button>
                   <button
                     type="button"
-                    onClick={handlePasswordConfirm}
+                    onClick={lidarComConfirmarSenha}
                     className="submit-button"
                   >
                     Confirmar
@@ -1120,11 +1120,11 @@ const Taskbar = ({ user, metrics, timeline, followingTimeline = [] }) => {
         </div>
       )}
 
-      {openModal === 'search' && isVisible && (
+      {modalAberto === 'search' && estaVisivel && (
         <div className="taskbar-modal taskbar-modal--search">
           <header className="taskbar-modal__header">
             <span>Buscar Usuários</span>
-            <button type="button" className="taskbar-modal__close" onClick={closeModal}>
+            <button type="button" className="taskbar-modal__close" onClick={fecharModal}>
               ✕
             </button>
           </header>
@@ -1135,53 +1135,53 @@ const Taskbar = ({ user, metrics, timeline, followingTimeline = [] }) => {
                 type="text"
                 className="taskbar-search__input"
                 placeholder="Digite o nome de usuário..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                value={consultaBusca}
+                onChange={(e) => setConsultaBusca(e.target.value)}
                 autoFocus
               />
-              {searchLoading && (
+              {carregandoBusca && (
                 <div className="taskbar-search__loading">Buscando...</div>
               )}
             </div>
 
-            {selectedUser ? (
+            {usuarioSelecionado ? (
               <div className="taskbar-search__user-profile">
                 <button
                   type="button"
                   className="taskbar-search__back-button"
                   onClick={() => {
-                    setSelectedUser(null);
-                    setSelectedUserProfile(null);
-                    setIsFollowing(false);
-                    setCanFollow(false);
-                    setSelectedUserActivities([]);
-                    setFollowers([]);
-                    setFollowing([]);
-                    setShowFollowersModal(false);
-                    setShowFollowingModal(false);
+                    setUsuarioSelecionado(null);
+                    setPerfilUsuarioSelecionado(null);
+                    setEstaSeguindo(false);
+                    setPodeSeguir(false);
+                    setAtividadesUsuarioSelecionado([]);
+                    setSeguidores([]);
+                    setSeguindo([]);
+                    setMostrarModalSeguidores(false);
+                    setMostrarModalSeguindo(false);
                   }}
                 >
                   ← Voltar
                 </button>
 
-                {selectedUserLoading ? (
+                {carregandoUsuarioSelecionado ? (
                   <div className="taskbar-profile__loading">Carregando perfil...</div>
                 ) : (
                   <div className="taskbar-profile__content">
                     <div className="taskbar-profile__sidebar">
                       <div className="taskbar-profile__avatar-container">
-                        {selectedUserProfile?.avatar_url ? (
+                        {perfilUsuarioSelecionado?.avatar_url ? (
                           <img 
-                            src={selectedUserProfile.avatar_url.startsWith('http') 
-                              ? selectedUserProfile.avatar_url 
-                              : `http://localhost:8001${selectedUserProfile.avatar_url}`}
+                            src={perfilUsuarioSelecionado.avatar_url.startsWith('http') 
+                              ? perfilUsuarioSelecionado.avatar_url 
+                              : `http://localhost:8001${perfilUsuarioSelecionado.avatar_url}`}
                             alt="Avatar" 
                             className="avatar-image"
                             onError={(e) => {
                               e.target.style.display = 'none';
-                              const placeholder = e.target.parentElement.querySelector('.avatar-placeholder');
-                              if (placeholder) {
-                                placeholder.style.display = 'flex';
+                              const marcador = e.target.parentElement.querySelector('.avatar-placeholder');
+                              if (marcador) {
+                                marcador.style.display = 'flex';
                               }
                             }}
                           />
@@ -1189,24 +1189,24 @@ const Taskbar = ({ user, metrics, timeline, followingTimeline = [] }) => {
                         <div 
                           className="avatar-placeholder" 
                           style={{ 
-                            display: (selectedUserProfile?.avatar_url) ? 'none' : 'flex'
+                            display: (perfilUsuarioSelecionado?.avatar_url) ? 'none' : 'flex'
                           }}
                         >
-                          {selectedUser?.username?.charAt(0).toUpperCase() || 'U'}
+                          {usuarioSelecionado?.username?.charAt(0).toUpperCase() || 'U'}
                         </div>
                       </div>
                       
                       <div className="taskbar-profile__stats">
                         <div className="stat-card">
-                          <h3>{selectedUserStats.books}</h3>
+                          <h3>{estatisticasUsuarioSelecionado.books}</h3>
                           <p>Livros</p>
                         </div>
                         <div className="stat-card">
-                          <h3>{selectedUserStats.movies}</h3>
+                          <h3>{estatisticasUsuarioSelecionado.movies}</h3>
                           <p>Filmes</p>
                         </div>
                         <div className="stat-card">
-                          <h3>{selectedUserStats.ratings}</h3>
+                          <h3>{estatisticasUsuarioSelecionado.ratings}</h3>
                           <p>Avaliações</p>
                         </div>
                       </div>
@@ -1217,51 +1217,51 @@ const Taskbar = ({ user, metrics, timeline, followingTimeline = [] }) => {
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                           <div style={{ flex: 1 }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-                              <h3 style={{ margin: 0 }}>{selectedUser?.username}</h3>
+                              <h3 style={{ margin: 0 }}>{usuarioSelecionado?.username}</h3>
                               <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                                 <button
                                   type="button"
-                                  onClick={() => setShowFollowersModal(true)}
+                                  onClick={() => setMostrarModalSeguidores(true)}
                                   className="followers-following-button"
                                   title="Ver seguidores"
                                 >
-                                  {followers.length} seguidores
+                                  {seguidores.length} seguidores
                                 </button>
                                 <button
                                   type="button"
-                                  onClick={() => setShowFollowingModal(true)}
+                                  onClick={() => setMostrarModalSeguindo(true)}
                                   className="followers-following-button"
                                   title="Ver seguindo"
                                 >
-                                  {following.length} seguindo
+                                  {seguindo.length} seguindo
                                 </button>
                               </div>
                             </div>
-                            <p className="profile-email">{selectedUser?.email}</p>
+                            <p className="profile-email">{usuarioSelecionado?.email}</p>
                           </div>
                         </div>
                         
-                        {canFollow && (
+                        {podeSeguir && (
                           <div style={{ marginBottom: '16px' }}>
                             <button
                               type="button"
-                              onClick={handleFollowToggle}
-                              className={isFollowing ? "unfollow-button" : "follow-button"}
+                              onClick={lidarComAlternarSeguir}
+                              className={estaSeguindo ? "unfollow-button" : "follow-button"}
                             >
-                              {isFollowing ? 'Seguindo' : 'Seguir'}
+                              {estaSeguindo ? 'Seguindo' : 'Seguir'}
                             </button>
                           </div>
                         )}
                         
                         <div className="profile-bio">
-                          {selectedUserProfile?.bio ? (
-                            <p>{selectedUserProfile.bio}</p>
+                          {perfilUsuarioSelecionado?.bio ? (
+                            <p>{perfilUsuarioSelecionado.bio}</p>
                           ) : (
                             <p className="no-bio">Nenhuma biografia adicionada ainda.</p>
                           )}
                         </div>
 
-                        {selectedUserActivities.length > 0 && (
+                        {atividadesUsuarioSelecionado.length > 0 && (
                           <div className="taskbar-profile__activities">
                             <h4 style={{ 
                               fontSize: '10px', 
@@ -1272,40 +1272,40 @@ const Taskbar = ({ user, metrics, timeline, followingTimeline = [] }) => {
                               Atividades Recentes
                             </h4>
                             <ul className="taskbar-timeline" style={{ margin: 0, padding: 0 }}>
-                              {selectedUserActivities.map((activity) => (
-                                <li key={activity.id} className="taskbar-timeline__event">
+                              {atividadesUsuarioSelecionado.map((atividade) => (
+                                <li key={atividade.id} className="taskbar-timeline__event">
                                   <div className="taskbar-timeline__avatar">
-                                    {activity.avatar ? (
+                                    {atividade.avatar ? (
                                       <img 
-                                        src={activity.avatar.startsWith('http') 
-                                          ? activity.avatar 
-                                          : `http://localhost:8001${activity.avatar}`} 
-                                        alt={`Avatar de ${activity.nickname}`}
+                                        src={atividade.avatar.startsWith('http') 
+                                          ? atividade.avatar 
+                                          : `http://localhost:8001${atividade.avatar}`} 
+                                        alt={`Avatar de ${atividade.nickname}`}
                                         onError={(e) => {
                                           e.target.style.display = 'none';
-                                          const placeholder = e.target.nextElementSibling;
-                                          if (placeholder) {
-                                            placeholder.style.display = 'flex';
+                                          const marcador = e.target.nextElementSibling;
+                                          if (marcador) {
+                                            marcador.style.display = 'flex';
                                           }
                                         }}
                                       />
                                     ) : null}
-                                    <span style={{ display: activity.avatar ? 'none' : 'flex' }}>
-                                      {activity.nickname?.slice(0, 2).toUpperCase() || '??'}
+                                    <span style={{ display: atividade.avatar ? 'none' : 'flex' }}>
+                                      {atividade.nickname?.slice(0, 2).toUpperCase() || '??'}
                                     </span>
                                   </div>
                                   <div className="taskbar-timeline__details">
-                                    <strong>{activity.nickname}</strong>
+                                    <strong>{atividade.nickname}</strong>
                                     <p>
-                                      {activity.action}
-                                      {activity.highlight ? (
+                                      {atividade.action}
+                                      {atividade.highlight ? (
                                         <span className="taskbar-timeline__highlight">
-                                          {` "${activity.highlight}"`}
+                                          {` "${atividade.highlight}"`}
                                         </span>
                                       ) : null}
-                                      {activity.rating ? ` · ${activity.rating}★` : ''}
+                                      {atividade.rating ? ` · ${atividade.rating}★` : ''}
                                     </p>
-                                    <span className="taskbar-timeline__time">{activity.timestamp}</span>
+                                    <span className="taskbar-timeline__time">{atividade.timestamp}</span>
                                   </div>
                                 </li>
                               ))}
@@ -1319,42 +1319,42 @@ const Taskbar = ({ user, metrics, timeline, followingTimeline = [] }) => {
               </div>
             ) : (
               <div className="taskbar-search__results">
-                {searchResults.length > 0 ? (
+                {resultadosBusca.length > 0 ? (
                   <ul className="taskbar-search__results-list">
-                    {searchResults.map((user) => (
+                    {resultadosBusca.map((usuario) => (
                       <li 
-                        key={user.id} 
+                        key={usuario.id} 
                         className="taskbar-search__result-item"
-                        onClick={() => handleSelectUser(user)}
+                        onClick={() => lidarComSelecionarUsuario(usuario)}
                       >
                         <div className="taskbar-search__result-avatar">
-                          {user.avatar_url ? (
+                          {usuario.avatar_url ? (
                             <img 
-                              src={user.avatar_url.startsWith('http') 
-                                ? user.avatar_url 
-                                : `http://localhost:8001${user.avatar_url}`}
-                              alt={`Avatar de ${user.username}`}
+                              src={usuario.avatar_url.startsWith('http') 
+                                ? usuario.avatar_url 
+                                : `http://localhost:8001${usuario.avatar_url}`}
+                              alt={`Avatar de ${usuario.username}`}
                               onError={(e) => {
                                 e.target.style.display = 'none';
-                                const placeholder = e.target.nextElementSibling;
-                                if (placeholder) {
-                                  placeholder.style.display = 'flex';
+                                const marcador = e.target.nextElementSibling;
+                                if (marcador) {
+                                  marcador.style.display = 'flex';
                                 }
                               }}
                             />
                           ) : null}
-                          <span style={{ display: user.avatar_url ? 'none' : 'flex' }}>
-                            {user.username?.slice(0, 2).toUpperCase() || '??'}
+                          <span style={{ display: usuario.avatar_url ? 'none' : 'flex' }}>
+                            {usuario.username?.slice(0, 2).toUpperCase() || '??'}
                           </span>
                         </div>
                         <div className="taskbar-search__result-info">
-                          <strong>{user.username}</strong>
-                          <span>{user.email}</span>
+                          <strong>{usuario.username}</strong>
+                          <span>{usuario.email}</span>
                         </div>
                       </li>
                     ))}
                   </ul>
-                ) : searchQuery.trim() && !searchLoading ? (
+                ) : consultaBusca.trim() && !carregandoBusca ? (
                   <div className="taskbar-search__empty">
                     Nenhum usuário encontrado.
                   </div>
@@ -1366,36 +1366,36 @@ const Taskbar = ({ user, metrics, timeline, followingTimeline = [] }) => {
       )}
 
       {/* Modal de Seguidores */}
-      {showFollowersModal && (
-        <div className="modal-overlay" onClick={() => setShowFollowersModal(false)}>
+      {mostrarModalSeguidores && (
+        <div className="modal-overlay" onClick={() => setMostrarModalSeguidores(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <button
               type="button"
               className="modal-close-button"
-              onClick={() => setShowFollowersModal(false)}
+              onClick={() => setMostrarModalSeguidores(false)}
               aria-label="Fechar modal"
             >
               ×
             </button>
             <h3>Seguidores</h3>
             <div className="followers-list">
-              {followers.length > 0 ? (
+              {seguidores.length > 0 ? (
                 <ul className="taskbar-search__results-list">
-                  {followers.map((follower) => (
+                  {seguidores.map((seguidor) => (
                     <li 
-                      key={follower.id} 
+                      key={seguidor.id} 
                       className="taskbar-search__result-item"
                       onClick={() => {
-                        setShowFollowersModal(false);
-                        handleSelectUser(follower);
+                        setMostrarModalSeguidores(false);
+                        lidarComSelecionarUsuario(seguidor);
                       }}
                     >
                       <div className="taskbar-search__result-avatar">
-                        <span>{follower.username?.slice(0, 2).toUpperCase() || '??'}</span>
+                        <span>{seguidor.username?.slice(0, 2).toUpperCase() || '??'}</span>
                       </div>
                       <div className="taskbar-search__result-info">
-                        <strong>{follower.username}</strong>
-                        <span>{follower.email}</span>
+                        <strong>{seguidor.username}</strong>
+                        <span>{seguidor.email}</span>
                       </div>
                     </li>
                   ))}
@@ -1411,36 +1411,36 @@ const Taskbar = ({ user, metrics, timeline, followingTimeline = [] }) => {
       )}
 
       {/* Modal de Seguindo */}
-      {showFollowingModal && (
-        <div className="modal-overlay" onClick={() => setShowFollowingModal(false)}>
+      {mostrarModalSeguindo && (
+        <div className="modal-overlay" onClick={() => setMostrarModalSeguindo(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <button
               type="button"
               className="modal-close-button"
-              onClick={() => setShowFollowingModal(false)}
+              onClick={() => setMostrarModalSeguindo(false)}
               aria-label="Fechar modal"
             >
               ×
             </button>
             <h3>Seguindo</h3>
             <div className="following-list">
-              {following.length > 0 ? (
+              {seguindo.length > 0 ? (
                 <ul className="taskbar-search__results-list">
-                  {following.map((followed) => (
+                  {seguindo.map((seguido) => (
                     <li 
-                      key={followed.id} 
+                      key={seguido.id} 
                       className="taskbar-search__result-item"
                       onClick={() => {
-                        setShowFollowingModal(false);
-                        handleSelectUser(followed);
+                        setMostrarModalSeguindo(false);
+                        lidarComSelecionarUsuario(seguido);
                       }}
                     >
                       <div className="taskbar-search__result-avatar">
-                        <span>{followed.username?.slice(0, 2).toUpperCase() || '??'}</span>
+                        <span>{seguido.username?.slice(0, 2).toUpperCase() || '??'}</span>
                       </div>
                       <div className="taskbar-search__result-info">
-                        <strong>{followed.username}</strong>
-                        <span>{followed.email}</span>
+                        <strong>{seguido.username}</strong>
+                        <span>{seguido.email}</span>
                       </div>
                     </li>
                   ))}

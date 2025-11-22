@@ -12,12 +12,12 @@ logger = logging.getLogger(__name__)
 engine = create_engine(DATABASE_URL, echo=True, connect_args=connect_args)
 
 def create_db_and_tables():
-    logger.info("Creating database and tables")
+    logger.info("Criando banco de dados e tabelas")
     SQLModel.metadata.create_all(engine)
-    logger.info("Database and tables created")
+    logger.info("Banco de dados e tabelas criados")
 
 def get_session() -> Generator[Session, None, None]:
-    logger.info("Creating database session")
+    logger.info("Criando sessão do banco de dados")
     with Session(engine) as session:
-        logger.info("Database session created")
+        logger.info("Sessão do banco de dados criada")
         yield session

@@ -4,49 +4,49 @@ import api from './authService.js';
 export const bookService = {
   // Buscar livros (quando o endpoint estiver disponível)
   async getBooks() {
-	console.log("bookService.getBooks called");
+	console.log("bookService.getBooks chamado");
     try {
-      const response = await api.get('/books/');
-	  console.log("bookService.getBooks API response:", response);
-      return { success: true, data: response.data };
-    } catch (error) {
-	  console.error("bookService.getBooks error:", error);
-      return { success: false, error: error.response?.data?.detail || 'Erro ao buscar livros' };
+      const resposta = await api.get('/books/');
+	  console.log("bookService.getBooks resposta da API:", resposta);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+	  console.error("bookService.getBooks erro:", erro);
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao buscar livros' };
     }
   },
   // Criar novo livro
-  async createBook(bookData) {
-	console.log("bookService.createBook called with:", bookData);
+  async createBook(dadosLivro) {
+	console.log("bookService.createBook chamado com:", dadosLivro);
     try {
-      const response = await api.post('/books/', bookData);
-	  console.log("bookService.createBook API response:", response);
-      return { success: true, data: response.data };
-    } catch (error) {
-	  console.error("bookService.createBook error:", error);
-      return { success: false, error: error.response?.data?.detail || 'Erro ao criar livro' };
+      const resposta = await api.post('/books/', dadosLivro);
+	  console.log("bookService.createBook resposta da API:", resposta);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+	  console.error("bookService.createBook erro:", erro);
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao criar livro' };
     }
   },
   // Buscar livro por ID
   async getBookById(id) {
-	console.log("bookService.getBookById called with:", id);
+	console.log("bookService.getBookById chamado com:", id);
     try {
-      const response = await api.get(`/books/${id}`);
-	  console.log("bookService.getBookById API response:", response);
-      return { success: true, data: response.data };
-    } catch (error) {
-	  console.error("bookService.getBookById error:", error);
-      return { success: false, error: error.response?.data?.detail || 'Erro ao buscar livro' };
+      const resposta = await api.get(`/books/${id}`);
+	  console.log("bookService.getBookById resposta da API:", resposta);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+	  console.error("bookService.getBookById erro:", erro);
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao buscar livro' };
     }
   },
   // Buscar livros do usuário (avaliações)
-  async getUserBooks(userId) {
-	console.log("bookService.getUserBooks called with:", userId);
+  async getUserBooks(idUsuario) {
+	console.log("bookService.getUserBooks chamado com:", idUsuario);
     try {
-      const response = await api.get(`/users/${userId}/books`);
-	  console.log("bookService.getUserBooks API response:", response);
-      return { success: true, data: response.data };
-    } catch (error) {
-	  console.error("bookService.getUserBooks error:", error);
+      const resposta = await api.get(`/users/${idUsuario}/books`);
+	  console.log("bookService.getUserBooks resposta da API:", resposta);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+	  console.error("bookService.getUserBooks erro:", erro);
       return { success: false, data: [] };
     }
   }
@@ -56,48 +56,48 @@ export const bookService = {
 export const movieService = {
   // Buscar filmes (quando o endpoint estiver disponível)
   async getMovies() {
-	console.log("movieService.getMovies called");
+	console.log("movieService.getMovies chamado");
     try {
-      const response = await api.get('/movies/');
-	  console.log("movieService.getMovies API response:", response);
-      return { success: true, data: response.data };
-    } catch (error) {
-	  console.error("movieService.getMovies error:", error);
-      return { success: false, error: error.response?.data?.detail || 'Erro ao buscar filmes' };
+      const resposta = await api.get('/movies/');
+	  console.log("movieService.getMovies resposta da API:", resposta);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+	  console.error("movieService.getMovies erro:", erro);
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao buscar filmes' };
     }
   },
   // Criar novo filme
-  async createMovie(movieData) {
-	console.log("movieService.createMovie called with:", movieData);
+  async createMovie(dadosFilme) {
+	console.log("movieService.createMovie chamado com:", dadosFilme);
     try {
-      const response = await api.post('/movies/', movieData);
-	  console.log("movieService.createMovie API response:", response);
-      return { success: true, data: response.data };
-    } catch (error) {
-	  console.error("movieService.createMovie error:", error);
-      return { success: false, error: error.response?.data?.detail || 'Erro ao criar filme' };
+      const resposta = await api.post('/movies/', dadosFilme);
+	  console.log("movieService.createMovie resposta da API:", resposta);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+	  console.error("movieService.createMovie erro:", erro);
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao criar filme' };
     }
   },
   // Buscar filme por ID
   async getMovieById(id) {
-	console.log("movieService.getMovieById called with:", id);
+	console.log("movieService.getMovieById chamado com:", id);
     try {
-      const response = await api.get(`/movies/${id}`);
-	  console.log("movieService.getMovieById API response:", response);
-      return { success: true, data: response.data };
-    } catch (error) {
-	  console.error("movieService.getMovieById error:", error);
-      return { success: false, error: error.response?.data?.detail || 'Erro ao buscar filme' };
+      const resposta = await api.get(`/movies/${id}`);
+	  console.log("movieService.getMovieById resposta da API:", resposta);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+	  console.error("movieService.getMovieById erro:", erro);
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao buscar filme' };
     }
   },
   // Buscar filmes do usuário (avaliações)
-  async getUserMovies(userId) {
-	console.log("movieService.getUserMovies called with:", userId);
+  async getUserMovies(idUsuario) {
+	console.log("movieService.getUserMovies chamado com:", idUsuario);
     try {
-      const response = await api.get(`/users/${userId}/movies`);
-	  console.log("movieService.getUserMovies API response:", response);
-      return { success: true, data: response.data };
-    } catch (error) {
+      const resposta = await api.get(`/users/${idUsuario}/movies`);
+	  console.log("movieService.getUserMovies resposta da API:", resposta);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
 
       return { success: false, data: [] };
     }
@@ -107,90 +107,90 @@ export const movieService = {
 // Serviço para avaliações
 export const ratingService = {
   // Criar avaliação
-  async createRating(ratingData) {
-	console.log("ratingService.createRating called with:", ratingData);
+  async createRating(dadosAvaliacao) {
+	console.log("ratingService.createRating chamado com:", dadosAvaliacao);
     try {
-      const response = await api.post('/ratings/', ratingData);
-	  console.log("ratingService.createRating API response:", response);
-      return { success: true, data: response.data };
-    } catch (error) {
-	  console.error("ratingService.createRating error:", error);
-      const detail = error.response?.data?.detail;
-      let message;
-      if (typeof detail === 'string') {
-        message = detail;
-      } else if (Array.isArray(detail) && detail.length) {
-        // FastAPI 422 validation errors
-        const first = detail[0];
-        message = first?.msg || first?.detail || 'Erro de validação';
+      const resposta = await api.post('/ratings/', dadosAvaliacao);
+	  console.log("ratingService.createRating resposta da API:", resposta);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+	  console.error("ratingService.createRating erro:", erro);
+      const detalhe = erro.response?.data?.detail;
+      let mensagem;
+      if (typeof detalhe === 'string') {
+        mensagem = detalhe;
+      } else if (Array.isArray(detalhe) && detalhe.length) {
+        // Erros de validação FastAPI 422
+        const primeiro = detalhe[0];
+        mensagem = primeiro?.msg || primeiro?.detail || 'Erro de validação';
       } else {
-        message = error.message || 'Erro ao criar avaliação';
+        mensagem = erro.message || 'Erro ao criar avaliação';
       }
-      return { success: false, error: message };
+      return { success: false, error: mensagem };
     }
   },
-  async updateRating(ratingId, ratingData) {
-	console.log("ratingService.updateRating called with:", ratingId, ratingData);
+  async updateRating(idAvaliacao, dadosAvaliacao) {
+	console.log("ratingService.updateRating chamado com:", idAvaliacao, dadosAvaliacao);
     try {
-      const response = await api.put(`/ratings/${ratingId}`, ratingData);
-	  console.log("ratingService.updateRating API response:", response);
-      return { success: true, data: response.data };
-    } catch (error) {
-	  console.error("ratingService.updateRating error:", error);
-      const detail = error.response?.data?.detail;
-      const message = typeof detail === 'string'
-        ? detail
-        : error.message || 'Erro ao atualizar avaliação';
-      return { success: false, error: message };
+      const resposta = await api.put(`/ratings/${idAvaliacao}`, dadosAvaliacao);
+	  console.log("ratingService.updateRating resposta da API:", resposta);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+	  console.error("ratingService.updateRating erro:", erro);
+      const detalhe = erro.response?.data?.detail;
+      const mensagem = typeof detalhe === 'string'
+        ? detalhe
+        : erro.message || 'Erro ao atualizar avaliação';
+      return { success: false, error: mensagem };
     }
   },
-  async deleteRating(ratingId) {
-	console.log("ratingService.deleteRating called with:", ratingId);
+  async deleteRating(idAvaliacao) {
+	console.log("ratingService.deleteRating chamado com:", idAvaliacao);
     try {
-      await api.delete(`/ratings/${ratingId}`);
+      await api.delete(`/ratings/${idAvaliacao}`);
       return { success: true };
-    } catch (error) {
-	  console.error("ratingService.deleteRating error:", error);
-      const detail = error.response?.data?.detail;
-      const message = typeof detail === 'string'
-        ? detail
-        : error.message || 'Erro ao excluir avaliação';
-      return { success: false, error: message };
+    } catch (erro) {
+	  console.error("ratingService.deleteRating erro:", erro);
+      const detalhe = erro.response?.data?.detail;
+      const mensagem = typeof detalhe === 'string'
+        ? detalhe
+        : erro.message || 'Erro ao excluir avaliação';
+      return { success: false, error: mensagem };
     }
   },
   // Buscar avaliações do usuário
-  async getUserRatings(userId) {
-	console.log("ratingService.getUserRatings called with:", userId);
+  async getUserRatings(idUsuario) {
+	console.log("ratingService.getUserRatings chamado com:", idUsuario);
     try {
-      const response = await api.get(`/users/${userId}/ratings`);
-	  console.log("ratingService.getUserRatings API response:", response);
-      return { success: true, data: response.data };
-    } catch (error) {
-	  console.error("ratingService.getUserRatings error:", error);
+      const resposta = await api.get(`/users/${idUsuario}/ratings`);
+	  console.log("ratingService.getUserRatings resposta da API:", resposta);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+	  console.error("ratingService.getUserRatings erro:", erro);
       return { success: false, data: [] };
     }
   },
   // Buscar avaliações de um livro
-  async getBookRatings(bookId) {
-	console.log("ratingService.getBookRatings called with:", bookId);
+  async getBookRatings(idLivro) {
+	console.log("ratingService.getBookRatings chamado com:", idLivro);
     try {
-      const response = await api.get(`/books/${bookId}/ratings`);
-	  console.log("ratingService.getBookRatings API response:", response);
-      return { success: true, data: response.data };
-    } catch (error) {
-	  console.error("ratingService.getBookRatings error:", error);
+      const resposta = await api.get(`/books/${idLivro}/ratings`);
+	  console.log("ratingService.getBookRatings resposta da API:", resposta);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+	  console.error("ratingService.getBookRatings erro:", erro);
       return { success: false, data: [] };
     }
   },
   // Buscar avaliações de um filme
-  async getMovieRatings(movieId) {
-	console.log("ratingService.getMovieRatings called with:", movieId);
+  async getMovieRatings(idFilme) {
+	console.log("ratingService.getMovieRatings chamado com:", idFilme);
     try {
-      const response = await api.get(`/movies/${movieId}/ratings`);
-	  console.log("ratingService.getMovieRatings API response:", response);
-      return { success: true, data: response.data };
-    } catch (error) {
-	  console.error("ratingService.getMovieRatings error:", error);
+      const resposta = await api.get(`/movies/${idFilme}/ratings`);
+	  console.log("ratingService.getMovieRatings resposta da API:", resposta);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+	  console.error("ratingService.getMovieRatings erro:", erro);
       return { success: false, data: [] };
     }
   }
@@ -199,43 +199,43 @@ export const ratingService = {
 // Serviço para recomendações
 export const recommendationService = {
   // Buscar recomendações do usuário
-  async getUserRecommendations(userId) {
-	console.log("recommendationService.getUserRecommendations called with:", userId)
+  async getUserRecommendations(idUsuario) {
+	console.log("recommendationService.getUserRecommendations chamado com:", idUsuario)
     try {
-      const response = await api.get(`/users/${userId}/recommendations`);
-      return { success: true, data: response.data };
-    } catch (error) {
+      const resposta = await api.get(`/users/${idUsuario}/recommendations`);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
       return { success: false, data: [] };
     }
   },
-  async generateRecommendations(userId) {
+  async generateRecommendations(idUsuario) {
     try {
-      const response = await api.post(`/users/${userId}/recommendations`);
-      return { success: true, data: response.data };
-    } catch (error) {
-      return { success: false, error: error.response?.data?.detail || 'Erro ao gerar recomendações' };
+      const resposta = await api.post(`/users/${idUsuario}/recommendations`);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao gerar recomendações' };
     }
   },
   // Buscar recomendações de livros baseadas na biblioteca do usuário
-  async getBookRecommendations(userId) {
-    console.log("recommendationService.getBookRecommendations called with:", userId);
+  async getBookRecommendations(idUsuario) {
+    console.log("recommendationService.getBookRecommendations chamado com:", idUsuario);
     try {
-      const response = await api.get(`/users/${userId}/recommendations/books`);
-      return { success: true, data: response.data };
-    } catch (error) {
-      console.error("Error fetching book recommendations:", error);
-      return { success: false, data: [], error: error.response?.data?.detail || 'Erro ao buscar recomendações de livros' };
+      const resposta = await api.get(`/users/${idUsuario}/recommendations/books`);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+      console.error("Erro ao buscar recomendações de livros:", erro);
+      return { success: false, data: [], error: erro.response?.data?.detail || 'Erro ao buscar recomendações de livros' };
     }
   },
   // Buscar recomendações de filmes baseadas na biblioteca do usuário
-  async getMovieRecommendations(userId) {
-    console.log("recommendationService.getMovieRecommendations called with:", userId);
+  async getMovieRecommendations(idUsuario) {
+    console.log("recommendationService.getMovieRecommendations chamado com:", idUsuario);
     try {
-      const response = await api.get(`/users/${userId}/recommendations/movies`);
-      return { success: true, data: response.data };
-    } catch (error) {
-      console.error("Error fetching movie recommendations:", error);
-      return { success: false, data: [], error: error.response?.data?.detail || 'Erro ao buscar recomendações de filmes' };
+      const resposta = await api.get(`/users/${idUsuario}/recommendations/movies`);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+      console.error("Erro ao buscar recomendações de filmes:", erro);
+      return { success: false, data: [], error: erro.response?.data?.detail || 'Erro ao buscar recomendações de filmes' };
     }
   }
 };
@@ -243,99 +243,99 @@ export const recommendationService = {
 // Serviço para usuários
 export const userService = {
   // Atualizar dados do usuário
-  async updateUser(userId, userData) {
-    console.log("userService.updateUser called with:", userId, userData);
+  async updateUser(idUsuario, dadosUsuario) {
+    console.log("userService.updateUser chamado com:", idUsuario, dadosUsuario);
     try {
-      const response = await api.put(`/users/${userId}`, userData);
-      console.log("userService.updateUser API response:", response);
-      return { success: true, data: response.data };
-    } catch (error) {
-      console.error("userService.updateUser error:", error);
-      return { success: false, error: error.response?.data?.detail || 'Erro ao atualizar dados do usuário' };
+      const resposta = await api.put(`/users/${idUsuario}`, dadosUsuario);
+      console.log("userService.updateUser resposta da API:", resposta);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+      console.error("userService.updateUser erro:", erro);
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao atualizar dados do usuário' };
     }
   },
   // Buscar usuários por username
-  async searchUsers(query, limit = 10) {
-    console.log("userService.searchUsers called with:", query);
+  async searchUsers(consulta, limite = 10) {
+    console.log("userService.searchUsers chamado com:", consulta);
     try {
-      const response = await api.get(`/users/search?query=${encodeURIComponent(query)}&limit=${limit}`);
-      console.log("userService.searchUsers API response:", response);
-      return { success: true, data: response.data };
-    } catch (error) {
-      console.error("userService.searchUsers error:", error);
-      return { success: false, error: error.response?.data?.detail || 'Erro ao buscar usuários', data: [] };
+      const resposta = await api.get(`/users/search?query=${encodeURIComponent(consulta)}&limit=${limite}`);
+      console.log("userService.searchUsers resposta da API:", resposta);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+      console.error("userService.searchUsers erro:", erro);
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao buscar usuários', data: [] };
     }
   },
   // Seguir um usuário
-  async followUser(userId) {
-    console.log("userService.followUser called with:", userId);
+  async followUser(idUsuario) {
+    console.log("userService.followUser chamado com:", idUsuario);
     try {
-      const response = await api.post(`/users/${userId}/follow`);
-      console.log("userService.followUser API response:", response);
-      return { success: true, data: response.data };
-    } catch (error) {
-      console.error("userService.followUser error:", error);
-      return { success: false, error: error.response?.data?.detail || 'Erro ao seguir usuário' };
+      const resposta = await api.post(`/users/${idUsuario}/follow`);
+      console.log("userService.followUser resposta da API:", resposta);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+      console.error("userService.followUser erro:", erro);
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao seguir usuário' };
     }
   },
   // Parar de seguir um usuário
-  async unfollowUser(userId) {
-    console.log("userService.unfollowUser called with:", userId);
+  async unfollowUser(idUsuario) {
+    console.log("userService.unfollowUser chamado com:", idUsuario);
     try {
-      const response = await api.delete(`/users/${userId}/follow`);
-      console.log("userService.unfollowUser API response:", response);
-      return { success: true, data: response.data };
-    } catch (error) {
-      console.error("userService.unfollowUser error:", error);
-      return { success: false, error: error.response?.data?.detail || 'Erro ao parar de seguir usuário' };
+      const resposta = await api.delete(`/users/${idUsuario}/follow`);
+      console.log("userService.unfollowUser resposta da API:", resposta);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+      console.error("userService.unfollowUser erro:", erro);
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao parar de seguir usuário' };
     }
   },
   // Verificar status de follow
-  async checkFollowStatus(userId) {
-    console.log("userService.checkFollowStatus called with:", userId);
+  async checkFollowStatus(idUsuario) {
+    console.log("userService.checkFollowStatus chamado com:", idUsuario);
     try {
-      const response = await api.get(`/users/${userId}/follow`);
-      console.log("userService.checkFollowStatus API response:", response);
-      return { success: true, data: response.data };
-    } catch (error) {
-      console.error("userService.checkFollowStatus error:", error);
-      return { success: false, error: error.response?.data?.detail || 'Erro ao verificar status', data: { following: false, can_follow: false } };
+      const resposta = await api.get(`/users/${idUsuario}/follow`);
+      console.log("userService.checkFollowStatus resposta da API:", resposta);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+      console.error("userService.checkFollowStatus erro:", erro);
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao verificar status', data: { following: false, can_follow: false } };
     }
   },
   // Buscar atividades de um usuário
-  async getUserActivities(userId, limit = 10) {
-    console.log("userService.getUserActivities called with:", userId);
+  async getUserActivities(idUsuario, limite = 10) {
+    console.log("userService.getUserActivities chamado com:", idUsuario);
     try {
-      const response = await api.get(`/users/${userId}/activities?limit=${limit}`);
-      console.log("userService.getUserActivities API response:", response);
-      return { success: true, data: response.data };
-    } catch (error) {
-      console.error("userService.getUserActivities error:", error);
-      return { success: false, error: error.response?.data?.detail || 'Erro ao buscar atividades', data: [] };
+      const resposta = await api.get(`/users/${idUsuario}/activities?limit=${limite}`);
+      console.log("userService.getUserActivities resposta da API:", resposta);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+      console.error("userService.getUserActivities erro:", erro);
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao buscar atividades', data: [] };
     }
   },
   // Buscar seguidores de um usuário
-  async getFollowers(userId) {
-    console.log("userService.getFollowers called with:", userId);
+  async getFollowers(idUsuario) {
+    console.log("userService.getFollowers chamado com:", idUsuario);
     try {
-      const response = await api.get(`/users/${userId}/followers`);
-      console.log("userService.getFollowers API response:", response);
-      return { success: true, data: response.data };
-    } catch (error) {
-      console.error("userService.getFollowers error:", error);
-      return { success: false, error: error.response?.data?.detail || 'Erro ao buscar seguidores', data: [] };
+      const resposta = await api.get(`/users/${idUsuario}/followers`);
+      console.log("userService.getFollowers resposta da API:", resposta);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+      console.error("userService.getFollowers erro:", erro);
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao buscar seguidores', data: [] };
     }
   },
   // Buscar usuários que um usuário está seguindo
-  async getFollowing(userId) {
-    console.log("userService.getFollowing called with:", userId);
+  async getFollowing(idUsuario) {
+    console.log("userService.getFollowing chamado com:", idUsuario);
     try {
-      const response = await api.get(`/users/${userId}/following`);
-      console.log("userService.getFollowing API response:", response);
-      return { success: true, data: response.data };
-    } catch (error) {
-      console.error("userService.getFollowing error:", error);
-      return { success: false, error: error.response?.data?.detail || 'Erro ao buscar seguindo', data: [] };
+      const resposta = await api.get(`/users/${idUsuario}/following`);
+      console.log("userService.getFollowing resposta da API:", resposta);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+      console.error("userService.getFollowing erro:", erro);
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao buscar seguindo', data: [] };
     }
   }
 };
@@ -343,15 +343,15 @@ export const userService = {
 // Serviço para timeline
 export const timelineService = {
   // Buscar timeline da comunidade
-  async getCommunityTimeline(limit = 20, onlyFollowing = false) {
-    console.log("timelineService.getCommunityTimeline called with:", limit, onlyFollowing);
+  async getCommunityTimeline(limite = 20, apenasSeguindo = false) {
+    console.log("timelineService.getCommunityTimeline chamado com:", limite, apenasSeguindo);
     try {
-      const response = await api.get(`/timeline?limit=${limit}&only_following=${onlyFollowing}`);
-      console.log("timelineService.getCommunityTimeline API response:", response);
-      return { success: true, data: response.data };
-    } catch (error) {
-      console.error("timelineService.getCommunityTimeline error:", error);
-      return { success: false, error: error.response?.data?.detail || 'Erro ao buscar timeline', data: [] };
+      const resposta = await api.get(`/timeline?limit=${limite}&only_following=${apenasSeguindo}`);
+      console.log("timelineService.getCommunityTimeline resposta da API:", resposta);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+      console.error("timelineService.getCommunityTimeline erro:", erro);
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao buscar timeline', data: [] };
     }
   }
 };
@@ -359,72 +359,72 @@ export const timelineService = {
 // Serviço para perfil
 export const profileService = {
   // Buscar perfil do usuário
-  async getProfile(userId) {
-	console.log("profileService.getProfile called with:", userId);
+  async getProfile(idUsuario) {
+	console.log("profileService.getProfile chamado com:", idUsuario);
     try {
-      const response = await api.get(`/profiles/${userId}`);
-	  console.log("profileService.getProfile API response:", response);
-      return { success: true, data: response.data };
-    } catch (error) {
-	  console.error("profileService.getProfile error:", error);
+      const resposta = await api.get(`/profiles/${idUsuario}`);
+	  console.log("profileService.getProfile resposta da API:", resposta);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+	  console.error("profileService.getProfile erro:", erro);
       return { success: false, data: null };
     }
   },
   // Criar ou atualizar perfil
-  async createOrUpdateProfile(userId, profileData) {
-	console.log("profileService.createOrUpdateProfile called with:", userId, profileData);
+  async createOrUpdateProfile(idUsuario, dadosPerfil) {
+	console.log("profileService.createOrUpdateProfile chamado com:", idUsuario, dadosPerfil);
     try {
-      const response = await api.post('/profiles/', {
-        user_id: userId,
-        ...profileData
+      const resposta = await api.post('/profiles/', {
+        user_id: idUsuario,
+        ...dadosPerfil
       });
-	  console.log("profileService.createOrUpdateProfile API response:", response);
-      return { success: true, data: response.data };
-    } catch (error) {
-	  console.error("profileService.createOrUpdateProfile error:", error);
-      return { success: false, error: error.response?.data?.detail || 'Erro ao salvar perfil' };
+	  console.log("profileService.createOrUpdateProfile resposta da API:", resposta);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+	  console.error("profileService.createOrUpdateProfile erro:", erro);
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao salvar perfil' };
     }
   },
   // Upload de avatar
-  async uploadAvatar(userId, file) {
-    console.log("profileService.uploadAvatar called with:", userId, file);
+  async uploadAvatar(idUsuario, arquivo) {
+    console.log("profileService.uploadAvatar chamado com:", idUsuario, arquivo);
     try {
       const formData = new FormData();
-      formData.append('file', file);
-      const response = await api.post(`/profiles/${userId}/upload-avatar`, formData, {
+      formData.append('file', arquivo);
+      const resposta = await api.post(`/profiles/${idUsuario}/upload-avatar`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
-      console.log("profileService.uploadAvatar API response:", response);
-      return { success: true, data: response.data };
-    } catch (error) {
-      console.error("profileService.uploadAvatar error:", error);
-      return { success: false, error: error.response?.data?.detail || 'Erro ao fazer upload do avatar' };
+      console.log("profileService.uploadAvatar resposta da API:", resposta);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+      console.error("profileService.uploadAvatar erro:", erro);
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao fazer upload do avatar' };
     }
   },
   // Deletar perfil
-  async deleteProfile(userId) {
-    console.log("profileService.deleteProfile called with:", userId);
+  async deleteProfile(idUsuario) {
+    console.log("profileService.deleteProfile chamado com:", idUsuario);
     try {
-      const response = await api.delete(`/profiles/${userId}`);
-      console.log("profileService.deleteProfile API response:", response);
-      return { success: true, data: response.data };
-    } catch (error) {
-      console.error("profileService.deleteProfile error:", error);
-      return { success: false, error: error.response?.data?.detail || 'Erro ao deletar perfil' };
+      const resposta = await api.delete(`/profiles/${idUsuario}`);
+      console.log("profileService.deleteProfile resposta da API:", resposta);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+      console.error("profileService.deleteProfile erro:", erro);
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao deletar perfil' };
     }
   },
   // Remover avatar
-  async removeAvatar(userId) {
-    console.log("profileService.removeAvatar called with:", userId);
+  async removeAvatar(idUsuario) {
+    console.log("profileService.removeAvatar chamado com:", idUsuario);
     try {
-      const response = await api.delete(`/profiles/${userId}/avatar`);
-      console.log("profileService.removeAvatar API response:", response);
-      return { success: true, data: response.data };
-    } catch (error) {
-      console.error("profileService.removeAvatar error:", error);
-      return { success: false, error: error.response?.data?.detail || 'Erro ao remover avatar' };
+      const resposta = await api.delete(`/profiles/${idUsuario}/avatar`);
+      console.log("profileService.removeAvatar resposta da API:", resposta);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+      console.error("profileService.removeAvatar erro:", erro);
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao remover avatar' };
     }
   }
 };
@@ -432,182 +432,182 @@ export const profileService = {
 // Serviço para buscar em APIs externas
 export const externalApiService = {
   // Buscar livros na Google Books API
-  async searchBooks(query) {
-	console.log("externalApiService.searchBooks called with:", query);
+  async searchBooks(consulta) {
+	console.log("externalApiService.searchBooks chamado com:", consulta);
     try {
-      const response = await api.get(`/books/search?query=${encodeURIComponent(query)}`);
-	  console.log("externalApiService.searchBooks API response:", response);
-      return { success: true, data: response.data };
-    } catch (error) {
-      return { success: false, error: error.response?.data?.detail || 'Erro ao buscar livros (API externa)' };
+      const resposta = await api.get(`/books/search?query=${encodeURIComponent(consulta)}`);
+	  console.log("externalApiService.searchBooks resposta da API:", resposta);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao buscar livros (API externa)' };
     }
   },
-  async getBooksFromBackend(query) {
+  async getBooksFromBackend(consulta) {
     try {
-      const response = await api.get(`/books/search?query=${encodeURIComponent(query)}`);
-      return { success: true, data: response.data };
-    } catch (error) {
-      return { success: false, error: error.response?.data?.detail || 'Erro ao buscar livros (backend)' };
+      const resposta = await api.get(`/books/search?query=${encodeURIComponent(consulta)}`);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao buscar livros (backend)' };
     }
   },
-  async getMoviesFromBackend(query, options = {}) {
+  async getMoviesFromBackend(consulta, opcoes = {}) {
     try {
       const params = new URLSearchParams();
-      params.set('query', query);
-      if (options.limit) params.set('limit', options.limit);
-      if (options.start_year) params.set('start_year', options.start_year);
-      if (options.end_year) params.set('end_year', options.end_year);
-      if (options.genre) params.set('genre', options.genre);
-      if (options.sort_by) params.set('sort_by', options.sort_by);
-      if (options.sort_order) params.set('sort_order', options.sort_order);
+      params.set('query', consulta);
+      if (opcoes.limit) params.set('limit', opcoes.limit);
+      if (opcoes.start_year) params.set('start_year', opcoes.start_year);
+      if (opcoes.end_year) params.set('end_year', opcoes.end_year);
+      if (opcoes.genre) params.set('genre', opcoes.genre);
+      if (opcoes.sort_by) params.set('sort_by', opcoes.sort_by);
+      if (opcoes.sort_order) params.set('sort_order', opcoes.sort_order);
 
-      const response = await api.get(`/movies?${params.toString()}`);
-      return { success: true, data: response.data };
-    } catch (error) {
-      return { success: false, error: error.response?.data?.detail || 'Erro ao buscar filmes (backend)' };
+      const resposta = await api.get(`/movies?${params.toString()}`);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao buscar filmes (backend)' };
     }
   },
-  async getUserLibrary(userId) {
+  async getUserLibrary(idUsuario) {
     try {
-      const response = await api.get(`/users/${userId}/library`);
-      return { success: true, data: response.data };
-    } catch (error) {
-      return { success: false, error: error.response?.data?.detail || 'Erro ao buscar biblioteca' };
+      const resposta = await api.get(`/users/${idUsuario}/library`);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao buscar biblioteca' };
     }
   },
-  async getUserMovieLibrary(userId) {
+  async getUserMovieLibrary(idUsuario) {
     try {
-      const response = await api.get(`/users/${userId}/library/movies`);
-      return { success: true, data: response.data };
-    } catch (error) {
-      return { success: false, error: error.response?.data?.detail || 'Erro ao buscar biblioteca de filmes' };
+      const resposta = await api.get(`/users/${idUsuario}/library/movies`);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao buscar biblioteca de filmes' };
     }
   },
   // Adicionar livro à biblioteca do usuário
-  async addBookToLibrary(bookId) {
-    console.log("externalApiService.addBookToLibrary called with:", bookId);
+  async addBookToLibrary(idLivro) {
+    console.log("externalApiService.addBookToLibrary chamado com:", idLivro);
     try {
-      const response = await api.post(`/library/add`, { book_id: bookId });
-      console.log("externalApiService.addBookToLibrary API response:", response);
-      return { success: true, data: response.data };
-    } catch (error) {
-      console.error("externalApiService.addBookToLibrary error:", error);
-      const detail = error.response?.data?.detail;
-      let message;
-      if (typeof detail === 'string') {
-        message = detail;
-      } else if (Array.isArray(detail) && detail.length) {
-        const first = detail[0];
-        message = first?.msg || first?.detail || 'Erro ao adicionar livro à biblioteca';
+      const resposta = await api.post(`/library/add`, { book_id: idLivro });
+      console.log("externalApiService.addBookToLibrary resposta da API:", resposta);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+      console.error("externalApiService.addBookToLibrary erro:", erro);
+      const detalhe = erro.response?.data?.detail;
+      let mensagem;
+      if (typeof detalhe === 'string') {
+        mensagem = detalhe;
+      } else if (Array.isArray(detalhe) && detalhe.length) {
+        const primeiro = detalhe[0];
+        mensagem = primeiro?.msg || primeiro?.detail || 'Erro ao adicionar livro à biblioteca';
       } else {
-        message = error.message || 'Erro ao adicionar livro à biblioteca';
+        mensagem = erro.message || 'Erro ao adicionar livro à biblioteca';
       }
-      return { success: false, error: message };
+      return { success: false, error: mensagem };
     }
   },
   // Remover livro da biblioteca do usuário
-  async removeBookFromLibrary(bookId) {
-    console.log("externalApiService.removeBookFromLibrary called with:", bookId);
+  async removeBookFromLibrary(idLivro) {
+    console.log("externalApiService.removeBookFromLibrary chamado com:", idLivro);
     try {
-      const response = await api.delete(`/library/remove?book_id=${encodeURIComponent(bookId)}`);
-      console.log("externalApiService.removeBookFromLibrary API response:", response);
-      return { success: true, data: response.data };
-    } catch (error) {
-      console.error("externalApiService.removeBookFromLibrary error:", error);
-      const detail = error.response?.data?.detail;
-      let message;
-      if (typeof detail === 'string') {
-        message = detail;
-      } else if (Array.isArray(detail) && detail.length) {
-        const first = detail[0];
-        message = first?.msg || first?.detail || 'Erro ao remover livro da biblioteca';
+      const resposta = await api.delete(`/library/remove?book_id=${encodeURIComponent(idLivro)}`);
+      console.log("externalApiService.removeBookFromLibrary resposta da API:", resposta);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+      console.error("externalApiService.removeBookFromLibrary erro:", erro);
+      const detalhe = erro.response?.data?.detail;
+      let mensagem;
+      if (typeof detalhe === 'string') {
+        mensagem = detalhe;
+      } else if (Array.isArray(detalhe) && detalhe.length) {
+        const primeiro = detalhe[0];
+        mensagem = primeiro?.msg || primeiro?.detail || 'Erro ao remover livro da biblioteca';
       } else {
-        message = error.message || 'Erro ao remover livro da biblioteca';
+        mensagem = erro.message || 'Erro ao remover livro da biblioteca';
       }
-      return { success: false, error: message };
+      return { success: false, error: mensagem };
     }
   },
   // Adicionar filme à biblioteca do usuário
-  async addMovieToLibrary(movieId) {
-    console.log("externalApiService.addMovieToLibrary called with:", movieId);
+  async addMovieToLibrary(idFilme) {
+    console.log("externalApiService.addMovieToLibrary chamado com:", idFilme);
     try {
-      const response = await api.post(`/library/movies/add`, { movie_id: movieId });
-      console.log("externalApiService.addMovieToLibrary API response:", response);
-      return { success: true, data: response.data };
-    } catch (error) {
-      console.error("externalApiService.addMovieToLibrary error:", error);
-      const detail = error.response?.data?.detail;
-      let message;
-      if (typeof detail === 'string') {
-        message = detail;
-      } else if (Array.isArray(detail) && detail.length) {
-        const first = detail[0];
-        message = first?.msg || first?.detail || 'Erro ao adicionar filme à biblioteca';
+      const resposta = await api.post(`/library/movies/add`, { movie_id: idFilme });
+      console.log("externalApiService.addMovieToLibrary resposta da API:", resposta);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+      console.error("externalApiService.addMovieToLibrary erro:", erro);
+      const detalhe = erro.response?.data?.detail;
+      let mensagem;
+      if (typeof detalhe === 'string') {
+        mensagem = detalhe;
+      } else if (Array.isArray(detalhe) && detalhe.length) {
+        const primeiro = detalhe[0];
+        mensagem = primeiro?.msg || primeiro?.detail || 'Erro ao adicionar filme à biblioteca';
       } else {
-        message = error.message || 'Erro ao adicionar filme à biblioteca';
+        mensagem = erro.message || 'Erro ao adicionar filme à biblioteca';
       }
-      return { success: false, error: message };
+      return { success: false, error: mensagem };
     }
   },
   // Remover filme da biblioteca do usuário
-  async removeMovieFromLibrary(movieId) {
-    console.log("externalApiService.removeMovieFromLibrary called with:", movieId);
+  async removeMovieFromLibrary(idFilme) {
+    console.log("externalApiService.removeMovieFromLibrary chamado com:", idFilme);
     try {
-      const response = await api.delete(`/library/movies/remove?movie_id=${encodeURIComponent(movieId)}`);
-      console.log("externalApiService.removeMovieFromLibrary API response:", response);
-      return { success: true, data: response.data };
-    } catch (error) {
-      console.error("externalApiService.removeMovieFromLibrary error:", error);
-      const detail = error.response?.data?.detail;
-      let message;
-      if (typeof detail === 'string') {
-        message = detail;
-      } else if (Array.isArray(detail) && detail.length) {
-        const first = detail[0];
-        message = first?.msg || first?.detail || 'Erro ao remover filme da biblioteca';
+      const resposta = await api.delete(`/library/movies/remove?movie_id=${encodeURIComponent(idFilme)}`);
+      console.log("externalApiService.removeMovieFromLibrary resposta da API:", resposta);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+      console.error("externalApiService.removeMovieFromLibrary erro:", erro);
+      const detalhe = erro.response?.data?.detail;
+      let mensagem;
+      if (typeof detalhe === 'string') {
+        mensagem = detalhe;
+      } else if (Array.isArray(detalhe) && detalhe.length) {
+        const primeiro = detalhe[0];
+        mensagem = primeiro?.msg || primeiro?.detail || 'Erro ao remover filme da biblioteca';
       } else {
-        message = error.message || 'Erro ao remover filme da biblioteca';
+        mensagem = erro.message || 'Erro ao remover filme da biblioteca';
       }
-      return { success: false, error: message };
+      return { success: false, error: mensagem };
     }
   },
   // Buscar filme por ID (external_id)
-  async getMovieById(externalId) {
-    console.log("externalApiService.getMovieById called with:", externalId);
+  async getMovieById(idExterno) {
+    console.log("externalApiService.getMovieById chamado com:", idExterno);
     try {
-      const response = await api.get(`/movies/${externalId}`);
-      console.log("externalApiService.getMovieById API response:", response);
-      return { success: true, data: response.data };
-    } catch (error) {
-      console.error("externalApiService.getMovieById error:", error);
-      return { success: false, error: error.response?.data?.detail || 'Erro ao buscar filme' };
+      const resposta = await api.get(`/movies/${idExterno}`);
+      console.log("externalApiService.getMovieById resposta da API:", resposta);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+      console.error("externalApiService.getMovieById erro:", erro);
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao buscar filme' };
     }
   },
   // Buscar livro por ID (external_id)
-  async getBookById(externalId) {
-    console.log("externalApiService.getBookById called with:", externalId);
+  async getBookById(idExterno) {
+    console.log("externalApiService.getBookById chamado com:", idExterno);
     try {
-      const response = await api.get(`/books/${externalId}`);
-      console.log("externalApiService.getBookById API response:", response);
-      return { success: true, data: response.data };
-    } catch (error) {
-      console.error("externalApiService.getBookById error:", error);
-      return { success: false, error: error.response?.data?.detail || 'Erro ao buscar livro' };
+      const resposta = await api.get(`/books/${idExterno}`);
+      console.log("externalApiService.getBookById resposta da API:", resposta);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+      console.error("externalApiService.getBookById erro:", erro);
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao buscar livro' };
     }
   },
 };
 
 // Serviço para avaliações
 export const reviewService = {
-  async getUserReviews(userId) {
-    console.log("reviewService.getUserReviews called with:", userId);
+  async getUserReviews(idUsuario) {
+    console.log("reviewService.getUserReviews chamado com:", idUsuario);
     try {
-      const response = await api.get(`/users/${userId}/reviews`);
-      console.log("externalApiService.getUserLibrary API response:", response);
-      return { success: true, data: response.data };
-    } catch (error) {
-      console.error("externalApiService.getUserLibrary error:", error);
-      return { success: false, error: error.response?.data?.detail || 'Erro ao buscar biblioteca' };
+      const resposta = await api.get(`/users/${idUsuario}/reviews`);
+      console.log("externalApiService.getUserLibrary resposta da API:", resposta);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+      console.error("externalApiService.getUserLibrary erro:", erro);
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao buscar biblioteca' };
     }
   }
 };

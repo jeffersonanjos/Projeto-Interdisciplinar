@@ -43,36 +43,36 @@ def get_password_hash(password: str) -> str:
 
 def get_user_by_username(session: Session, username: str) -> Optional[User]:
     """Busca usuário pelo username"""
-    logger.info(f"Getting user by username: {username}")
+    logger.info(f"Buscando usuário por username: {username}")
     return session.exec(select(User).where(User.username == username)).first()
 
 def authenticate_user(session: Session, username: str, password: str) -> Optional[User]:
     """Autentica o usuário"""
-    logger.info(f"Authenticating user: {username}")
-    user = get_user_by_username(session, username)
-    if not user:
-        logger.warning(f"User {username} not found")
+    logger.info(f"Autenticando usuário: {username}")
+    usuario = get_user_by_username(session, username)
+    if not usuario:
+        logger.warning(f"Usuário {username} não encontrado")
         return None
-    if not verify_password(password, user.hashed_password):
-        logger.warning(f"Invalid password for user: {username}")
+    if not verify_password(password, usuario.hashed_password):
+        logger.warning(f"Senha inválida para usuário: {username}")
         return None
-    logger.info(f"User {username} authenticated successfully")
-    return user
+    logger.info(f"Usuário {username} autenticado com sucesso")
+    return usuario
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+def create_access_token(dados: dict, expires_delta: Optional[timedelta] = None):
     """Cria token JWT"""
-    to_encode = data.copy()
+    para_codificar = dados.copy()
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expira = datetime.utcnow() + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=15)
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
+        expira = datetime.utcnow() + timedelta(minutes=15)
+    para_codificar.update({"exp": expira})
+    jwt_codificado = jwt.encode(para_codificar, SECRET_KEY, algorithm=ALGORITHM)
+    return jwt_codificado
 
 async def get_current_user(token: str = Depends(oauth2_scheme), session: Session = Depends(get_session)) -> User:
     """Obtém o usuário atual baseado no token"""
-    credentials_exception = HTTPException(
+    excecao_credenciais = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
@@ -81,18 +81,18 @@ async def get_current_user(token: str = Depends(oauth2_scheme), session: Session
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
         if username is None:
-            logger.warning("Token payload does not contain username")
-            raise credentials_exception
-        token_data = TokenData(username=username)
+            logger.warning("Payload do token não contém username")
+            raise excecao_credenciais
+        dados_token = TokenData(username=username)
     except JWTError as e:
-        logger.exception("JWTError during token decoding")
-        raise credentials_exception
+        logger.exception("JWTError durante decodificação do token")
+        raise excecao_credenciais
     
-    user = get_user_by_username(session, username=token_data.username)
-    if user is None:
-        logger.warning(f"User {username} not found during token validation")
-        raise credentials_exception
-    return user
+    usuario = get_user_by_username(session, username=dados_token.username)
+    if usuario is None:
+        logger.warning(f"Usuário {username} não encontrado durante validação do token")
+        raise excecao_credenciais
+    return usuario
 
 async def get_current_active_user(current_user: User = Depends(get_current_user)) -> User:
     """Obtém o usuário ativo atual"""
