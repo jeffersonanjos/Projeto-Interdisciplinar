@@ -84,7 +84,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme), session: Session
             logger.warning("Payload do token não contém username")
             raise excecao_credenciais
         dados_token = TokenData(username=username)
-    except JWTError as e:
+    except JWTError:
         logger.exception("JWTError durante decodificação do token")
         raise excecao_credenciais
     

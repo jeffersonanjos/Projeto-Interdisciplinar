@@ -5,7 +5,7 @@ from datetime import timedelta
 import logging
 from urllib.parse import quote_plus
 
-from models import User, Book as DBBook, Movie as DBMovie, Rating, Recommendation, UserLibrary, UserMovieLibrary, Follow
+from models import User, Book as DBBook, Movie as DBMovie, Rating, UserLibrary, UserMovieLibrary, Follow
 from sqlmodel import Session, select
 from sqlalchemy import func
 
@@ -14,10 +14,8 @@ from schemas import Book, Movie, BookRead
 from database import get_session
 from schemas import (
     UserCreate, UserRead, UserUpdate,
-    BookCreate, BookRead, BookUpdate,
-    MovieCreate, MovieRead, MovieUpdate,
     RatingCreate, RatingRead, RatingUpdate,
-    RecommendationRead, UserLogin, Token
+    UserLogin, Token
 )
 from auth import (
     authenticate_user, create_access_token, 
@@ -110,7 +108,7 @@ def _omdb_title_to_movie(item: Dict[str, Any]) -> Optional[Movie]:
     
     # Se não temos URL válida e temos IMDb ID, tentar TMDb
     if not caminho_poster and imdb_id:
-        poster_tmdb = buscar_poster_filme_tmdb(id_imdb)
+        poster_tmdb = buscar_poster_filme_tmdb(imdb_id)
         if poster_tmdb:
             caminho_poster = poster_tmdb
     
@@ -283,11 +281,14 @@ async def search_movies(
 @router.get("/movies/{external_id}", response_model=Movie, tags=["movies"])
 async def get_movie(external_id: str, session: Session = Depends(get_session)):
     logger.info(f"get_movie chamado com external_id: {external_id}")
-    dados_filme = buscar_detalhes_filme(id_externo)
+    dados_filme = buscar_detalhes_filme(external_id)
     if not dados_filme:
         raise HTTPException(status_code=404, detail="Filme não encontrado")
 
-    return _omdb_title_to_movie(dados_filme)
+    filme = _omdb_title_to_movie(dados_filme)
+    if not filme:
+        raise HTTPException(status_code=404, detail="Filme não encontrado")
+    return filme
 
 @router.post("/users/", response_model=UserRead, status_code=status.HTTP_201_CREATED, tags=["users"])
 def create_user(usuario: UserCreate, session: Session = Depends(get_session)):
@@ -900,7 +901,7 @@ async def get_user_ratings(user_id: int, session: Session = Depends(get_session)
     return avaliacoes_com_id_externo
 
 @router.get("/books", response_model=List[Book])
-async def search_books(consulta: str):
+async def search_books_public_api(consulta: str):
     logger.info(f"Buscando livros com consulta: {consulta} (API externa)")
     """Busca livros usando a API do Google Books."""
     dados_livros = buscar_dados_livro(consulta)
@@ -1435,10 +1436,11 @@ async def get_movie_recommendations(user_id: int, session: Session = Depends(get
     
     for external_id in library_movie_ids:
         try:
-            movie_data = buscar_detalhes_filme(id_externo)
+            movie_data = buscar_detalhes_filme(external_id)
             if movie_data:
                 movie_obj = _omdb_title_to_movie(movie_data)
-                library_movies.append(movie_obj)
+                if movie_obj:
+                    library_movies.append(movie_obj)
                 # Coletar gêneros do filme
                 # OMDb retorna gêneros como string separada por vírgulas
                 genres_str = movie_data.get("Genre") or movie_data.get("genre", "")
@@ -1470,10 +1472,11 @@ async def get_movie_recommendations(user_id: int, session: Session = Depends(get
                     if movie_id and movie_id not in seen_movie_ids:
                         # Verificar se o filme tem o gênero desejado
                         movie_genres_str = movie_item.get("Genre", "")
-                        if genre.lower() in movie_genres_str.lower():
+                        if movie_genres_str and genre.lower() in movie_genres_str.lower():
                             seen_movie_ids.add(movie_id)
                             movie_obj = _omdb_title_to_movie(movie_item)
-                            recommended_movies.append(movie_obj)
+                            if movie_obj:
+                                recommended_movies.append(movie_obj)
                             
                             if len(recommended_movies) >= 30:
                                 break
@@ -1496,7 +1499,8 @@ async def get_movie_recommendations(user_id: int, session: Session = Depends(get
                         if movie_id and movie_id not in seen_movie_ids:
                             seen_movie_ids.add(movie_id)
                             movie_obj = _omdb_title_to_movie(movie_item)
-                            recommended_movies.append(movie_obj)
+                            if movie_obj:
+                                recommended_movies.append(movie_obj)
                             
                             if len(recommended_movies) >= 30:
                                 break

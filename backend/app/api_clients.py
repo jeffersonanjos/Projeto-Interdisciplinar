@@ -74,7 +74,6 @@ def _request_omdb(params: Dict[str, Any] | None = None) -> Dict[str, Any]:
     params.setdefault("r", "json")  # Retornar formato JSON
 
     url = OMDB_BASE_URL
-    last_error: Optional[Exception] = None
     payload: Any = {}
     for attempt in range(3):
         try:
@@ -83,7 +82,6 @@ def _request_omdb(params: Dict[str, Any] | None = None) -> Dict[str, Any]:
             payload = response.json()
             break
         except requests.exceptions.RequestException as exc:
-            last_error = exc
             logger.warning(
                 "OMDb API request failed (%s) attempt %s/3: %s",
                 url,

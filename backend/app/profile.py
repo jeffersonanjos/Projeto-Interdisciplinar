@@ -1,12 +1,10 @@
 # app/profile.py
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
-from fastapi.responses import FileResponse
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlmodel import Session, select
 from database import get_session
 from models import User, UserProfile, Rating, UserLibrary, Recommendation
 from typing import Optional
 from pydantic import BaseModel
-import os
 import shutil
 import uuid
 from pathlib import Path

@@ -433,7 +433,7 @@ const Library = () => {
                     <circle cx="0" cy="-5" r="8" fill="none" stroke="#cbd5e0" stroke-width="2"/>
                     <path d="M-15,10 L0,25 L15,10" fill="none" stroke="#cbd5e0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                   </g>
-                  <text x="100" y="200" font-family="Arial, sans-serif" font-size="14" fill="#cbd5e0" text-anchor="middle">${title.length > 20 ? title.substring(0, 20) + '...' : title}</text>
+                  <text x="100" y="200" font-family="Arial, sans-serif" font-size="14" fill="#cbd5e0" text-anchor="middle">${titulo.length > 20 ? titulo.substring(0, 20) + '...' : titulo}</text>
                 </svg>
               `;
               return `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svg)))}`;

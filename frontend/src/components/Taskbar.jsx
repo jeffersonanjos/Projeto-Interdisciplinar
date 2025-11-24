@@ -326,7 +326,10 @@ const Taskbar = ({ user: usuario, metrics: metricas, timeline: linhaDoTempo, fol
       console.error("Profile lidarComDeletarPerfil erro:", erro);
     }
   };
-
+  
+  // Alias para compatibilidade com hot reload que ainda referencia handleDeleteProfile
+  const handleDeleteProfile = lidarComDeletarPerfil;
+  
   const lidarComEditarConta = () => {
     setEditandoConta(true);
     setDadosFormularioConta({
@@ -1066,7 +1069,7 @@ const Taskbar = ({ user: usuario, metrics: metricas, timeline: linhaDoTempo, fol
 
                       <div className="profile-actions">
                         <button 
-                          onClick={handleDeleteProfile} 
+                          onClick={lidarComDeletarPerfil} 
                           className="delete-profile-button"
                         >
                           Deletar Conta

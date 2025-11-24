@@ -258,7 +258,7 @@ export const userService = {
   async searchUsers(consulta, limite = 10) {
     console.log("userService.searchUsers chamado com:", consulta);
     try {
-      const resposta = await api.get(`/users/search?query=${encodeURIComponent(consulta)}&limit=${limite}`);
+      const resposta = await api.get(`/users/search?consulta=${encodeURIComponent(consulta)}&limit=${limite}`);
       console.log("userService.searchUsers resposta da API:", resposta);
       return { success: true, data: resposta.data };
     } catch (erro) {

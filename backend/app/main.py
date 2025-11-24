@@ -59,7 +59,6 @@ if os.path.exists("uploads/avatars"):
 @app.get("/")
 def root():
     logger.info("Endpoint raiz chamado")
-    import uvicorn
     port = int(os.environ.get("PORT", 8001))  # Porta padrão é 8001
     logger.info(f"A porta sendo usada é: {port}")
     logger.info(f"Aplicação rodando na porta: {port}")
