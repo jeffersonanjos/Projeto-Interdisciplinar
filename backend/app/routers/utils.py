@@ -2,8 +2,9 @@
 Funções auxiliares compartilhadas entre os routers.
 """
 from typing import Optional, Dict, Any
-from core.schemas import Movie
-from services.api_clients import buscar_poster_filme_tmdb, buscar_detalhes_filme
+import re
+from core.schemas import Movie, BookRead
+from services.api_clients import buscar_poster_filme_tmdb
 
 VALID_OMDB_SORT = {
     "SORT_BY_POPULARITY",
@@ -113,5 +114,34 @@ def omdb_title_to_movie(item: Dict[str, Any]) -> Optional[Movie]:
         genres=generos if generos else None,
         director=diretor,
         cast=elenco if elenco else None,
+    )
+
+
+def google_book_to_bookread(livro: Dict[str, Any]) -> BookRead:
+    """
+    Converte resposta da API do Google Books para schema BookRead.
+    Função utilitária para evitar duplicação de código.
+    """
+    info_volume = livro.get("volumeInfo", {})
+    
+    # Extrair gêneros do campo categories da API do Google Books
+    categorias = info_volume.get("categories", [])
+    generos = categorias if isinstance(categorias, list) else []
+    
+    # Extrair ano de publicação
+    data_publicacao = info_volume.get("publishedDate", "")
+    # Se for uma data completa, extrair apenas o ano
+    if data_publicacao:
+        correspondencia_ano = re.search(r'(\d{4})', data_publicacao) if isinstance(data_publicacao, str) else None
+        data_publicacao = correspondencia_ano.group(1) if correspondencia_ano else data_publicacao
+    
+    return BookRead(
+        id=livro.get("id", "N/A"),
+        title=info_volume.get("title", "N/A"),
+        authors=info_volume.get("authors", ["N/A"]),
+        description=info_volume.get("description", "N/A"),
+        image_url=info_volume.get("imageLinks", {}).get("thumbnail", None),
+        genres=generos if generos else None,
+        published_date=data_publicacao if data_publicacao else None,
     )
 

@@ -1,4 +1,7 @@
-# app/routers/user_reviews.py
+"""
+Rotas relacionadas a avaliações de usuários (UserReview).
+Diferente de ratings que são avaliações de livros/filmes.
+"""
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 from core.models import User, UserReview
@@ -16,7 +19,6 @@ def create_user_review(
     comment: Optional[str] = None,
     session: Session = Depends(get_session)
 ):
-    print(f"Criando avaliação: author_user_id={author_user_id}, target_user_id={target_user_id}, rating={rating}, comment={comment}")
     if not 1 <= rating <= 5:
         raise HTTPException(status_code=400, detail="Avaliação deve estar entre 1 e 5")
     if author_user_id == target_user_id:

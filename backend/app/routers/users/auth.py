@@ -7,12 +7,10 @@ from datetime import timedelta
 import logging
 
 from sqlmodel import Session
-from core.models import User
 from core.schemas import UserLogin, Token
 from core.database import get_session
 from core.auth import (
     authenticate_user, create_access_token,
-    get_current_active_user, get_password_hash,
     ACCESS_TOKEN_EXPIRE_MINUTES
 )
 

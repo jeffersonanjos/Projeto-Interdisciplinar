@@ -1,8 +1,7 @@
 """
-Rotas relacionadas a avaliações (ratings).
+Rotas CRUD de avaliações (ratings).
 """
 from fastapi import APIRouter, HTTPException, Depends, status, Response
-from typing import List, Dict, Any
 import logging
 
 from sqlmodel import Session, select
@@ -12,7 +11,7 @@ from core.database import get_session
 from core.auth import get_current_active_user
 from services.api_clients import buscar_detalhes_filme
 from services.google_books import obter_livro_por_id
-from .utils import omdb_title_to_movie
+from ..utils import omdb_title_to_movie
 
 logger = logging.getLogger(__name__)
 
@@ -162,33 +161,4 @@ async def delete_rating(
     session.delete(avaliacao_db)
     session.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
-
-
-@router.get("/users/{user_id}/ratings", response_model=List[Dict[str, Any]])
-async def get_user_ratings(user_id: int, session: Session = Depends(get_session)):
-    logger.info(f"Obtendo avaliações para usuário: {user_id}")
-    avaliacoes = session.exec(select(Rating).where(Rating.user_id == user_id)).all()
-    avaliacoes_com_id_externo = []
-    for avaliacao in avaliacoes:
-        dicionario_avaliacao = {
-            "id": avaliacao.id,
-            "user_id": avaliacao.user_id,
-            "book_id": avaliacao.book_id,
-            "movie_id": avaliacao.movie_id,
-            "score": avaliacao.score,
-            "comment": avaliacao.comment,
-            "created_at": avaliacao.created_at,
-            "book_external_id": None,
-            "movie_external_id": None,
-        }
-        if avaliacao.book_id:
-            livro_db = session.get(DBBook, avaliacao.book_id)
-            if livro_db and livro_db.external_id:
-                dicionario_avaliacao["book_external_id"] = livro_db.external_id
-        if avaliacao.movie_id:
-            filme_db = session.get(DBMovie, avaliacao.movie_id)
-            if filme_db and filme_db.external_id:
-                dicionario_avaliacao["movie_external_id"] = filme_db.external_id
-        avaliacoes_com_id_externo.append(dicionario_avaliacao)
-    return avaliacoes_com_id_externo
 
