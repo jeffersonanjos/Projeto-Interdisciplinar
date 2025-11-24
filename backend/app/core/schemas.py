@@ -158,3 +158,4 @@ class Movie(BaseModel):
 
     class Config:
         orm_mode = True
+

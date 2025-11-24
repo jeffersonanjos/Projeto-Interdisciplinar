@@ -45,3 +45,4 @@ def obter_livro_por_id(id_livro):
     except requests.exceptions.RequestException as erro:
         print(f"Erro durante requisição à API do Google Books: {erro}")
         return None
+

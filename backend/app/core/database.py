@@ -21,3 +21,4 @@ def get_session() -> Generator[Session, None, None]:
     with Session(engine) as session:
         logger.info("Sessão do banco de dados criada")
         yield session
+

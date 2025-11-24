@@ -1,14 +1,14 @@
-# app/profile.py
+# app/routers/profile.py
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlmodel import Session, select
-from database import get_session
-from models import User, UserProfile, Rating, UserLibrary, Recommendation
+from core.database import get_session
+from core.models import User, UserProfile, Rating, UserLibrary, Recommendation
 from typing import Optional
 from pydantic import BaseModel
 import shutil
 import uuid
 from pathlib import Path
-from auth import get_current_active_user
+from core.auth import get_current_active_user
 import logging
 
 logger = logging.getLogger(__name__)
@@ -218,3 +218,4 @@ async def delete_profile(
     session.commit()
     
     return {"message": "Perfil e conta deletados com sucesso"}
+

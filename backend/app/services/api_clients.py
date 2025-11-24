@@ -251,3 +251,4 @@ def buscar_detalhes_filme(id_filme: str) -> Dict[str, Any]:
             if titulo.get("imdbID") == id_filme:
                 return titulo
     return {}
+

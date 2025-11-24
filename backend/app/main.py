@@ -3,11 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from routers import router as api_router
-from database import create_db_and_tables
-
-#  importa as novas rotas
-from profile import router as profile_router
-from user_reviews import router as user_reviews_router
+from core.database import create_db_and_tables
 import logging
 import os
 
@@ -45,10 +41,8 @@ def on_startup():
     logger.info(f"Variáveis de ambiente: {os.environ}")
 
 
-#  Inclui as rotas principais e as novas funcionalidades
+#  Inclui todas as rotas (agregadas no router principal)
 app.include_router(api_router)
-app.include_router(profile_router)
-app.include_router(user_reviews_router)
 logger.info("Rotas incluídas")
 
 # Servir arquivos estáticos (avatares)

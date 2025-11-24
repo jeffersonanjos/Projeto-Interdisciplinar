@@ -7,9 +7,9 @@ from sqlmodel import Session, select
 import bcrypt
 import logging
 
-from models import User
-from database import get_session
-from schemas import TokenData
+from core.models import User
+from core.database import get_session
+from core.schemas import TokenData
 
 # Configurações
 SECRET_KEY = "your-secret-key-change-in-production"  # Em produção, use uma chave segura
@@ -97,3 +97,4 @@ async def get_current_user(token: str = Depends(oauth2_scheme), session: Session
 async def get_current_active_user(current_user: User = Depends(get_current_user)) -> User:
     """Obtém o usuário ativo atual"""
     return current_user
+

@@ -1,8 +1,8 @@
-# app/user_reviews.py
+# app/routers/user_reviews.py
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
-from models import User, UserReview
-from database import get_session
+from core.models import User, UserReview
+from core.database import get_session
 from typing import List, Optional
 
 router = APIRouter(prefix="/user-reviews", tags=["Avaliações de Usuários"])
@@ -50,3 +50,4 @@ def get_reviews_for_user(user_id: int, session: Session = Depends(get_session)):
 def get_reviews_by_user(user_id: int, session: Session = Depends(get_session)):
     reviews = session.exec(select(UserReview).where(UserReview.author_user_id == user_id)).all()
     return reviews
+
