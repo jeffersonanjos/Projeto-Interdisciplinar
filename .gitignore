@@ -28,6 +28,7 @@ logs/
 # ---- Sistema ----
 .DS_Store
 Thumbs.db
+backend/app/uploads/avatars/
 
 # ---- Node ----
 node_modules/

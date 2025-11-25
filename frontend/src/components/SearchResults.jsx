@@ -11,9 +11,7 @@ const SearchResults = ({ results, type }) => {
   const { notificarAtualizacaoBiblioteca } = useUpdate();
   const [mostrarModalDetalhes, setMostrarModalDetalhes] = useState(false);
   const [itemDetalhesSelecionado, setItemDetalhesSelecionado] = useState(null);
-  if (!results || results.length === 0) {
-    return <p>Nenhum resultado encontrado.</p>;
-  }
+  const safeResults = Array.isArray(results) ? results : [];
 
   const handleAddToLibrary = async (item) => {
     const ehLivro = type === 'book';
@@ -34,6 +32,7 @@ const SearchResults = ({ results, type }) => {
   };
 
   const ehLivro = type === 'book';
+  const semResultados = safeResults.length === 0;
   // Placeholder SVG melhorado e mais bonito
   const criarCapaPadrao = (titulo = 'Sem Imagem') => {
     const svg = `
@@ -96,7 +95,7 @@ const SearchResults = ({ results, type }) => {
     const vistos = new Set();
     const filtrados = [];
     
-    for (const resultado of results) {
+    for (const resultado of safeResults) {
       // Criar uma chave única para detecção de duplicatas
       const id = resultado.id || resultado.external_id;
       const chaveUnica = id ? `${type}-${id}` : null;
@@ -130,103 +129,112 @@ const SearchResults = ({ results, type }) => {
     }
     
     return filtrados;
-  }, [results, type, ehLivro]);
+  }, [safeResults, type, ehLivro]);
 
   return (
     <div className="search-results-container">
-      <div className="book-grid library-compact">
-        {resultadosFiltrados.map((resultado, indice) => {
-          const autores =
-            Array.isArray(resultado.authors) ? resultado.authors.join(', ') : (resultado.authors || 'Autor desconhecido');
-          const imagemCapa = ehLivro ? (resultado.image_url || capaPadrao) : (resultado.poster_path || capaPadrao);
-          // Usar uma chave única combinando tipo e ID, com fallback para índice
-          const chaveUnica = `${type}-${resultado.id || resultado.external_id || indice}`;
-          return (
-            <div key={chaveUnica} className="book-item">
-              <img 
-                src={imagemCapa} 
-                alt={resultado.title} 
-                className="book-cover"
-                onError={(e) => handleImageError(e, resultado)}
-                onClick={() => {
-                  setItemDetalhesSelecionado({ ...resultado, type });
-                  setMostrarModalDetalhes(true);
-                }}
-                style={{ cursor: 'pointer' }}
-              />
-              <div 
-                className="book-content"
-                onClick={() => {
-                  setItemDetalhesSelecionado({ ...resultado, type });
-                  setMostrarModalDetalhes(true);
-                }}
-                style={{ cursor: 'pointer', flex: 1 }}
-              >
-                <h3 className="book-title">{resultado.title || 'Sem título'}</h3>
-                {ehLivro ? (
-                  <p className="book-authors">Autores: {autores}</p>
-                ) : (
-                  <p className="book-authors">
-                    {resultado.release_date ? `Lançamento: ${resultado.release_date}` : 'Sem data'}
-                    {resultado.rating && (
-                      <span> • Nota IMDb: {
-                        typeof resultado.rating === 'number' 
-                          ? resultado.rating.toFixed(1) 
-                          : (resultado.rating?.score ? resultado.rating.score.toFixed(1) : resultado.rating)
-                      }</span>
+      {semResultados ? (
+        <div className="empty-search-results">
+          <p>Nenhum {ehLivro ? 'livro' : 'filme'} encontrado.</p>
+          <p>Tente buscar novamente com outro termo.</p>
+        </div>
+      ) : (
+        <>
+          <div className="book-grid library-compact">
+            {resultadosFiltrados.map((resultado, indice) => {
+              const autores =
+                Array.isArray(resultado.authors) ? resultado.authors.join(', ') : (resultado.authors || 'Autor desconhecido');
+              const imagemCapa = ehLivro ? (resultado.image_url || capaPadrao) : (resultado.poster_path || capaPadrao);
+              // Usar uma chave única combinando tipo e ID, com fallback para índice
+              const chaveUnica = `${type}-${resultado.id || resultado.external_id || indice}`;
+              return (
+                <div key={chaveUnica} className="book-item">
+                  <img 
+                    src={imagemCapa} 
+                    alt={resultado.title} 
+                    className="book-cover"
+                    onError={(e) => handleImageError(e, resultado)}
+                    onClick={() => {
+                      setItemDetalhesSelecionado({ ...resultado, type });
+                      setMostrarModalDetalhes(true);
+                    }}
+                    style={{ cursor: 'pointer' }}
+                  />
+                  <div 
+                    className="book-content"
+                    onClick={() => {
+                      setItemDetalhesSelecionado({ ...resultado, type });
+                      setMostrarModalDetalhes(true);
+                    }}
+                    style={{ cursor: 'pointer', flex: 1 }}
+                  >
+                    <h3 className="book-title">{resultado.title || 'Sem título'}</h3>
+                    {ehLivro ? (
+                      <p className="book-authors">Autores: {autores}</p>
+                    ) : (
+                      <p className="book-authors">
+                        {resultado.release_date ? `Lançamento: ${resultado.release_date}` : 'Sem data'}
+                        {resultado.rating && (
+                          <span> • Nota IMDb: {
+                            typeof resultado.rating === 'number' 
+                              ? resultado.rating.toFixed(1) 
+                              : (resultado.rating?.score ? resultado.rating.score.toFixed(1) : resultado.rating)
+                          }</span>
+                        )}
+                      </p>
                     )}
-                  </p>
-                )}
-                {(() => {
-                  // Processar gêneros de forma robusta
-                  let generos = [];
-                  if (resultado.genres) {
-                    if (Array.isArray(resultado.genres)) {
-                      generos = resultado.genres.filter(g => g && g.trim());
-                    } else if (typeof resultado.genres === 'string') {
-                      generos = resultado.genres.split(/[,|]/).map(g => g.trim()).filter(g => g);
-                    }
-                  }
-                  return generos.length > 0 && (
-                    <div className="taskbar-genres__chips">
-                      {generos.slice(0, 3).map((genero, indice) => (
-                        <span key={indice} className="taskbar-genres__chip">{genero}</span>
-                      ))}
-                    </div>
-                  );
-                })()}
-              </div>
-              <button
-                type="button"
-                className="rate-button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleAddToLibrary(resultado);
-                }}
-              >
-                Adicionar
-              </button>
-              {!ehLivro && (
-                <button
-                  type="button"
-                  className="rate-button secondary"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleMovieDetails(resultado);
-                  }}
-                  style={{ marginTop: '5px' }}
-                >
-                  Ver no IMDb
-                </button>
-              )}
-            </div>
-          );
-        })}
-      </div>
-      {resultadosFiltrados.length === 0 && results.length > 0 && (
-        <p style={{ textAlign: 'center', padding: '20px', color: 'var(--text-secondary)' }}>
-          Nenhum {type === 'book' ? 'livro' : 'filme'} válido encontrado nos resultados.
-        </p>
+                    {(() => {
+                      // Processar gêneros de forma robusta
+                      let generos = [];
+                      if (resultado.genres) {
+                        if (Array.isArray(resultado.genres)) {
+                          generos = resultado.genres.filter(g => g && g.trim());
+                        } else if (typeof resultado.genres === 'string') {
+                          generos = resultado.genres.split(/[,|]/).map(g => g.trim()).filter(g => g);
+                        }
+                      }
+                      return generos.length > 0 && (
+                        <div className="taskbar-genres__chips">
+                          {generos.slice(0, 3).map((genero, indice) => (
+                            <span key={indice} className="taskbar-genres__chip">{genero}</span>
+                          ))}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                  <button
+                    type="button"
+                    className="rate-button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAddToLibrary(resultado);
+                    }}
+                  >
+                    Adicionar
+                  </button>
+                  {!ehLivro && (
+                    <button
+                      type="button"
+                      className="rate-button secondary"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleMovieDetails(resultado);
+                      }}
+                      style={{ marginTop: '5px' }}
+                    >
+                      Ver no IMDb
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          {resultadosFiltrados.length === 0 && safeResults.length > 0 && (
+            <p style={{ textAlign: 'center', padding: '20px', color: 'var(--text-secondary)' }}>
+              Nenhum {type === 'book' ? 'livro' : 'filme'} válido encontrado nos resultados.
+            </p>
+          )}
+        </>
       )}
       <DetailsModal
         item={itemDetalhesSelecionado}

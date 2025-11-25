@@ -4,6 +4,7 @@ from fastapi.staticfiles import StaticFiles
 
 from routers import router as api_router
 from core.database import create_db_and_tables
+from core.seed import seed_initial_data
 import logging
 import os
 
@@ -37,6 +38,8 @@ def on_startup():
     logger.info("Iniciando a aplicação - on_startup")
     create_db_and_tables()
     logger.info("Banco de dados e tabelas criados")
+    seed_initial_data()
+    logger.info("Seed inicial executado")
     import os
     logger.info(f"Variáveis de ambiente: {os.environ}")
 

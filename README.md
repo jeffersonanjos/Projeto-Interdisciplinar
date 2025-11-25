@@ -51,7 +51,11 @@ npm run dev
 6. **Exibição de cards com capas, notas e sinopses** ❌ **PENDENTE** (Frontend não implementado)
 7. **Histórico de Avaliações no perfil do usuário** ❌ **PENDENTE** (Endpoints não implementados)
 
-## Status do Projeto
+## Status do Projeto (Nov/2025)
+
+- **Fase atual:** backbone do backend modularizado, com routers especializados e reutilizáveis para cada domínio (usuários, avaliações, biblioteca, etc.).
+- **Objetivo recente:** concluir a refatoração descrita nos commits `modularização do código` e `Remove múltiplos routers...`, garantindo manutenção simples e expansão guiada por módulos.
+- **Próximo foco:** ampliar as funcionalidades pendentes (recomendações, histórico completo e CRUDs avançados) aproveitando a nova base organizada.
 
 ### Google Books API Integration:
 - The backend has been integrated with the Google Books API to search for books by query.
@@ -151,6 +155,66 @@ const handleSearch = async () => {
   }
 };
 ```
+
+### 📁 Arquitetura Atual dos Routers
+
+Todo o backend foi reorganizado seguindo o guia `app/routers/mapa/ESTRUTURA_FINAL.md`. A árvore abaixo resume a estrutura definitiva dos módulos:
+
+```
+routers/
+├── __init__.py              # Router principal (agrega todos)
+├── utils.py                 # Utilitários compartilhados
+│
+├── users/
+│   ├── __init__.py
+│   ├── auth.py              # Autenticação (login/token)
+│   ├── crud.py              # CRUD básico
+│   ├── search.py            # Busca de usuários
+│   ├── follow.py            # Sistema de follow
+│   ├── activities.py        # Atividades do usuário
+│   ├── user_reviews.py      # Avaliações de usuários
+│   └── timeline.py          # Timeline da comunidade
+│
+├── ratings/
+│   ├── __init__.py
+│   ├── crud.py              # CRUD de ratings
+│   ├── user_ratings.py      # Ratings por usuário
+│   └── reviews.py           # Wrapper para reviews
+│
+├── profile/
+│   ├── __init__.py
+│   ├── crud.py              # CRUD de perfis
+│   ├── avatar.py            # Upload/remoção de avatares
+│   └── delete.py            # Deleção de perfis
+│
+├── books/
+│   ├── __init__.py
+│   ├── search.py            # Busca de livros
+│   ├── detail.py            # Detalhes de livros
+│   └── genres.py            # Atualização de gêneros
+│
+├── movies/
+│   ├── __init__.py
+│   ├── search.py            # Busca de filmes
+│   ├── detail.py            # Detalhes de filmes
+│   └── genres.py            # Atualização de gêneros
+│
+├── library/
+│   ├── __init__.py
+│   ├── books.py             # Biblioteca de livros
+│   └── movies.py            # Biblioteca de filmes
+│
+└── recommendations/
+    ├── __init__.py
+    ├── books.py             # Recomendações de livros
+    └── movies.py            # Recomendações de filmes
+```
+
+**Estatísticas da modularização**
+- 7 módulos principais consolidados.
+- Maior arquivo ~165 linhas (`ratings/crud.py`).
+- 26+ arquivos `.py` organizados, com redução média de 70% no tamanho de cada arquivo.
+- Na raiz permanecem apenas `__init__.py` e `utils.py`, facilitando imports e reaproveitamento.
 
 ### 🔧 **TECNOLOGIAS UTILIZADAS:**
 - **Backend**: FastAPI (Python)
