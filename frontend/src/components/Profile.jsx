@@ -25,7 +25,7 @@ const Profile = () => {
   const { toast, showToast } = useToast();
 
   useEffect(() => {
-	console.log("Profile useEffect called");
+    console.log("Profile useEffect called");
     carregarPerfil();
     carregarEstatisticas();
     if (usuario) {
@@ -39,15 +39,38 @@ const Profile = () => {
   }, [usuario]);
 
   const carregarPerfil = async () => {
-	console.log("Profile carregarPerfil called");
+    console.log("Profile carregarPerfil called");
     if (!usuario) return;
-    
+
+    // 1) Tentar preencher a partir de cache local para carregamento rápido
+    try {
+      const chavePerfil = `alexandria_profile_${usuario.id}`;
+      const cachePerfil = window.localStorage.getItem(chavePerfil);
+      if (cachePerfil) {
+        const perfilCacheado = JSON.parse(cachePerfil);
+        if (perfilCacheado && typeof perfilCacheado === 'object') {
+          setProfile(perfilCacheado);
+          const urlAvatarCache = perfilCacheado.avatar_url;
+          const urlAvatarCompletaCache = urlAvatarCache && !urlAvatarCache.startsWith('http')
+            ? `http://localhost:8001${urlAvatarCache}`
+            : urlAvatarCache || '';
+          setFormData({
+            bio: perfilCacheado.bio || '',
+            avatar_url: urlAvatarCompletaCache,
+          });
+        }
+      }
+    } catch (erroCache) {
+      console.warn('Erro ao ler cache de perfil na página Profile:', erroCache);
+    }
+
+    // 2) Buscar dados atualizados em background
     try {
       const resultado = await profileService.getProfile(usuario.id);
-	  console.log("Profile carregarPerfil resultado:", resultado);
+      console.log("Profile carregarPerfil resultado:", resultado);
       if (resultado.success && resultado.data) {
         setProfile(resultado.data);
-		console.log("Profile carregarPerfil profile set:", resultado.data);
+        console.log("Profile carregarPerfil profile set:", resultado.data);
         setFormData({
           bio: resultado.data.bio || '',
           avatar_url: resultado.data.avatar_url || ''
@@ -59,7 +82,15 @@ const Profile = () => {
             avatar_url: `http://localhost:8001${resultado.data.avatar_url}`
           }));
         }
-		console.log("Profile carregarPerfil formData set:", formData);
+        console.log("Profile carregarPerfil formData set:", formData);
+
+        // Atualizar cache local com o perfil completo
+        try {
+          const chavePerfil = `alexandria_profile_${usuario.id}`;
+          window.localStorage.setItem(chavePerfil, JSON.stringify(resultado.data));
+        } catch (erroCache) {
+          console.warn('Erro ao salvar cache de perfil na página Profile:', erroCache);
+        }
       }
     } catch (erro) {
       console.error('Erro ao carregar perfil:', erro);
@@ -70,9 +101,28 @@ const Profile = () => {
   };
 
   const carregarEstatisticas = async () => {
-	console.log("Profile carregarEstatisticas called");
+    console.log("Profile carregarEstatisticas called");
     if (!usuario) return;
-    
+
+    // 1) Tentar preencher a partir de cache local para resposta rápida
+    try {
+      const chaveStats = `alexandria_profile_stats_${usuario.id}`;
+      const cacheStats = window.localStorage.getItem(chaveStats);
+      if (cacheStats) {
+        const statsCacheados = JSON.parse(cacheStats);
+        if (statsCacheados && typeof statsCacheados === 'object') {
+          setStats({
+            books: statsCacheados.books || 0,
+            movies: statsCacheados.movies || 0,
+            ratings: statsCacheados.ratings || 0,
+          });
+        }
+      }
+    } catch (erroCache) {
+      console.warn('Erro ao ler cache de estatísticas na página Profile:', erroCache);
+    }
+
+    // 2) Buscar estatísticas atualizadas em background
     try {
       const [resultadoAvaliacoes, resultadoBiblioteca] = await Promise.all([
         ratingService.getUserRatings(usuario.id),
@@ -91,6 +141,18 @@ const Profile = () => {
         movies: 0,
         ratings: arrayAvaliacoes.length
       });
+
+      // Atualizar cache local das estatísticas
+      try {
+        const chaveStats = `alexandria_profile_stats_${usuario.id}`;
+        window.localStorage.setItem(chaveStats, JSON.stringify({
+          books: Array.isArray(arrayBiblioteca) ? arrayBiblioteca.length : 0,
+          movies: 0,
+          ratings: arrayAvaliacoes.length,
+        }));
+      } catch (erroCache) {
+        console.warn('Erro ao salvar cache de estatísticas na página Profile:', erroCache);
+      }
     } catch (erro) {
       console.error('Erro ao carregar estatísticas:', erro);
     }

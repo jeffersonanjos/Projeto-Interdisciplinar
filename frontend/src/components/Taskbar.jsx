@@ -233,6 +233,30 @@ const Taskbar = ({ user: usuario, metrics: metricas, timeline: linhaDoTempo, fol
   const carregarPerfil = async () => {
     if (!usuarioAuth) return;
     setCarregando(true);
+
+    // 1) Tentar carregar perfil do cache local para exibição instantânea
+    try {
+      const chavePerfil = `alexandria_profile_${usuarioAuth.id}`;
+      const cachePerfil = window.localStorage.getItem(chavePerfil);
+      if (cachePerfil) {
+        const perfilCacheado = JSON.parse(cachePerfil);
+        if (perfilCacheado && typeof perfilCacheado === 'object') {
+          setPerfil(perfilCacheado);
+          const urlAvatarCache = perfilCacheado.avatar_url;
+          const urlAvatarCompletaCache = urlAvatarCache && !urlAvatarCache.startsWith('http')
+            ? `http://localhost:8001${urlAvatarCache}`
+            : urlAvatarCache || '';
+          setDadosFormulario({
+            bio: perfilCacheado.bio || '',
+            avatar_url: urlAvatarCompletaCache,
+          });
+        }
+      }
+    } catch (erroCache) {
+      console.warn('Erro ao ler cache de perfil na Taskbar:', erroCache);
+    }
+
+    // 2) Buscar dados atualizados em background
     try {
       const resultado = await profileService.getProfile(usuarioAuth.id);
       if (resultado.success && resultado.data) {
@@ -247,6 +271,14 @@ const Taskbar = ({ user: usuario, metrics: metricas, timeline: linhaDoTempo, fol
             avatar_url: `http://localhost:8001${resultado.data.avatar_url}`
           }));
         }
+
+        // Atualizar cache local com o perfil completo
+        try {
+          const chavePerfil = `alexandria_profile_${usuarioAuth.id}`;
+          window.localStorage.setItem(chavePerfil, JSON.stringify(resultado.data));
+        } catch (erroCache) {
+          console.warn('Erro ao salvar cache de perfil na Taskbar:', erroCache);
+        }
       }
     } catch (erro) {
       console.error('Erro ao carregar perfil:', erro);
@@ -257,6 +289,26 @@ const Taskbar = ({ user: usuario, metrics: metricas, timeline: linhaDoTempo, fol
 
   const carregarEstatisticas = async () => {
     if (!usuarioAuth) return;
+
+    // 1) Tentar carregar estatísticas do cache local
+    try {
+      const chaveStats = `alexandria_profile_stats_${usuarioAuth.id}`;
+      const cacheStats = window.localStorage.getItem(chaveStats);
+      if (cacheStats) {
+        const statsCacheados = JSON.parse(cacheStats);
+        if (statsCacheados && typeof statsCacheados === 'object') {
+          setEstatisticas({
+            books: statsCacheados.books || 0,
+            movies: statsCacheados.movies || 0,
+            ratings: statsCacheados.ratings || 0,
+          });
+        }
+      }
+    } catch (erroCache) {
+      console.warn('Erro ao ler cache de estatísticas na Taskbar:', erroCache);
+    }
+
+    // 2) Buscar estatísticas atualizadas em background
     try {
       const [resultadoAvaliacoes, resultadoBiblioteca, resultadoBibliotecaFilmes] = await Promise.all([
         ratingService.getUserRatings(usuarioAuth.id),
@@ -266,11 +318,20 @@ const Taskbar = ({ user: usuario, metrics: metricas, timeline: linhaDoTempo, fol
       const arrayAvaliacoes = resultadoAvaliacoes.success ? resultadoAvaliacoes.data : [];
       const arrayBiblioteca = resultadoBiblioteca.success ? resultadoBiblioteca.data : [];
       const arrayBibliotecaFilmes = resultadoBibliotecaFilmes.success ? resultadoBibliotecaFilmes.data : [];
-      setEstatisticas({
+      const novasStats = {
         books: Array.isArray(arrayBiblioteca) ? arrayBiblioteca.length : 0,
         movies: Array.isArray(arrayBibliotecaFilmes) ? arrayBibliotecaFilmes.length : 0,
         ratings: arrayAvaliacoes.length
-      });
+      };
+      setEstatisticas(novasStats);
+
+      // Atualizar cache local
+      try {
+        const chaveStats = `alexandria_profile_stats_${usuarioAuth.id}`;
+        window.localStorage.setItem(chaveStats, JSON.stringify(novasStats));
+      } catch (erroCache) {
+        console.warn('Erro ao salvar cache de estatísticas na Taskbar:', erroCache);
+      }
     } catch (erro) {
       console.error('Erro ao carregar estatísticas:', erro);
     }

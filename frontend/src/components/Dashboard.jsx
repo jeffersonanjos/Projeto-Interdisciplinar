@@ -26,9 +26,10 @@ const Dashboard = () => {
   const [userWithProfile, setUserWithProfile] = useState(user);
 
   useEffect(() => {
-	console.log("Dashboard useEffect called");
+    console.log("Dashboard useEffect called");
     loadStats();
     loadCommunityTimeline();
+
     // Se user já tem avatar_url (atualizado via updateUser), usar diretamente
     if (user && user.avatar_url !== undefined) {
       setUserWithProfile(user);
@@ -68,7 +69,29 @@ const Dashboard = () => {
       setUserWithProfile(null);
       return;
     }
-    
+
+    // 1) Tentar usar cache local para exibição imediata do avatar/perfil
+    try {
+      const chavePerfil = `alexandria_profile_${user.id}`;
+      const cachePerfil = window.localStorage.getItem(chavePerfil);
+      if (cachePerfil) {
+        const perfilCacheado = JSON.parse(cachePerfil);
+        if (perfilCacheado && typeof perfilCacheado === 'object') {
+          const urlAvatarCache = perfilCacheado.avatar_url;
+          const urlAvatarCompletaCache = urlAvatarCache && !urlAvatarCache.startsWith('http')
+            ? `http://localhost:8001${urlAvatarCache}`
+            : urlAvatarCache || null;
+          setUserWithProfile({
+            ...user,
+            avatar_url: urlAvatarCompletaCache,
+          });
+        }
+      }
+    } catch (erroCache) {
+      console.warn('Erro ao ler cache de perfil no Dashboard:', erroCache);
+    }
+
+    // 2) Buscar dados atualizados em background
     try {
       const resultado = await profileService.getProfile(user.id);
       if (resultado.success && resultado.data) {
@@ -76,10 +99,20 @@ const Dashboard = () => {
         const urlAvatarCompleta = urlAvatar && !urlAvatar.startsWith('http') 
           ? `http://localhost:8001${urlAvatar}` 
           : urlAvatar;
+
+        // Atualizar estado
         setUserWithProfile({
           ...user,
           avatar_url: urlAvatarCompleta || null
         });
+
+        // Atualizar cache local com perfil completo
+        try {
+          const chavePerfil = `alexandria_profile_${user.id}`;
+          window.localStorage.setItem(chavePerfil, JSON.stringify(resultado.data));
+        } catch (erroCache) {
+          console.warn('Erro ao salvar cache de perfil no Dashboard:', erroCache);
+        }
       } else {
         setUserWithProfile({ ...user, avatar_url: null });
       }
