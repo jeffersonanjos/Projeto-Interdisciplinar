@@ -32,9 +32,11 @@ const Library = () => {
   const [selectedDetailsItem, setSelectedDetailsItem] = useState(null);
   const { toast, showToast } = useToast();
 
+  // Carregar da API apenas quando o usuário mudar (não toda vez que alternar Livros/Filmes)
   useEffect(() => {
     loadLibrary();
-  }, [libraryType, user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   const resetModalState = () => {
     setSelectedItem(null);
@@ -55,10 +57,54 @@ const Library = () => {
   const loadLibrary = async () => {
     if (!user) return;
 
+    // Primeiro: tentar usar cache local para exibição instantânea
+    try {
+      const chaveLivros = `alexandria_lib_books_${user.id}`;
+      const chaveFilmes = `alexandria_lib_movies_${user.id}`;
+      const cacheLivros = window.localStorage.getItem(chaveLivros);
+      const cacheFilmes = window.localStorage.getItem(chaveFilmes);
+
+      let livrosCacheados = [];
+      let filmesCacheados = [];
+
+      if (cacheLivros) {
+        const parsed = JSON.parse(cacheLivros);
+        if (Array.isArray(parsed)) {
+          livrosCacheados = parsed;
+        }
+      }
+
+      if (cacheFilmes) {
+        const parsed = JSON.parse(cacheFilmes);
+        if (Array.isArray(parsed)) {
+          filmesCacheados = parsed;
+        }
+      }
+
+      if (livrosCacheados.length > 0 || filmesCacheados.length > 0) {
+        const todosCache = [...livrosCacheados, ...filmesCacheados];
+        setAllItems(todosCache);
+        setLoadedBooks(livrosCacheados);
+        setLoadedMovies(filmesCacheados);
+
+        const itensFiltradosCache = libraryType === 'books'
+          ? todosCache.filter((item) => item.type === 'book')
+          : todosCache.filter((item) => item.type === 'movie');
+        setItems(itensFiltradosCache);
+
+        // Popular loadedItems para evitar mostrar loader enquanto há dados em cache
+        if (libraryType === 'books') {
+          setLoadedItems(livrosCacheados);
+        } else {
+          setLoadedItems(filmesCacheados);
+        }
+      }
+    } catch (erroCache) {
+      console.warn('Erro ao ler cache da biblioteca:', erroCache);
+    }
+
+    // Em seguida: buscar dados atualizados em background
     setLoading(true);
-    setLoadedItems([]);
-    setLoadedBooks([]);
-    setLoadedMovies([]);
     try {
       const idUsuario = parseInt(user.id, 10);
       
@@ -126,11 +172,45 @@ const Library = () => {
       const todosItens = [...livrosComAvaliacoes, ...filmesComAvaliacoes];
       setAllItems(todosItens);
 
-      // Carregar livros e filmes imediatamente
-      setLoadedBooks(livrosComAvaliacoes);
-      setLoadedMovies(filmesComAvaliacoes);
+      // Atualizar cache local com os dados processados para próxima abertura ser instantânea
+      try {
+        const chaveLivros = `alexandria_lib_books_${user.id}`;
+        const chaveFilmes = `alexandria_lib_movies_${user.id}`;
+        window.localStorage.setItem(chaveLivros, JSON.stringify(livrosComAvaliacoes));
+        window.localStorage.setItem(chaveFilmes, JSON.stringify(filmesComAvaliacoes));
+      } catch (erroCache) {
+        console.warn('Erro ao salvar cache da biblioteca:', erroCache);
+      }
 
-      // Filtrar por tipo selecionado e atualizar itens finais
+      // Carregar livros e filmes incrementalmente para melhorar a percepção de velocidade
+      const CHUNK_SIZE = 12;
+
+      // Resetar grades carregadas antes de preencher de novo
+      setLoadedBooks([]);
+      setLoadedMovies([]);
+
+      const carregarChunks = (lista, setter) => {
+        if (!Array.isArray(lista) || lista.length === 0) {
+          setter([]);
+          return;
+        }
+        const primeiroChunk = lista.slice(0, CHUNK_SIZE);
+        setter(primeiroChunk);
+        const revelar = (indice) => {
+          if (indice >= lista.length) return;
+          const proximo = lista.slice(indice, indice + CHUNK_SIZE);
+          setter((anteriores) => [...anteriores, ...proximo]);
+          window.requestAnimationFrame(() => revelar(indice + CHUNK_SIZE));
+        };
+        if (CHUNK_SIZE < lista.length) {
+          window.requestAnimationFrame(() => revelar(CHUNK_SIZE));
+        }
+      };
+
+      carregarChunks(livrosComAvaliacoes, setLoadedBooks);
+      carregarChunks(filmesComAvaliacoes, setLoadedMovies);
+
+      // Filtrar por tipo selecionado e atualizar itens finais (quando carregamento terminar)
       const itensFiltrados = libraryType === 'books' 
         ? todosItens.filter(item => item.type === 'book')
         : todosItens.filter(item => item.type === 'movie');
@@ -324,7 +404,25 @@ const Library = () => {
         // Remover o item da lista filtrada
         setItems((itensAnteriores) => itensAnteriores.filter((i) => i.id !== item.id));
         // Remover o item da lista completa
-        setAllItems((todosItensAnteriores) => todosItensAnteriores.filter((i) => i.id !== item.id));
+        setAllItems((todosItensAnteriores) => {
+          const atualizados = todosItensAnteriores.filter((i) => i.id !== item.id);
+
+          // Atualizar cache local para manter consistência
+          try {
+            const livros = atualizados.filter((i) => i.type === 'book');
+            const filmes = atualizados.filter((i) => i.type === 'movie');
+            if (user) {
+              const chaveLivros = `alexandria_lib_books_${user.id}`;
+              const chaveFilmes = `alexandria_lib_movies_${user.id}`;
+              window.localStorage.setItem(chaveLivros, JSON.stringify(livros));
+              window.localStorage.setItem(chaveFilmes, JSON.stringify(filmes));
+            }
+          } catch (erroCache) {
+            console.warn('Erro ao atualizar cache da biblioteca após remoção:', erroCache);
+          }
+
+          return atualizados;
+        });
         // Remover a avaliação associada se existir
         setRatings((avaliacoesAnteriores) => {
           const atualizado = { ...avaliacoesAnteriores };
@@ -359,9 +457,8 @@ const Library = () => {
     );
   };
 
-  // Usar loadedItems durante o carregamento para mostrar itens incrementalmente
-  // Se está carregando, usar os itens carregados do tipo atual
-  // Se não está carregando mas há itens carregados do tipo atual, usar eles
+  // Enquanto estiver carregando, exibir grade incremental (loadedBooks/loadedMovies);
+  // depois do carregamento, usar lista final filtrada (items)
   const itensExibidos = loading 
     ? (libraryType === 'books' ? loadedBooks : loadedMovies)
     : items;

@@ -18,6 +18,10 @@ const Recommendations = () => {
   const [erro, setErro] = useState('');
   const [tipoRecomendacao, setTipoRecomendacao] = useState('books'); // 'books' ou 'movies' - agora é apenas um filtro
 
+  // Tamanho dos blocos para renderização progressiva
+  const TAMANHO_BLOCO_LIVROS = 8;
+  const TAMANHO_BLOCO_FILMES = 8;
+
   useEffect(() => {
     console.log("Recommendations useEffect called");
     carregarRecomendacoes();
@@ -26,15 +30,39 @@ const Recommendations = () => {
   const carregarRecomendacoes = async () => {
     console.log("Recommendations carregarRecomendacoes called");
     if (!usuario) return;
-    
+
+    setErro('');
+
+    // Tentar carregar recomendações em cache para exibição instantânea
+    try {
+      const chaveLivros = `alexandria_rec_books_${usuario.id}`;
+      const chaveFilmes = `alexandria_rec_movies_${usuario.id}`;
+      const cacheLivros = window.localStorage.getItem(chaveLivros);
+      const cacheFilmes = window.localStorage.getItem(chaveFilmes);
+
+      if (cacheLivros) {
+        const livrosCacheados = JSON.parse(cacheLivros);
+        if (Array.isArray(livrosCacheados) && livrosCacheados.length > 0) {
+          setRecomendacoesLivros(livrosCacheados);
+          setLivrosCarregados(livrosCacheados);
+        }
+      }
+
+      if (cacheFilmes) {
+        const filmesCacheados = JSON.parse(cacheFilmes);
+        if (Array.isArray(filmesCacheados) && filmesCacheados.length > 0) {
+          setRecomendacoesFilmes(filmesCacheados);
+          setFilmesCarregados(filmesCacheados);
+        }
+      }
+    } catch (erroCache) {
+      console.warn('Erro ao ler cache de recomendações:', erroCache);
+    }
+
+    // Iniciar carregamento em segundo plano (mantendo dados atuais na tela)
     setCarregando(true);
     setCarregandoLivros(true);
     setCarregandoFilmes(true);
-    setErro('');
-    setRecomendacoesLivros([]);
-    setRecomendacoesFilmes([]);
-    setLivrosCarregados([]);
-    setFilmesCarregados([]);
 
     // Carregar recomendações de livros e filmes em paralelo
     const promessaLivros = recommendationService.getBookRecommendations(usuario.id)
@@ -43,13 +71,47 @@ const Recommendations = () => {
         if (resultado.success && Array.isArray(resultado.data)) {
           const livros = resultado.data || [];
           setRecomendacoesLivros(livros);
-          
-          // Mostrar livros imediatamente
-          setLivrosCarregados(livros);
+
+          // Renderização progressiva: mostrar em blocos à medida que vamos preenchendo o estado
+          setLivrosCarregados([]);
+          if (livros.length > 0) {
+            // Primeiro bloco imediatamente para evitar tela vazia
+            const primeiroBloco = livros.slice(0, TAMANHO_BLOCO_LIVROS);
+            setLivrosCarregados(primeiroBloco);
+
+            // Blocos restantes em background
+            const revelarBlocos = (indice) => {
+              if (indice >= livros.length) {
+                setCarregandoLivros(false);
+                return;
+              }
+              const proximoBloco = livros.slice(indice, indice + TAMANHO_BLOCO_LIVROS);
+              setLivrosCarregados((anteriores) => [...anteriores, ...proximoBloco]);
+              // Usar requestAnimationFrame para não travar a UI
+              window.requestAnimationFrame(() => revelarBlocos(indice + TAMANHO_BLOCO_LIVROS));
+            };
+
+            // Se ainda há itens além do primeiro bloco, começar progressão
+            if (TAMANHO_BLOCO_LIVROS < livros.length) {
+              window.requestAnimationFrame(() => revelarBlocos(TAMANHO_BLOCO_LIVROS));
+            } else {
+              setCarregandoLivros(false);
+            }
+          } else {
+            setCarregandoLivros(false);
+          }
+
+          // Atualizar cache local para próximo acesso ser instantâneo
+          try {
+            const chaveLivros = `alexandria_rec_books_${usuario.id}`;
+            window.localStorage.setItem(chaveLivros, JSON.stringify(livros));
+          } catch (erroCache) {
+            console.warn('Erro ao salvar cache de recomendações de livros:', erroCache);
+          }
         } else {
           console.error("Recommendations carregarRecomendacoes livro erro:", resultado.error);
+          setCarregandoLivros(false);
         }
-        setCarregandoLivros(false);
         return resultado;
       })
       .catch((erro) => {
@@ -65,13 +127,43 @@ const Recommendations = () => {
         if (resultado.success && Array.isArray(resultado.data)) {
           const filmes = resultado.data || [];
           setRecomendacoesFilmes(filmes);
-          
-          // Mostrar filmes imediatamente
-          setFilmesCarregados(filmes);
+
+          // Renderização progressiva para filmes
+          setFilmesCarregados([]);
+          if (filmes.length > 0) {
+            const primeiroBloco = filmes.slice(0, TAMANHO_BLOCO_FILMES);
+            setFilmesCarregados(primeiroBloco);
+
+            const revelarBlocos = (indice) => {
+              if (indice >= filmes.length) {
+                setCarregandoFilmes(false);
+                return;
+              }
+              const proximoBloco = filmes.slice(indice, indice + TAMANHO_BLOCO_FILMES);
+              setFilmesCarregados((anteriores) => [...anteriores, ...proximoBloco]);
+              window.requestAnimationFrame(() => revelarBlocos(indice + TAMANHO_BLOCO_FILMES));
+            };
+
+            if (TAMANHO_BLOCO_FILMES < filmes.length) {
+              window.requestAnimationFrame(() => revelarBlocos(TAMANHO_BLOCO_FILMES));
+            } else {
+              setCarregandoFilmes(false);
+            }
+          } else {
+            setCarregandoFilmes(false);
+          }
+
+          // Atualizar cache local para próximo acesso ser instantâneo
+          try {
+            const chaveFilmes = `alexandria_rec_movies_${usuario.id}`;
+            window.localStorage.setItem(chaveFilmes, JSON.stringify(filmes));
+          } catch (erroCache) {
+            console.warn('Erro ao salvar cache de recomendações de filmes:', erroCache);
+          }
         } else {
           console.error("Recommendations carregarRecomendacoes filme erro:", resultado.error);
+          setCarregandoFilmes(false);
         }
-        setCarregandoFilmes(false);
         return resultado;
       })
       .catch((erro) => {
@@ -125,7 +217,6 @@ const Recommendations = () => {
           <button
             className={tipoRecomendacao === 'books' ? 'active' : ''}
             onClick={() => setTipoRecomendacao('books')}
-            disabled={carregando}
           >
             Livros ({recomendacoesLivros.length})
             {carregandoLivros && <span className="loading-indicator">...</span>}
@@ -133,7 +224,6 @@ const Recommendations = () => {
           <button
             className={tipoRecomendacao === 'movies' ? 'active' : ''}
             onClick={() => setTipoRecomendacao('movies')}
-            disabled={carregando}
           >
             Filmes ({recomendacoesFilmes.length})
             {carregandoFilmes && <span className="loading-indicator">...</span>}

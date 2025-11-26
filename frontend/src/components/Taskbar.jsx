@@ -14,7 +14,13 @@ const Taskbar = ({ user: usuario, metrics: metricas, timeline: linhaDoTempo, fol
   const [modalAberto, setModalAberto] = useState(null);
   const [estaVisivel, setEstaVisivel] = useState(true);
   const { user: usuarioAuth, logout, updateUser } = useAuth();
-  const { atualizacaoBiblioteca, atualizacaoAvaliacoes, atualizacaoTimeline, atualizacaoMetricas } = useUpdate();
+  const { 
+    atualizacaoBiblioteca, 
+    atualizacaoAvaliacoes, 
+    atualizacaoTimeline, 
+    atualizacaoMetricas,
+    notificarAtualizacaoTimeline,
+  } = useUpdate();
   const navigate = useNavigate();
   const referenciaInputArquivo = useRef(null);
   const { toast, showToast } = useToast();
@@ -33,6 +39,9 @@ const Taskbar = ({ user: usuario, metrics: metricas, timeline: linhaDoTempo, fol
   const [atualizacaoPendente, setAtualizacaoPendente] = useState(null);
   const [linhaDoTempoPessoal, setLinhaDoTempoPessoal] = useState([]);
   const [carregandoLinhaDoTempoPessoal, setCarregandoLinhaDoTempoPessoal] = useState(false);
+  const [linhaDoTempoGeralLocal, setLinhaDoTempoGeralLocal] = useState([]);
+  const [linhaDoTempoSeguindoLocal, setLinhaDoTempoSeguindoLocal] = useState([]);
+  const [carregandoLinhaDoTempo, setCarregandoLinhaDoTempo] = useState(false);
   
   // Estado de busca de usuários
   const [consultaBusca, setConsultaBusca] = useState('');
@@ -63,12 +72,69 @@ const Taskbar = ({ user: usuario, metrics: metricas, timeline: linhaDoTempo, fol
     ? metricas.favoriteGenres
     : [];
 
-  const linhaDoTempoSegura = Array.isArray(linhaDoTempo) && linhaDoTempo.length
-    ? linhaDoTempo.slice(0, 6)
-    : [];
-  const linhaDoTempoSeguindoSegura = Array.isArray(linhaDoTempoSeguindo) && linhaDoTempoSeguindo.length
-    ? linhaDoTempoSeguindo.slice(0, 6)
-    : [];
+  // Feeds locais da timeline (podem sobrepor os recebidos via props para garantir dados frescos)
+  const feedSeguindo =
+    Array.isArray(linhaDoTempoSeguindoLocal) && linhaDoTempoSeguindoLocal.length
+      ? linhaDoTempoSeguindoLocal.slice(0, 6)
+      : (Array.isArray(linhaDoTempoSeguindo) && linhaDoTempoSeguindo.length
+          ? linhaDoTempoSeguindo.slice(0, 6)
+          : []);
+
+  const feedGeral =
+    Array.isArray(linhaDoTempoGeralLocal) && linhaDoTempoGeralLocal.length
+      ? linhaDoTempoGeralLocal.slice(0, 6)
+      : (Array.isArray(linhaDoTempo) && linhaDoTempo.length
+          ? linhaDoTempo.slice(0, 6)
+          : []);
+
+  const carregarTimelineComunidade = async () => {
+    if (!usuarioAuth) return;
+    setCarregandoLinhaDoTempo(true);
+    try {
+      const [resultadoGeral, resultadoSeguindo] = await Promise.all([
+        timelineService.getCommunityTimeline(20, false),
+        timelineService.getCommunityTimeline(20, true)
+      ]);
+
+      const processarTimeline = (dados) => {
+        if (!dados || !Array.isArray(dados)) return [];
+        return dados.map((atividade) => {
+          const data = atividade.created_at ? new Date(atividade.created_at) : new Date();
+          return {
+            id: atividade.id,
+            nickname: atividade.username || `Usuário #${atividade.user_id}`,
+            action: atividade.action || 'avaliou',
+            highlight: atividade.highlight || null,
+            rating: atividade.rating || null,
+            timestamp: formatarTempoRelativo(data),
+            avatar: atividade.avatar 
+              ? (atividade.avatar.startsWith('http') 
+                  ? atividade.avatar 
+                  : `http://localhost:8001${atividade.avatar}`)
+              : null
+          };
+        });
+      };
+
+      if (resultadoGeral.success && resultadoGeral.data) {
+        setLinhaDoTempoGeralLocal(processarTimeline(resultadoGeral.data));
+      } else {
+        setLinhaDoTempoGeralLocal([]);
+      }
+
+      if (resultadoSeguindo.success && resultadoSeguindo.data) {
+        setLinhaDoTempoSeguindoLocal(processarTimeline(resultadoSeguindo.data));
+      } else {
+        setLinhaDoTempoSeguindoLocal([]);
+      }
+    } catch (erro) {
+      console.error('Erro ao carregar timeline da comunidade:', erro);
+      setLinhaDoTempoGeralLocal([]);
+      setLinhaDoTempoSeguindoLocal([]);
+    } finally {
+      setCarregandoLinhaDoTempo(false);
+    }
+  };
 
   const alternarModal = (tipo) => {
     if (tipo === 'profile') {
@@ -83,6 +149,14 @@ const Taskbar = ({ user: usuario, metrics: metricas, timeline: linhaDoTempo, fol
             password: '',
             confirmPassword: ''
           });
+        }
+      }
+    }
+    if (tipo === 'timeline') {
+      if (modalAberto !== 'timeline') {
+        carregarTimelineComunidade();
+        if (notificarAtualizacaoTimeline) {
+          notificarAtualizacaoTimeline();
         }
       }
     }
@@ -570,6 +644,11 @@ const Taskbar = ({ user: usuario, metrics: metricas, timeline: linhaDoTempo, fol
       if (resultado.success) {
         setEstaSeguindo(resultado.data.following || !estaSeguindo);
         showToast(estaSeguindo ? 'Deixou de seguir o usuário' : 'Agora você está seguindo este usuário');
+        // Recarregar timeline da comunidade para refletir imediatamente novos follows
+        carregarTimelineComunidade();
+        if (notificarAtualizacaoTimeline) {
+          notificarAtualizacaoTimeline();
+        }
       } else {
         showToast(resultado.error || 'Erro ao atualizar status de follow');
       }
@@ -703,13 +782,13 @@ const Taskbar = ({ user: usuario, metrics: metricas, timeline: linhaDoTempo, fol
             </button>
           </header>
           
-          {linhaDoTempoSeguindoSegura.length > 0 && (
+          {feedSeguindo.length > 0 && (
             <>
               <div className="taskbar-timeline__section-header">
                 <span>Pessoas que você segue</span>
               </div>
               <ul className="taskbar-timeline">
-                {linhaDoTempoSeguindoSegura.map((event) => (
+                {feedSeguindo.map((event) => (
                   <li key={event.id} className="taskbar-timeline__event">
                     <div className="taskbar-timeline__avatar">
                       {event.avatar ? (
@@ -742,8 +821,8 @@ const Taskbar = ({ user: usuario, metrics: metricas, timeline: linhaDoTempo, fol
             <span>Atividades Gerais</span>
           </div>
           <ul className="taskbar-timeline">
-            {linhaDoTempoSegura.length ? (
-              linhaDoTempoSegura.map((event) => (
+            {feedGeral.length ? (
+              feedGeral.map((event) => (
                 <li key={event.id} className="taskbar-timeline__event">
                   <div className="taskbar-timeline__avatar">
                     {event.avatar ? (
