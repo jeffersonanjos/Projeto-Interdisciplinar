@@ -2,9 +2,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from routers import router as api_router
-from core.database import create_db_and_tables
-from core.seed import seed_initial_data
+from app.routers import router as api_router
+from app.core.database import create_db_and_tables
+from app.core.seed import seed_initial_data
 import logging
 import os
 

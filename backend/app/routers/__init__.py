@@ -9,6 +9,8 @@ from .ratings import router as ratings_router
 from .library import router as library_router
 from .recommendations import router as recommendations_router
 from .profile import router as profile_router
+from .reports import router as reports_router
+from .moderation import router as moderation_router
 
 # Router principal que agrega todos os routers
 from fastapi import APIRouter
@@ -24,6 +26,8 @@ router.include_router(ratings_router)
 router.include_router(library_router)
 router.include_router(recommendations_router)
 router.include_router(profile_router)
+router.include_router(reports_router)
+router.include_router(moderation_router)
 
 __all__ = ["router"]
 

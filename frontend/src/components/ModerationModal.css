@@ -1,0 +1,419 @@
+.taskbar-modal--moderation {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.taskbar-moderation__filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.taskbar-moderation__filter label {
+  font-size: 9px;
+  color: var(--text-secondary);
+}
+
+.taskbar-moderation__select {
+  padding: 4px 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  font-size: 8px;
+  font-family: 'Press Start 2P', monospace;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 
+    0 2px 0 rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.taskbar-moderation__select:hover {
+  background: var(--bg-primary);
+  transform: translateY(-1px);
+}
+
+.taskbar-moderation__loading,
+.taskbar-moderation__empty {
+  text-align: center;
+  padding: 20px;
+  color: var(--text-tertiary);
+  font-size: 9px;
+  opacity: 0.7;
+}
+
+.taskbar-moderation__list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+  margin-bottom: 12px;
+}
+
+.taskbar-moderation__item {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: var(--bg-tertiary);
+  box-shadow: 
+    0 2px 0 rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.taskbar-moderation__item:hover {
+  background: var(--bg-primary);
+  transform: translateY(-1px);
+  box-shadow: 
+    0 3px 0 rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.taskbar-moderation__item--selected {
+  border-color: var(--text-tertiary);
+  background: var(--bg-primary);
+  box-shadow: 
+    0 1px 0 rgba(0, 0, 0, 0.2),
+    inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.taskbar-moderation__item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.taskbar-moderation__status {
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 7px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.taskbar-moderation__status--active {
+  background-color: rgba(76, 175, 80, 0.2);
+  color: #43a047;
+}
+
+.taskbar-moderation__status--expired {
+  background-color: rgba(158, 158, 158, 0.2);
+  color: #757575;
+}
+
+.taskbar-moderation__status--revoked {
+  background-color: rgba(244, 67, 54, 0.2);
+  color: #e53935;
+}
+
+.taskbar-moderation__action {
+  font-size: 7px;
+  color: var(--text-tertiary);
+  opacity: 0.7;
+  text-transform: uppercase;
+}
+
+.taskbar-moderation__item-body p {
+  margin: 4px 0;
+  font-size: 8px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.taskbar-moderation__item-body strong {
+  color: var(--text-tertiary);
+}
+
+.taskbar-moderation__meta {
+  font-size: 7px !important;
+  color: var(--text-tertiary) !important;
+  opacity: 0.6;
+  margin-top: 6px !important;
+}
+
+.taskbar-moderation__actions {
+  border-top: 1px solid var(--border-color);
+  padding-top: 12px;
+  margin-top: 12px;
+}
+
+.taskbar-moderation__actions-title {
+  font-size: 9px;
+  color: var(--text-tertiary);
+  margin-bottom: 8px;
+}
+
+.taskbar-moderation__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.taskbar-moderation__button {
+  padding: 6px 10px;
+  border: none;
+  border-radius: 6px;
+  font-size: 7px;
+  font-family: 'Press Start 2P', monospace;
+  cursor: pointer;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 
+    0 2px 0 rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.taskbar-moderation__button:hover:not(:disabled) {
+  background: var(--bg-primary);
+  transform: translateY(-1px);
+  box-shadow: 
+    0 3px 0 rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.taskbar-moderation__button:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: 
+    0 1px 0 rgba(0, 0, 0, 0.2),
+    inset 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.taskbar-moderation__button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.taskbar-moderation__button--delete {
+  background: rgba(229, 57, 53, 0.2);
+  color: #e53935;
+}
+
+.taskbar-moderation__button--delete:hover:not(:disabled) {
+  background: rgba(229, 57, 53, 0.3);
+  color: #c62828;
+}
+
+.taskbar-moderation__tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 12px;
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 8px;
+}
+
+.taskbar-moderation__tab {
+  flex: 1;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 6px 6px 0 0;
+  font-size: 8px;
+  font-family: 'Press Start 2P', monospace;
+  cursor: pointer;
+  background: var(--bg-tertiary);
+  color: var(--text-tertiary);
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+.taskbar-moderation__tab:hover {
+  opacity: 0.8;
+  transform: translateY(-1px);
+}
+
+.taskbar-moderation__tab--active {
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+  opacity: 1;
+  box-shadow: 
+    0 -2px 0 rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.taskbar-moderation__search {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.taskbar-moderation__search-input {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  font-size: 8px;
+  font-family: 'Press Start 2P', monospace;
+  box-shadow: 
+    0 2px 0 rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.taskbar-moderation__search-input:focus {
+  outline: none;
+  border-color: var(--text-tertiary);
+}
+
+.taskbar-moderation__search-button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 7px;
+  font-family: 'Press Start 2P', monospace;
+  cursor: pointer;
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  box-shadow: 
+    0 2px 0 rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.taskbar-moderation__search-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 
+    0 3px 0 rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.taskbar-moderation__search-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.taskbar-moderation__user {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: var(--bg-tertiary);
+  box-shadow: 
+    0 2px 0 rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.taskbar-moderation__user:hover {
+  background: var(--bg-primary);
+  transform: translateY(-1px);
+  box-shadow: 
+    0 3px 0 rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.taskbar-moderation__user--selected {
+  border-color: var(--text-tertiary);
+  background: var(--bg-primary);
+  box-shadow: 
+    0 1px 0 rgba(0, 0, 0, 0.2),
+    inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.taskbar-moderation__user-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.taskbar-moderation__user-name {
+  font-size: 9px;
+  font-weight: bold;
+  color: var(--text-secondary);
+}
+
+.taskbar-moderation__user-role {
+  font-size: 7px;
+  color: var(--text-tertiary);
+  opacity: 0.7;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.taskbar-moderation__user-body p {
+  margin: 4px 0;
+  font-size: 8px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.taskbar-moderation__badge {
+  font-size: 7px;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.taskbar-moderation__badge--banned {
+  background-color: rgba(244, 67, 54, 0.2);
+  color: #e53935;
+}
+
+.taskbar-moderation__badge--muted {
+  background-color: rgba(255, 152, 0, 0.2);
+  color: #f57c00;
+}
+
+.taskbar-moderation__badge--normal {
+  background-color: rgba(76, 175, 80, 0.2);
+  color: #43a047;
+}
+
+.taskbar-moderation__button--ban {
+  background: rgba(244, 67, 54, 0.2);
+  color: #e53935;
+}
+
+.taskbar-moderation__button--ban:hover:not(:disabled) {
+  background: rgba(244, 67, 54, 0.3);
+  color: #c62828;
+}
+
+.taskbar-moderation__button--unban {
+  background: rgba(76, 175, 80, 0.2);
+  color: #43a047;
+}
+
+.taskbar-moderation__button--unban:hover:not(:disabled) {
+  background: rgba(76, 175, 80, 0.3);
+  color: #2e7d32;
+}
+
+.taskbar-moderation__button--mute {
+  background: rgba(255, 152, 0, 0.2);
+  color: #f57c00;
+}
+
+.taskbar-moderation__button--mute:hover:not(:disabled) {
+  background: rgba(255, 152, 0, 0.3);
+  color: #e65100;
+}
+
+.taskbar-moderation__button--unmute {
+  background: rgba(33, 150, 243, 0.2);
+  color: #1e88e5;
+}
+
+.taskbar-moderation__button--unmute:hover:not(:disabled) {
+  background: rgba(33, 150, 243, 0.3);
+  color: #1565c0;
+}

@@ -166,3 +166,88 @@ class Movie(BaseModel):
     class Config:
         orm_mode = True
 
+
+class ReportStatus(str, Enum):
+    PENDING = "pending"
+    REVIEWING = "reviewing"
+    RESOLVED = "resolved"
+    DISMISSED = "dismissed"
+
+
+class ReportType(str, Enum):
+    USER = "user"
+    RATING = "rating"
+    REVIEW = "review"
+
+
+class ReportBase(SQLModel):
+    report_type: str
+    target_id: int
+    reason: str
+    description: Optional[str] = None
+
+
+class ReportCreate(ReportBase):
+    pass
+
+
+class ReportRead(ReportBase):
+    id: int
+    reporter_id: int
+    status: str
+    reviewed_by: Optional[int] = None
+    resolution_note: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        orm_mode = True
+
+
+class ReportUpdate(SQLModel):
+    status: Optional[str] = None
+    resolution_note: Optional[str] = None
+
+
+class ModerationActionType(str, Enum):
+    WARNING = "warning"
+    MUTE = "mute"
+    BAN = "ban"
+    UNBAN = "unban"
+    UNMUTE = "unmute"
+
+
+class ModerationStatus(str, Enum):
+    ACTIVE = "active"
+    EXPIRED = "expired"
+    REVOKED = "revoked"
+
+
+class ModerationBase(SQLModel):
+    target_user_id: int
+    action_type: str
+    reason: str
+    description: Optional[str] = None
+    expires_at: Optional[datetime] = None
+
+
+class ModerationCreate(ModerationBase):
+    pass
+
+
+class ModerationRead(ModerationBase):
+    id: int
+    moderator_id: int
+    status: str
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        orm_mode = True
+
+
+class ModerationUpdate(SQLModel):
+    status: Optional[str] = None
+    description: Optional[str] = None
+    expires_at: Optional[datetime] = None
+

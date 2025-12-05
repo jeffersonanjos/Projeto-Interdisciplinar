@@ -4,9 +4,12 @@ import ThemeToggle from './ThemeToggle';
 import { useAuth } from '../contexts/AuthContext';
 import { useUpdate } from '../contexts/UpdateContext';
 import { useNavigate } from 'react-router-dom';
-import { profileService, ratingService, externalApiService, userService, timelineService } from '../services/apiService';
+import { profileService, ratingService, externalApiService, userService, timelineService, reportService, adminService, moderationService } from '../services/apiService';
 import { useToast } from '../hooks/useToast';
 import Toast from './Toast';
+import ReportsModal from './ReportsModal';
+import CreateMediaModal from './CreateMediaModal';
+import ModerationModal from './ModerationModal';
 import './Taskbar.css';
 import './Profile.css';
 
@@ -771,6 +774,51 @@ const Taskbar = ({ user: usuario, metrics: metricas, timeline: linhaDoTempo, fol
               <i className="bi bi-search" />
             </span>
           </button>
+
+          {(usuarioAuth?.role === 'curator' || usuarioAuth?.role === 'admin') && (
+            <button
+              type="button"
+              className={`taskbar-icon ${modalAberto === 'reports' ? 'active' : ''}`}
+              onClick={() => alternarModal('reports')}
+              aria-pressed={modalAberto === 'reports'}
+              aria-label="Central de Denúncias"
+              title="Central de Denúncias"
+            >
+              <span className="taskbar-icon__glyph" aria-hidden="true">
+                <i className="bi bi-flag" />
+              </span>
+            </button>
+          )}
+
+          {(usuarioAuth?.role === 'curator' || usuarioAuth?.role === 'admin') && (
+            <button
+              type="button"
+              className={`taskbar-icon ${modalAberto === 'moderation' ? 'active' : ''}`}
+              onClick={() => alternarModal('moderation')}
+              aria-pressed={modalAberto === 'moderation'}
+              aria-label="Central de Moderação"
+              title="Central de Moderação"
+            >
+              <span className="taskbar-icon__glyph" aria-hidden="true">
+                <i className="bi bi-shield-shaded" />
+              </span>
+            </button>
+          )}
+
+          {usuarioAuth?.role === 'admin' && (
+            <button
+              type="button"
+              className={`taskbar-icon ${modalAberto === 'createMedia' ? 'active' : ''}`}
+              onClick={() => alternarModal('createMedia')}
+              aria-pressed={modalAberto === 'createMedia'}
+              aria-label="Criar Livros e Filmes"
+              title="Criar Livros e Filmes"
+            >
+              <span className="taskbar-icon__glyph" aria-hidden="true">
+                <i className="bi bi-plus-circle" />
+              </span>
+            </button>
+          )}
 
           <ThemeToggle />
         </div>
@@ -1614,6 +1662,30 @@ const Taskbar = ({ user: usuario, metrics: metricas, timeline: linhaDoTempo, fol
             </div>
           </div>
         </div>
+      )}
+
+      {/* Modal de Central de Denúncias */}
+      {modalAberto === 'reports' && estaVisivel && (
+        <ReportsModal 
+          onClose={() => setModalAberto(null)}
+          showToast={showToast}
+        />
+      )}
+
+      {/* Modal de Central de Moderação */}
+      {modalAberto === 'moderation' && estaVisivel && (
+        <ModerationModal 
+          onClose={() => setModalAberto(null)}
+          showToast={showToast}
+        />
+      )}
+
+      {/* Modal de Criação de Livros e Filmes */}
+      {modalAberto === 'createMedia' && estaVisivel && (
+        <CreateMediaModal 
+          onClose={() => setModalAberto(null)}
+          showToast={showToast}
+        />
       )}
 
       <Toast message={toast} />

@@ -99,6 +99,103 @@
   line-height: 1;
 }
 
+/* Cores específicas para cada ícone - harmoniosas com a paleta */
+.taskbar-icon .bi-clock-history {
+  color: #64b5f6;
+}
+
+:root:not(.dark-mode) .taskbar-icon .bi-clock-history {
+  color: #1976d2;
+}
+
+.taskbar-icon .bi-trophy {
+  color: #ffd54f;
+}
+
+:root:not(.dark-mode) .taskbar-icon .bi-trophy {
+  color: #f9a825;
+}
+
+.taskbar-icon .bi-search {
+  color: #ba68c8;
+}
+
+:root:not(.dark-mode) .taskbar-icon .bi-search {
+  color: #8e24aa;
+}
+
+.taskbar-icon .bi-flag {
+  color: #ff8a65;
+}
+
+:root:not(.dark-mode) .taskbar-icon .bi-flag {
+  color: #e64a19;
+}
+
+.taskbar-icon .bi-shield-shaded {
+  color: #64b5f6;
+}
+
+:root:not(.dark-mode) .taskbar-icon .bi-shield-shaded {
+  color: #1976d2;
+}
+
+.taskbar-icon .bi-plus-circle {
+  color: #81c784;
+}
+
+:root:not(.dark-mode) .taskbar-icon .bi-plus-circle {
+  color: #43a047;
+}
+
+.taskbar-icon:hover .bi-clock-history {
+  color: #90caf9;
+}
+
+:root:not(.dark-mode) .taskbar-icon:hover .bi-clock-history {
+  color: #1565c0;
+}
+
+.taskbar-icon:hover .bi-trophy {
+  color: #fff176;
+}
+
+:root:not(.dark-mode) .taskbar-icon:hover .bi-trophy {
+  color: #f57f17;
+}
+
+.taskbar-icon:hover .bi-search {
+  color: #ce93d8;
+}
+
+:root:not(.dark-mode) .taskbar-icon:hover .bi-search {
+  color: #7b1fa2;
+}
+
+.taskbar-icon:hover .bi-flag {
+  color: #ffab91;
+}
+
+:root:not(.dark-mode) .taskbar-icon:hover .bi-flag {
+  color: #d84315;
+}
+
+.taskbar-icon:hover .bi-shield-shaded {
+  color: #90caf9;
+}
+
+:root:not(.dark-mode) .taskbar-icon:hover .bi-shield-shaded {
+  color: #1565c0;
+}
+
+.taskbar-icon:hover .bi-plus-circle {
+  color: #a5d6a7;
+}
+
+:root:not(.dark-mode) .taskbar-icon:hover .bi-plus-circle {
+  color: #2e7d32;
+}
+
 .pixel-icon {
   width: 24px;
   height: 24px;

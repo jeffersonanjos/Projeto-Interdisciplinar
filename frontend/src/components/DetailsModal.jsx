@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './DetailsModal.css';
-import { externalApiService } from '../services/apiService';
+import { externalApiService, reportService } from '../services/apiService';
 import { useUpdate } from '../contexts/UpdateContext';
 import { useToast } from '../hooks/useToast';
 import Toast from './Toast';
@@ -66,6 +66,33 @@ const DetailsModal = ({ item: item, isOpen: estaAberto, onClose: aoFechar }) => 
     } catch (erro) {
       console.error(`Erro ao adicionar ${ehLivro ? 'livro' : 'filme'} à biblioteca:`, erro);
       showToast(`Erro ao adicionar ${ehLivro ? 'livro' : 'filme'} à biblioteca.`);
+    }
+  };
+
+  const lidarComDenunciar = async () => {
+    const motivo = prompt(`Por que você está denunciando este ${ehLivro ? 'livro' : 'filme'}?`);
+    if (!motivo || motivo.trim() === '') {
+      showToast('Denúncia cancelada');
+      return;
+    }
+
+    try {
+      const dadosDenuncia = {
+        report_type: ehLivro ? 'rating' : 'rating',
+        target_id: parseInt(itemDetalhado.id) || 0,
+        reason: motivo,
+        description: `${ehLivro ? 'Livro' : 'Filme'}: ${itemDetalhado.title}`
+      };
+
+      const resposta = await reportService.createReport(dadosDenuncia);
+      if (resposta.success) {
+        showToast('Denúncia enviada com sucesso!');
+      } else {
+        showToast(resposta.error || 'Erro ao enviar denúncia');
+      }
+    } catch (erro) {
+      console.error('Erro ao enviar denúncia:', erro);
+      showToast('Erro ao enviar denúncia');
     }
   };
   
@@ -219,6 +246,14 @@ const DetailsModal = ({ item: item, isOpen: estaAberto, onClose: aoFechar }) => 
                 onClick={lidarComAdicionarABiblioteca}
               >
                 Adicionar à Biblioteca
+              </button>
+              <button
+                type="button"
+                className="details-report-button"
+                onClick={lidarComDenunciar}
+                title="Denunciar"
+              >
+                <i className="bi bi-flag" /> Denunciar
               </button>
             </div>
           </div>

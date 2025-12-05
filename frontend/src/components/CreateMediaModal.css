@@ -1,0 +1,170 @@
+.taskbar-modal--create {
+  max-height: 450px;
+  overflow-y: auto;
+}
+
+.taskbar-create__selector {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.taskbar-create__tab {
+  flex: 1;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  font-size: 8px;
+  font-family: 'Press Start 2P', monospace;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 
+    0 2px 0 rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.taskbar-create__tab:hover {
+  background: var(--bg-primary);
+  transform: translateY(-1px);
+  box-shadow: 
+    0 3px 0 rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.taskbar-create__tab--active {
+  background: var(--bg-primary);
+  border-color: var(--text-tertiary);
+  box-shadow: 
+    0 1px 0 rgba(0, 0, 0, 0.2),
+    inset 0 2px 4px rgba(0, 0, 0, 0.1);
+  transform: translateY(1px);
+}
+
+.taskbar-create__form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.taskbar-create__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.taskbar-create__field label {
+  font-size: 8px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.taskbar-create__input,
+.taskbar-create__textarea {
+  padding: 6px 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  font-size: 8px;
+  font-family: 'Press Start 2P', monospace;
+  transition: all 0.2s ease;
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.taskbar-create__input:focus,
+.taskbar-create__textarea:focus {
+  outline: none;
+  border-color: var(--text-tertiary);
+  background: var(--bg-primary);
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.taskbar-create__input::placeholder,
+.taskbar-create__textarea::placeholder {
+  color: var(--text-tertiary);
+  opacity: 0.4;
+}
+
+.taskbar-create__textarea {
+  resize: vertical;
+  min-height: 50px;
+  line-height: 1.5;
+}
+
+.taskbar-create__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.taskbar-create__submit {
+  margin-top: 8px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  font-size: 8px;
+  font-family: 'Press Start 2P', monospace;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 
+    0 2px 0 rgba(0, 0, 0, 0.1),
+    0 4px 8px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.taskbar-create__submit:hover:not(:disabled) {
+  background: var(--bg-primary);
+  transform: translateY(-1px);
+  box-shadow: 
+    0 3px 0 rgba(0, 0, 0, 0.15),
+    0 6px 12px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.taskbar-create__submit:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: 
+    0 1px 0 rgba(0, 0, 0, 0.2),
+    0 2px 4px rgba(0, 0, 0, 0.1),
+    inset 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.taskbar-create__submit:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.taskbar-create__form::-webkit-scrollbar {
+  width: 8px;
+}
+
+.taskbar-create__form::-webkit-scrollbar-track {
+  background: var(--bg-tertiary);
+  border-radius: 4px;
+}
+
+.taskbar-create__form::-webkit-scrollbar-thumb {
+  background: var(--text-tertiary);
+  border-radius: 4px;
+  opacity: 0.5;
+}
+
+.taskbar-create__form::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}

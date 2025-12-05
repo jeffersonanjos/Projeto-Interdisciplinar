@@ -15,6 +15,8 @@ class User(SQLModel, table=True):
     email: str = Field(unique=True, index=True)
     hashed_password: str
     role: str = Field(default=UserRole.NORMAL.value, index=True)
+    is_banned: bool = Field(default=False, index=True)
+    is_muted: bool = Field(default=False, index=True)
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     ratings: List["Rating"] = Relationship(back_populates="user")
@@ -48,6 +50,8 @@ class Book(SQLModel, table=True):
     publisher: Optional[str] = None
     publication_date: Optional[date] = None
     genres: Optional[List[str]] = Field(default=None, sa_column=Column(JSON))
+    is_banned: bool = Field(default=False, index=True)
+    is_muted: bool = Field(default=False, index=True)
     ratings: List["Rating"] = Relationship(back_populates="book")
 
 
@@ -61,6 +65,8 @@ class Movie(SQLModel, table=True):
     release_date: Optional[date] = None
     genres: Optional[List[str]] = Field(default=None, sa_column=Column(JSON))
     cast: Optional[List[str]] = Field(default=None, sa_column=Column(JSON))
+    is_banned: bool = Field(default=False, index=True)
+    is_muted: bool = Field(default=False, index=True)
     ratings: List["Rating"] = Relationship(back_populates="movie")
 
 
@@ -147,4 +153,58 @@ class Follow(SQLModel, table=True):
     __table_args__ = (
         UniqueConstraint("follower_id", "following_id", name="unique_follow"),
     )
+
+
+class ReportStatus(str, Enum):
+    PENDING = "pending"
+    REVIEWING = "reviewing"
+    RESOLVED = "resolved"
+    DISMISSED = "dismissed"
+
+
+class ReportType(str, Enum):
+    USER = "user"
+    RATING = "rating"
+    REVIEW = "review"
+
+
+class Report(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    reporter_id: int = Field(foreign_key="user.id", index=True)
+    report_type: str = Field(index=True)
+    target_id: int = Field(index=True)
+    reason: str
+    description: Optional[str] = None
+    status: str = Field(default=ReportStatus.PENDING.value, index=True)
+    reviewed_by: Optional[int] = Field(default=None, foreign_key="user.id")
+    resolution_note: Optional[str] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class ModerationActionType(str, Enum):
+    WARNING = "warning"
+    MUTE = "mute"
+    BAN = "ban"
+    UNBAN = "unban"
+    UNMUTE = "unmute"
+
+
+class ModerationStatus(str, Enum):
+    ACTIVE = "active"
+    EXPIRED = "expired"
+    REVOKED = "revoked"
+
+
+class Moderation(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    moderator_id: int = Field(foreign_key="user.id", index=True)
+    target_user_id: int = Field(foreign_key="user.id", index=True)
+    action_type: str = Field(index=True)
+    reason: str
+    description: Optional[str] = None
+    status: str = Field(default=ModerationStatus.ACTIVE.value, index=True)
+    expires_at: Optional[datetime] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
 

@@ -21,11 +21,11 @@
 
 .edit-button {
   padding: 10px 20px;
-  background: var(--bg-secondary);
+  background: #2e7d32;
   transition: background-color 0.3s ease;
-  color: var(--text-secondary);
+  color: #ffffff;
   transition: color 0.3s ease;
-  border: 2px solid var(--border-color);
+  border: 2px solid #2e7d32;
   transition: border-color 0.3s ease;
   border-radius: 8px;
   font-size: 9px;
@@ -37,25 +37,25 @@
 
 /* Garantir visibilidade no modo claro */
 :root:not(.dark-mode) .edit-button {
-  background: #FFF8E7;
-  color: #1f5a2d;
-  border-color: #8b4513;
+  background: #43a047;
+  color: #ffffff;
+  border-color: #43a047;
 }
 
 .edit-button:hover {
   transform: translateY(-2px);
-  background: var(--bg-tertiary);
+  background: #1b5e20;
   transition: background-color 0.3s ease;
-  border-color: var(--border-color-light);
-  box-shadow: 0 6px 12px var(--shadow);
-  color: var(--text-secondary);
+  border-color: #1b5e20;
+  box-shadow: 0 6px 12px rgba(46, 125, 50, 0.4);
+  color: #ffffff;
 }
 
 /* Garantir visibilidade no hover no modo claro */
 :root:not(.dark-mode) .edit-button:hover {
-  background: #ffffff;
-  color: #1f5a2d;
-  border-color: #a0522d;
+  background: #2e7d32;
+  color: #ffffff;
+  border-color: #2e7d32;
 }
 
 .profile-content {
@@ -473,9 +473,9 @@
 
 /* Garantir visibilidade no modo claro */
 :root:not(.dark-mode) .delete-profile-button {
-  background: #FFF8E7;
-  color: #c62828;
-  border-color: #c62828;
+  background: #e53935;
+  color: #ffffff;
+  border-color: #e53935;
 }
 
 .delete-profile-button:hover {
@@ -491,6 +491,7 @@
   background: #c62828;
   color: #ffffff;
   border-color: #c62828;
+  box-shadow: 0 6px 12px rgba(198, 40, 40, 0.4);
 }
   box-shadow: 0 4px 8px rgba(198, 40, 40, 0.3);
 }
@@ -498,11 +499,11 @@
 .edit-account-button {
   width: 100%;
   padding: 12px;
-  background: var(--bg-secondary);
+  background: #2e7d32;
   transition: background-color 0.3s ease;
-  color: var(--text-secondary);
+  color: #ffffff;
   transition: color 0.3s ease;
-  border: 2px solid var(--border-color);
+  border: 2px solid #2e7d32;
   transition: border-color 0.3s ease;
   border-radius: 8px;
   font-size: 9px;
@@ -515,25 +516,25 @@
 
 /* Garantir visibilidade no modo claro */
 :root:not(.dark-mode) .edit-account-button {
-  background: #FFF8E7;
-  color: #1f5a2d;
-  border-color: #8b4513;
+  background: #43a047;
+  color: #ffffff;
+  border-color: #43a047;
 }
 
 .edit-account-button:hover {
-  background: var(--bg-tertiary);
+  background: #1b5e20;
   transition: background-color 0.3s ease;
-  border-color: var(--border-color-light);
+  border-color: #1b5e20;
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  color: var(--text-secondary);
+  box-shadow: 0 4px 8px rgba(46, 125, 50, 0.4);
+  color: #ffffff;
 }
 
 /* Garantir visibilidade no hover no modo claro */
 :root:not(.dark-mode) .edit-account-button:hover {
-  background: #ffffff;
-  color: #1f5a2d;
-  border-color: #a0522d;
+  background: #2e7d32;
+  color: #ffffff;
+  border-color: #2e7d32;
 }
 
 .account-edit-form {

@@ -611,3 +611,283 @@ export const reviewService = {
     }
   }
 };
+
+export const reportService = {
+  async createReport(dadosDenuncia) {
+    console.log("reportService.createReport chamado com:", dadosDenuncia);
+    try {
+      const resposta = await api.post('/reports/', dadosDenuncia);
+      console.log("reportService.createReport resposta da API:", resposta);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+      console.error("reportService.createReport erro:", erro);
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao criar denúncia' };
+    }
+  },
+  
+  async getReports(statusFilter = null) {
+    console.log("reportService.getReports chamado com status:", statusFilter);
+    try {
+      const url = statusFilter ? `/reports/?status_filter=${statusFilter}` : '/reports/';
+      const resposta = await api.get(url);
+      console.log("reportService.getReports resposta da API:", resposta);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+      console.error("reportService.getReports erro:", erro);
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao buscar denúncias' };
+    }
+  },
+  
+  async updateReport(reportId, dadosAtualizacao) {
+    console.log("reportService.updateReport chamado com:", reportId, dadosAtualizacao);
+    try {
+      const resposta = await api.patch(`/reports/${reportId}`, dadosAtualizacao);
+      console.log("reportService.updateReport resposta da API:", resposta);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+      console.error("reportService.updateReport erro:", erro);
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao atualizar denúncia' };
+    }
+  },
+  
+  async deleteReport(reportId) {
+    console.log("reportService.deleteReport chamado com:", reportId);
+    try {
+      await api.delete(`/reports/${reportId}`);
+      console.log("reportService.deleteReport sucesso");
+      return { success: true };
+    } catch (erro) {
+      console.error("reportService.deleteReport erro:", erro);
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao deletar denúncia' };
+    }
+  }
+};
+
+export const adminService = {
+  async createBookManually(dadosLivro) {
+    console.log("adminService.createBookManually chamado com:", dadosLivro);
+    try {
+      const resposta = await api.post('/books/manual', dadosLivro);
+      console.log("adminService.createBookManually resposta da API:", resposta);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+      console.error("adminService.createBookManually erro:", erro);
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao criar livro manualmente' };
+    }
+  },
+  
+  async createMovieManually(dadosFilme) {
+    console.log("adminService.createMovieManually chamado com:", dadosFilme);
+    try {
+      const resposta = await api.post('/movies/manual', dadosFilme);
+      console.log("adminService.createMovieManually resposta da API:", resposta);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+      console.error("adminService.createMovieManually erro:", erro);
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao criar filme manualmente' };
+    }
+  }
+};
+
+export const moderationService = {
+  async createModeration(dadosModeracao) {
+    console.log("moderationService.createModeration chamado com:", dadosModeracao);
+    try {
+      const resposta = await api.post('/moderation/', dadosModeracao);
+      console.log("moderationService.createModeration resposta da API:", resposta);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+      console.error("moderationService.createModeration erro:", erro);
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao criar ação de moderação' };
+    }
+  },
+  
+  async getModerations(statusFilter = null) {
+    console.log("moderationService.getModerations chamado com status:", statusFilter);
+    try {
+      const url = statusFilter ? `/moderation/?status_filter=${statusFilter}` : '/moderation/';
+      const resposta = await api.get(url);
+      console.log("moderationService.getModerations resposta da API:", resposta);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+      console.error("moderationService.getModerations erro:", erro);
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao buscar ações de moderação' };
+    }
+  },
+  
+  async updateModeration(moderationId, dadosAtualizacao) {
+    console.log("moderationService.updateModeration chamado com:", moderationId, dadosAtualizacao);
+    try {
+      const resposta = await api.patch(`/moderation/${moderationId}`, dadosAtualizacao);
+      console.log("moderationService.updateModeration resposta da API:", resposta);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+      console.error("moderationService.updateModeration erro:", erro);
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao atualizar ação de moderação' };
+    }
+  },
+  
+  async deleteModeration(moderationId) {
+    console.log("moderationService.deleteModeration chamado com:", moderationId);
+    try {
+      await api.delete(`/moderation/${moderationId}`);
+      console.log("moderationService.deleteModeration sucesso");
+      return { success: true };
+    } catch (erro) {
+      console.error("moderationService.deleteModeration erro:", erro);
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao deletar ação de moderação' };
+    }
+  },
+
+  async searchUsers(query) {
+    try {
+      const resposta = await api.get(`/moderation/search/users?query=${encodeURIComponent(query)}`);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+      console.error("moderationService.searchUsers erro:", erro);
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao buscar usuários' };
+    }
+  },
+
+  async banUser(userId) {
+    try {
+      const resposta = await api.post(`/moderation/users/${userId}/ban`);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+      console.error("moderationService.banUser erro:", erro);
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao banir usuário' };
+    }
+  },
+
+  async unbanUser(userId) {
+    try {
+      const resposta = await api.post(`/moderation/users/${userId}/unban`);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+      console.error("moderationService.unbanUser erro:", erro);
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao desbanir usuário' };
+    }
+  },
+
+  async muteUser(userId) {
+    try {
+      const resposta = await api.post(`/moderation/users/${userId}/mute`);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+      console.error("moderationService.muteUser erro:", erro);
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao mutar usuário' };
+    }
+  },
+
+  async unmuteUser(userId) {
+    try {
+      const resposta = await api.post(`/moderation/users/${userId}/unmute`);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+      console.error("moderationService.unmuteUser erro:", erro);
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao desmutar usuário' };
+    }
+  }
+};
+
+export const contentModerationService = {
+  async searchBooks(query) {
+    try {
+      const resposta = await api.get(`/reports/search/books?query=${encodeURIComponent(query)}`);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+      console.error("contentModerationService.searchBooks erro:", erro);
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao buscar livros' };
+    }
+  },
+
+  async searchMovies(query) {
+    try {
+      const resposta = await api.get(`/reports/search/movies?query=${encodeURIComponent(query)}`);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+      console.error("contentModerationService.searchMovies erro:", erro);
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao buscar filmes' };
+    }
+  },
+
+  async banBook(bookId) {
+    try {
+      const resposta = await api.post(`/reports/books/${bookId}/ban`);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+      console.error("contentModerationService.banBook erro:", erro);
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao banir livro' };
+    }
+  },
+
+  async unbanBook(bookId) {
+    try {
+      const resposta = await api.post(`/reports/books/${bookId}/unban`);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+      console.error("contentModerationService.unbanBook erro:", erro);
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao desbanir livro' };
+    }
+  },
+
+  async muteBook(bookId) {
+    try {
+      const resposta = await api.post(`/reports/books/${bookId}/mute`);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+      console.error("contentModerationService.muteBook erro:", erro);
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao mutar livro' };
+    }
+  },
+
+  async unmuteBook(bookId) {
+    try {
+      const resposta = await api.post(`/reports/books/${bookId}/unmute`);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+      console.error("contentModerationService.unmuteBook erro:", erro);
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao desmutar livro' };
+    }
+  },
+
+  async banMovie(movieId) {
+    try {
+      const resposta = await api.post(`/reports/movies/${movieId}/ban`);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+      console.error("contentModerationService.banMovie erro:", erro);
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao banir filme' };
+    }
+  },
+
+  async unbanMovie(movieId) {
+    try {
+      const resposta = await api.post(`/reports/movies/${movieId}/unban`);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+      console.error("contentModerationService.unbanMovie erro:", erro);
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao desbanir filme' };
+    }
+  },
+
+  async muteMovie(movieId) {
+    try {
+      const resposta = await api.post(`/reports/movies/${movieId}/mute`);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+      console.error("contentModerationService.muteMovie erro:", erro);
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao mutar filme' };
+    }
+  },
+
+  async unmuteMovie(movieId) {
+    try {
+      const resposta = await api.post(`/reports/movies/${movieId}/unmute`);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+      console.error("contentModerationService.unmuteMovie erro:", erro);
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao desmutar filme' };
+    }
+  }
+};
