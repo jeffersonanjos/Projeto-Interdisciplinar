@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { moderationService } from '../services/apiService';
+import { useAuth } from '../contexts/AuthContext';
 import './ModerationModal.css';
 
 const ModerationModal = ({ onClose, showToast }) => {
+  const { user: currentUser } = useAuth();
   const [view, setView] = useState('history');
   const [moderations, setModerations] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -144,12 +146,18 @@ const ModerationModal = ({ onClose, showToast }) => {
         case 'unmute':
           result = await moderationService.unmuteUser(userId);
           break;
+        case 'promote':
+          result = await moderationService.promoteUser(userId);
+          break;
+        case 'demote':
+          result = await moderationService.demoteUser(userId);
+          break;
         default:
           return;
       }
       
       if (result.success) {
-        showToast(result.data.message || 'Ação aplicada com sucesso');
+        showToast(result.data?.message || result.message || 'Ação aplicada com sucesso');
         handleSearchUsers();
         setSelectedUser(null);
       } else {
@@ -159,6 +167,15 @@ const ModerationModal = ({ onClose, showToast }) => {
       console.error('Erro ao aplicar ação:', error);
       showToast('Erro ao aplicar ação');
     }
+  };
+
+  const getRoleLabel = (role) => {
+    const labels = {
+      normal: 'NORMAL',
+      curator: 'CURADOR',
+      admin: 'ADMIN'
+    };
+    return labels[role] || role.toUpperCase();
   };
 
   return (
@@ -304,15 +321,15 @@ const ModerationModal = ({ onClose, showToast }) => {
                 >
                   <div className="taskbar-moderation__user-header">
                     <span className="taskbar-moderation__user-name">{user.username}</span>
-                    <span className="taskbar-moderation__user-role">{user.role}</span>
+                    <span className={`taskbar-moderation__user-role taskbar-moderation__user-role--${user.role}`}>{getRoleLabel(user.role)}</span>
                   </div>
                   <div className="taskbar-moderation__user-body">
                     <p><strong>Email:</strong> {user.email}</p>
                     <p>
                       <strong>Status:</strong> 
+                      <span className={`taskbar-moderation__user-role taskbar-moderation__user-role--${user.role}`}> {getRoleLabel(user.role)}</span>
                       {user.is_banned && <span className="taskbar-moderation__badge taskbar-moderation__badge--banned"> BANIDO</span>}
                       {user.is_muted && <span className="taskbar-moderation__badge taskbar-moderation__badge--muted"> SILENCIADO</span>}
-                      {!user.is_banned && !user.is_muted && <span className="taskbar-moderation__badge taskbar-moderation__badge--normal"> NORMAL</span>}
                     </p>
                   </div>
                 </div>
@@ -320,40 +337,73 @@ const ModerationModal = ({ onClose, showToast }) => {
             </div>
           )}
 
-          {selectedUser && (
+          {selectedUser && selectedUser.id !== currentUser?.id && (
             <div className="taskbar-moderation__actions">
               <div className="taskbar-moderation__actions-title">
                 Ações para {selectedUser.username}
               </div>
               <div className="taskbar-moderation__buttons">
-                <button 
-                  onClick={() => handleUserAction(selectedUser.id, 'ban')}
-                  disabled={selectedUser.is_banned}
-                  className="taskbar-moderation__button taskbar-moderation__button--ban"
-                >
-                  Banir
-                </button>
-                <button 
-                  onClick={() => handleUserAction(selectedUser.id, 'unban')}
-                  disabled={!selectedUser.is_banned}
-                  className="taskbar-moderation__button taskbar-moderation__button--unban"
-                >
-                  Desbanir
-                </button>
-                <button 
-                  onClick={() => handleUserAction(selectedUser.id, 'mute')}
-                  disabled={selectedUser.is_muted}
-                  className="taskbar-moderation__button taskbar-moderation__button--mute"
-                >
-                  Silenciar
-                </button>
-                <button 
-                  onClick={() => handleUserAction(selectedUser.id, 'unmute')}
-                  disabled={!selectedUser.is_muted}
-                  className="taskbar-moderation__button taskbar-moderation__button--unmute"
-                >
-                  Dessilenciar
-                </button>
+                {currentUser?.role === 'admin' && selectedUser.role !== 'admin' && (
+                  <>
+                    <button 
+                      onClick={() => handleUserAction(selectedUser.id, 'ban')}
+                      disabled={selectedUser.is_banned}
+                      className="taskbar-moderation__button taskbar-moderation__button--ban"
+                    >
+                      Banir
+                    </button>
+                    <button 
+                      onClick={() => handleUserAction(selectedUser.id, 'unban')}
+                      disabled={!selectedUser.is_banned}
+                      className="taskbar-moderation__button taskbar-moderation__button--unban"
+                    >
+                      Desbanir
+                    </button>
+                  </>
+                )}
+                {(currentUser?.role === 'admin' || currentUser?.role === 'curator') && selectedUser.role !== 'admin' && !(currentUser?.role === 'curator' && selectedUser.role === 'curator') && (
+                  <>
+                    <button 
+                      onClick={() => handleUserAction(selectedUser.id, 'mute')}
+                      disabled={selectedUser.is_muted}
+                      className="taskbar-moderation__button taskbar-moderation__button--mute"
+                    >
+                      Silenciar
+                    </button>
+                    <button 
+                      onClick={() => handleUserAction(selectedUser.id, 'unmute')}
+                      disabled={!selectedUser.is_muted}
+                      className="taskbar-moderation__button taskbar-moderation__button--unmute"
+                    >
+                      Dessilenciar
+                    </button>
+                  </>
+                )}
+                {currentUser?.role === 'admin' && selectedUser.role !== 'admin' && (
+                  <>
+                    <button 
+                      onClick={() => handleUserAction(selectedUser.id, 'promote')}
+                      disabled={selectedUser.role === 'curator'}
+                      className="taskbar-moderation__button taskbar-moderation__button--promote"
+                    >
+                      Promover para Curador
+                    </button>
+                    <button 
+                      onClick={() => handleUserAction(selectedUser.id, 'demote')}
+                      disabled={selectedUser.role === 'normal'}
+                      className="taskbar-moderation__button taskbar-moderation__button--demote"
+                    >
+                      Rebaixar para Normal
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+          {selectedUser && selectedUser.id === currentUser?.id && (
+            <div className="taskbar-moderation__actions">
+              <div className="taskbar-moderation__actions-title">
+                Você não pode aplicar ações em si mesmo
               </div>
             </div>
           )}

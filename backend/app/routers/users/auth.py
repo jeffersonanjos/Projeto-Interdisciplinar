@@ -33,6 +33,13 @@ async def login_for_access_token(
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    
+    if usuario.is_banned:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Sua conta foi banida e você não pode acessar o sistema",
+        )
+    
     expiracao_token = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     token_acesso = create_access_token(
         dados={"sub": usuario.username}, expires_delta=expiracao_token
@@ -51,6 +58,13 @@ async def login(login_usuario: UserLogin, session: Session = Depends(get_session
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    
+    if usuario.is_banned:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Sua conta foi banida e você não pode acessar o sistema",
+        )
+    
     expiracao_token = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     token_acesso = create_access_token(
         dados={"sub": usuario.username}, expires_delta=expiracao_token

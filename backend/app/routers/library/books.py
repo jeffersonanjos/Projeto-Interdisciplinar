@@ -38,6 +38,13 @@ async def get_user_library(user_id: int, session: Session = Depends(get_session)
 @router.post("/library/add")
 async def add_book_to_library(book_id: Dict[str, str], current_user: User = Depends(get_current_active_user), session: Session = Depends(get_session)):
     logger.info(f"Adicionando livro {book_id} à biblioteca do usuário {current_user.username}")
+    
+    if current_user.is_muted:
+        raise HTTPException(
+            status_code=403, 
+            detail="Você está silenciado e não pode adicionar itens à biblioteca"
+        )
+    
     id_livro_str = book_id.get("book_id")
     livro = obter_livro_por_id(id_livro_str)
     if not livro:

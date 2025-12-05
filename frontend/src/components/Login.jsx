@@ -12,6 +12,7 @@ const Login = () => {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showBanModal, setShowBanModal] = useState(false);
   
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -47,7 +48,11 @@ const Login = () => {
         navigate('/dashboard');
       } else {
         console.log("Login falhou");
-        setError(resultado.error);
+        if (resultado.error?.includes('banida')) {
+          setShowBanModal(true);
+        } else {
+          setError(resultado.error);
+        }
       }
     } catch (erro) {
       console.error("Erro no login:", erro);
@@ -125,6 +130,25 @@ const Login = () => {
           </p>
         </div>
       </div>
+
+      {showBanModal && (
+        <div className="modal-overlay" onClick={() => setShowBanModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Conta Banida</h2>
+            </div>
+            <div className="modal-body">
+              <p>Sua conta foi banida e você não pode acessar o sistema.</p>
+              <p>Se você acredita que isso é um erro, entre em contato com um administrador.</p>
+            </div>
+            <div className="modal-footer">
+              <button onClick={() => setShowBanModal(false)} className="auth-button">
+                Entendi
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -36,6 +36,44 @@ export const AuthProvider = ({ children }) => {
     checkAuth();
   }, []);
 
+  useEffect(() => {
+    if (!user) return;
+
+    const checkUserStatus = async () => {
+      try {
+        const response = await fetch('http://localhost:8001/users/me/', {
+          headers: {
+            'Authorization': `Bearer ${authService.getToken()}`
+          }
+        });
+
+        if (response.ok) {
+          const userData = await response.json();
+          
+          if (userData.is_banned) {
+            alert('Sua conta foi banida. Você será desconectado.');
+            logout();
+            window.location.href = '/login';
+            return;
+          }
+
+          if (userData.is_banned !== user.is_banned || userData.is_muted !== user.is_muted) {
+            updateUser(userData);
+          }
+        } else if (response.status === 401) {
+          logout();
+          window.location.href = '/login';
+        }
+      } catch (error) {
+        console.error('Erro ao verificar status do usuário:', error);
+      }
+    };
+
+    const interval = setInterval(checkUserStatus, 5000);
+
+    return () => clearInterval(interval);
+  }, [user]);
+
   const login = async (username, senha) => {
     setLoading(true);
  console.log("Login iniciado");

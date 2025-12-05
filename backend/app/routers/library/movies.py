@@ -41,6 +41,13 @@ async def get_user_movie_library(user_id: int, session: Session = Depends(get_se
 @router.post("/library/movies/add")
 async def add_movie_to_library(movie_id: Dict[str, str], current_user: User = Depends(get_current_active_user), session: Session = Depends(get_session)):
     logger.info(f"Adicionando filme {movie_id} à biblioteca do usuário {current_user.username}")
+    
+    if current_user.is_muted:
+        raise HTTPException(
+            status_code=403, 
+            detail="Você está silenciado e não pode adicionar itens à biblioteca"
+        )
+    
     id_filme_str = movie_id.get("movie_id")
     dados_filme = buscar_detalhes_filme(id_filme_str)
     if not dados_filme:

@@ -1,27 +1,44 @@
+import logging
+import os
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from app.routers import router as api_router
-from app.core.database import create_db_and_tables
-from app.core.seed import seed_initial_data
-import logging
-import os
+from routers import router as api_router
+from core.database import create_db_and_tables
+from core.seed import seed_initial_data
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logger.info("Iniciando ciclo de vida da aplicação...")
+    try:
+        create_db_and_tables()
+        logger.info("Banco de dados verificado.")
+        seed_initial_data()
+        logger.info("Seed de dados executado.")
+    except Exception as e:
+        logger.error(f"Erro na inicialização: {e}")
+    
+    yield
+    
+    logger.info("Encerrando ciclo de vida da aplicação.")
+
+
 app = FastAPI(
     title="Sistema de Recomendação de Livros e Filmes",
-    description="Backend com FastAPI para cadastro, avaliação, recomendação de livros e filmes",
-    version="0.2.0"
+    description="Backend com FastAPI v0.2.1",
+    version="0.2.1",
+    lifespan=lifespan
 )
 
-# Configuração de CORS para permitir requisições do frontend
 origins = [
-    "http://localhost:5173",  # padrão Vite
-    "http://localhost:3000",  # alternativo
+    "http://localhost:5173",
+    "http://localhost:3000",
 ]
 
 app.add_middleware(
@@ -32,31 +49,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-@app.on_event("startup")
-def on_startup():
-    logger.info("Iniciando a aplicação - on_startup")
-    create_db_and_tables()
-    logger.info("Banco de dados e tabelas criados")
-    seed_initial_data()
-    logger.info("Seed inicial executado")
-    import os
-    logger.info(f"Variáveis de ambiente: {os.environ}")
-
-
-#  Inclui todas as rotas (agregadas no router principal)
 app.include_router(api_router)
-logger.info("Rotas incluídas")
 
-# Servir arquivos estáticos (avatares)
-if os.path.exists("uploads/avatars"):
-    app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+uploads_dir = os.path.join(base_dir, "uploads")
+
+if os.path.exists(uploads_dir):
+    app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
+    logger.info(f"Diretório de uploads montado: {uploads_dir}")
+else:
+    logger.warning(f"Diretório de uploads não encontrado em: {uploads_dir}")
 
 
 @app.get("/")
 def root():
-    logger.info("Endpoint raiz chamado")
-    port = int(os.environ.get("PORT", 8001))  # Porta padrão é 8001
-    logger.info(f"A porta sendo usada é: {port}")
-    logger.info(f"Aplicação rodando na porta: {port}")
-    return {"message": "Bem-vindo ao Sistema de Recomendação de Livros e Filmes"}
+    return {
+        "message": "Bem-vindo ao Sistema de Recomendação",
+        "docs": "/docs",
+        "version": app.version
+    }

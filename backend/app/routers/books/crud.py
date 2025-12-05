@@ -5,7 +5,7 @@ from typing import List
 from core.database import get_session
 from core.models import Book, User
 from core.schemas import BookCreate, BookRead
-from core.auth import get_current_admin
+from core.auth import get_current_admin, get_current_curator_or_admin
 
 router = APIRouter()
 
@@ -14,8 +14,14 @@ router = APIRouter()
 async def create_book_manually(
     book: BookCreate,
     session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_admin)
+    current_user: User = Depends(get_current_curator_or_admin)
 ):
+    if current_user.is_muted:
+        raise HTTPException(
+            status_code=403, 
+            detail="Você está silenciado e não pode criar livros"
+        )
+    
     db_book = Book(**book.dict())
     session.add(db_book)
     session.commit()

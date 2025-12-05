@@ -26,6 +26,8 @@ class UserCreate(UserBase):
 class UserRead(UserBase):
     id: int
     role: str
+    is_banned: bool = False
+    is_muted: bool = False
     created_at: datetime
 
     class Config:
@@ -67,6 +69,8 @@ class BookRead(BookBase):
     authors: Optional[List[str]] = None        # compatível com Google Books API
     image_url: Optional[str] = None
     published_date: Optional[str] = None       # Ano de publicação
+    is_banned: bool = False
+    is_muted: bool = False
 
     class Config:
         orm_mode = True
@@ -93,6 +97,8 @@ class MovieCreate(MovieBase):
 
 class MovieRead(MovieBase):
     id: int
+    is_banned: bool = False
+    is_muted: bool = False
 
     class Config:
         orm_mode = True

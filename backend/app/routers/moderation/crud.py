@@ -6,7 +6,7 @@ from datetime import datetime
 from core.database import get_session
 from core.models import Moderation, User, Book, Movie, ModerationStatus
 from core.schemas import ModerationCreate, ModerationRead, ModerationUpdate, UserRead, BookRead, MovieRead
-from core.auth import get_current_user, get_current_curator_or_admin
+from core.auth import get_current_user, get_current_curator_or_admin, get_current_admin
 
 router = APIRouter()
 
@@ -117,11 +117,17 @@ async def search_users(
 async def ban_user(
     user_id: int,
     session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_curator_or_admin)
+    current_user: User = Depends(get_current_admin)
 ):
+    if user_id == current_user.id:
+        raise HTTPException(status_code=400, detail="Você não pode banir a si mesmo")
+    
     user = session.get(User, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    if user.role == "admin":
+        raise HTTPException(status_code=403, detail="Não é possível banir um administrador")
     
     user.is_banned = True
     session.add(user)
@@ -133,11 +139,14 @@ async def ban_user(
 async def unban_user(
     user_id: int,
     session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_curator_or_admin)
+    current_user: User = Depends(get_current_admin)
 ):
     user = session.get(User, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    if user.role == "admin":
+        raise HTTPException(status_code=403, detail="Não é possível desbanir um administrador")
     
     user.is_banned = False
     session.add(user)
@@ -151,9 +160,18 @@ async def mute_user(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_curator_or_admin)
 ):
+    if user_id == current_user.id:
+        raise HTTPException(status_code=400, detail="Você não pode silenciar a si mesmo")
+    
     user = session.get(User, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    if user.role == "admin":
+        raise HTTPException(status_code=403, detail="Não é possível silenciar um administrador")
+    
+    if user.role == "curator" and current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Apenas administradores podem silenciar curadores")
     
     user.is_muted = True
     session.add(user)
@@ -170,6 +188,12 @@ async def unmute_user(
     user = session.get(User, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    if user.role == "admin":
+        raise HTTPException(status_code=403, detail="Não é possível desmutar um administrador")
+    
+    if user.role == "curator" and current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Apenas administradores podem desmutar curadores")
     
     user.is_muted = False
     session.add(user)

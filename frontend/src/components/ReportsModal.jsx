@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { reportService, contentModerationService } from '../services/apiService';
+import { useAuth } from '../contexts/AuthContext';
 import './ReportsModal.css';
 
 const ReportsModal = ({ onClose, showToast }) => {
+  const { user: currentUser } = useAuth();
   const [view, setView] = useState('history');
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -358,34 +360,42 @@ const ReportsModal = ({ onClose, showToast }) => {
                 Ações para {selectedContent.title}
               </div>
               <div className="taskbar-reports__buttons">
-                <button 
-                  onClick={() => handleContentAction(selectedContent.id, 'ban')}
-                  disabled={selectedContent.is_banned}
-                  className="taskbar-reports__button taskbar-reports__button--ban"
-                >
-                  Banir
-                </button>
-                <button 
-                  onClick={() => handleContentAction(selectedContent.id, 'unban')}
-                  disabled={!selectedContent.is_banned}
-                  className="taskbar-reports__button taskbar-reports__button--unban"
-                >
-                  Desbanir
-                </button>
-                <button 
-                  onClick={() => handleContentAction(selectedContent.id, 'mute')}
-                  disabled={selectedContent.is_muted}
-                  className="taskbar-reports__button taskbar-reports__button--mute"
-                >
-                  Silenciar
-                </button>
-                <button 
-                  onClick={() => handleContentAction(selectedContent.id, 'unmute')}
-                  disabled={!selectedContent.is_muted}
-                  className="taskbar-reports__button taskbar-reports__button--unmute"
-                >
-                  Dessilenciar
-                </button>
+                {currentUser?.role === 'admin' && (
+                  <>
+                    <button 
+                      onClick={() => handleContentAction(selectedContent.id, 'ban')}
+                      disabled={selectedContent.is_banned}
+                      className="taskbar-reports__button taskbar-reports__button--ban"
+                    >
+                      Banir
+                    </button>
+                    <button 
+                      onClick={() => handleContentAction(selectedContent.id, 'unban')}
+                      disabled={!selectedContent.is_banned}
+                      className="taskbar-reports__button taskbar-reports__button--unban"
+                    >
+                      Desbanir
+                    </button>
+                  </>
+                )}
+                {(currentUser?.role === 'admin' || currentUser?.role === 'curator') && (
+                  <>
+                    <button 
+                      onClick={() => handleContentAction(selectedContent.id, 'mute')}
+                      disabled={selectedContent.is_muted}
+                      className="taskbar-reports__button taskbar-reports__button--mute"
+                    >
+                      Silenciar
+                    </button>
+                    <button 
+                      onClick={() => handleContentAction(selectedContent.id, 'unmute')}
+                      disabled={!selectedContent.is_muted}
+                      className="taskbar-reports__button taskbar-reports__button--unmute"
+                    >
+                      Dessilenciar
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           )}

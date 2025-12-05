@@ -6,7 +6,7 @@ from datetime import datetime
 from core.database import get_session
 from core.models import Report, User, Book, Movie, ReportStatus
 from core.schemas import ReportCreate, ReportRead, ReportUpdate, BookRead, MovieRead
-from core.auth import get_current_user, get_current_curator_or_admin
+from core.auth import get_current_user, get_current_curator_or_admin, get_current_admin
 
 router = APIRouter()
 
@@ -124,7 +124,9 @@ async def search_books(
             isbn=book.isbn,
             publisher=book.publisher,
             publication_date=book.publication_date,
-            genres=book.genres
+            genres=book.genres,
+            is_banned=book.is_banned,
+            is_muted=book.is_muted
         ))
     return result
 
@@ -148,7 +150,7 @@ async def search_movies(
 async def ban_book(
     book_id: int,
     session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_curator_or_admin)
+    current_user: User = Depends(get_current_admin)
 ):
     book = session.get(Book, book_id)
     if not book:
@@ -164,7 +166,7 @@ async def ban_book(
 async def unban_book(
     book_id: int,
     session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_curator_or_admin)
+    current_user: User = Depends(get_current_admin)
 ):
     book = session.get(Book, book_id)
     if not book:
@@ -212,7 +214,7 @@ async def unmute_book(
 async def ban_movie(
     movie_id: int,
     session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_curator_or_admin)
+    current_user: User = Depends(get_current_admin)
 ):
     movie = session.get(Movie, movie_id)
     if not movie:
@@ -228,7 +230,7 @@ async def ban_movie(
 async def unban_movie(
     movie_id: int,
     session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_curator_or_admin)
+    current_user: User = Depends(get_current_admin)
 ):
     movie = session.get(Movie, movie_id)
     if not movie:

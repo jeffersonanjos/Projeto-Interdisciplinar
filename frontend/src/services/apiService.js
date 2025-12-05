@@ -787,6 +787,26 @@ export const moderationService = {
       console.error("moderationService.unmuteUser erro:", erro);
       return { success: false, error: erro.response?.data?.detail || 'Erro ao desmutar usuário' };
     }
+  },
+
+  async promoteUser(userId) {
+    try {
+      const resposta = await api.post(`/users/${userId}/promote`);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+      console.error("moderationService.promoteUser erro:", erro);
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao promover usuário' };
+    }
+  },
+
+  async demoteUser(userId) {
+    try {
+      const resposta = await api.post(`/users/${userId}/demote`);
+      return { success: true, data: resposta.data };
+    } catch (erro) {
+      console.error("moderationService.demoteUser erro:", erro);
+      return { success: false, error: erro.response?.data?.detail || 'Erro ao rebaixar usuário' };
+    }
   }
 };
 
