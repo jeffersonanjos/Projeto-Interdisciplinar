@@ -60,10 +60,11 @@ AVATAR_DIR.mkdir(parents=True, exist_ok=True)
 FRONTEND_PUBLIC_DIR = PROJECT_ROOT / "frontend" / "public"
 
 DEFAULT_USERS = (
-    {"username": "andrei", "avatar": "silver.jpg"},
-    {"username": "henrique", "avatar": "vector.jpg"},
-    {"username": "jefferson", "avatar": "fang.jpg"},
-    {"username": "igor", "avatar": "knuckles.jpg"},
+    {"username": "alexandria", "avatar": None, "role": "admin"},
+    {"username": "andrei", "avatar": "silver.jpg", "role": "normal"},
+    {"username": "henrique", "avatar": "vector.jpg", "role": "normal"},
+    {"username": "jefferson", "avatar": "fang.jpg", "role": "normal"},
+    {"username": "igor", "avatar": "knuckles.jpg", "role": "normal"},
 )
 
 
@@ -73,6 +74,7 @@ def seed_initial_data() -> None:
     with Session(engine) as session:
         for user_spec in DEFAULT_USERS:
             username = user_spec["username"]
+            role = user_spec.get("role", "normal")
             existing_user = session.exec(
                 select(User).where(User.username == username)
             ).first()
@@ -80,26 +82,30 @@ def seed_initial_data() -> None:
                 logger.info("Usuário %s já existe. Pulando seed.", username)
                 continue
 
-            user = _create_user(session, username)
-            avatar_url = _ensure_avatar(user_spec["avatar"], username)
+            user = _create_user(session, username, role)
+            avatar = user_spec.get("avatar")
+            avatar_url = _ensure_avatar(avatar, username) if avatar else None
             _create_profile(session, user, avatar_url)
-            livros, filmes = _populate_libraries(session, user)
-            _create_ratings(session, user, livros, filmes)
+            
+            if role != "admin":
+                livros, filmes = _populate_libraries(session, user)
+                _create_ratings(session, user, livros, filmes)
 
     logger.info("Seed de usuários concluída.")
 
 
-def _create_user(session: Session, username: str) -> User:
+def _create_user(session: Session, username: str, role: str = "normal") -> User:
     email = f"{username}@email"
     user = User(
         username=username,
         email=email,
         hashed_password=get_password_hash(DEFAULT_PASSWORD),
+        role=role,
     )
     session.add(user)
     session.commit()
     session.refresh(user)
-    logger.info("Usuário %s criado com id %s.", username, user.id)
+    logger.info("Usuário %s criado com id %s e role %s.", username, user.id, role)
     return user
 
 

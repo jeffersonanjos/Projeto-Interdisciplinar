@@ -98,3 +98,29 @@ async def get_current_active_user(current_user: User = Depends(get_current_user)
     """Obtém o usuário ativo atual"""
     return current_user
 
+async def get_current_admin(current_user: User = Depends(get_current_user)) -> User:
+    """Verifica se o usuário atual é admin"""
+    if current_user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Você não tem permissão para executar esta ação. Apenas administradores."
+        )
+    return current_user
+
+async def get_current_curator_or_admin(current_user: User = Depends(get_current_user)) -> User:
+    """Verifica se o usuário atual é curador ou admin"""
+    if current_user.role not in ["curator", "admin"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Você não tem permissão para executar esta ação. Requer role de curador ou administrador."
+        )
+    return current_user
+
+def is_admin(user: User) -> bool:
+    """Verifica se o usuário é admin"""
+    return user.role == "admin"
+
+def is_curator_or_admin(user: User) -> bool:
+    """Verifica se o usuário é curador ou admin"""
+    return user.role in ["curator", "admin"]
+

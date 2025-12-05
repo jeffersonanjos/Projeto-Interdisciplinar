@@ -2,6 +2,12 @@ from typing import Optional, List
 from datetime import date, datetime
 from sqlmodel import SQLModel
 from pydantic import Field, validator, BaseModel
+from enum import Enum
+
+class UserRole(str, Enum):
+    NORMAL = "normal"
+    CURATOR = "curator"
+    ADMIN = "admin"
 
 class UserBase(SQLModel):
     username: str
@@ -19,6 +25,7 @@ class UserCreate(UserBase):
 
 class UserRead(UserBase):
     id: int
+    role: str
     created_at: datetime
 
     class Config:

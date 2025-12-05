@@ -3,7 +3,7 @@ Módulo de rotas de usuários.
 Agrega todos os sub-módulos de rotas relacionadas a usuários.
 """
 from fastapi import APIRouter
-from . import auth, crud, search, follow, activities, user_reviews, timeline
+from . import auth, crud, search, follow, activities, user_reviews, timeline, moderation
 
 # Router principal que agrega todos os sub-routers
 router = APIRouter(tags=["users"])
@@ -16,6 +16,7 @@ router.include_router(follow.router)
 router.include_router(activities.router)
 router.include_router(user_reviews.router)
 router.include_router(timeline.router)
+router.include_router(moderation.router)
 
 __all__ = ["router"]
 
