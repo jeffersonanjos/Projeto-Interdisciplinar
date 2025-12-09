@@ -43,15 +43,15 @@ npm run dev
 ```
 
 ## Funcionalidades Principais  
-1. **Cadastro e Login de Usuários** ✅ **CONCLUÍDO** (Sistema completo implementado com JWT)
-2. **Busca e Exibição de Livros e Filmes** ✅ **CONCLUÍDO** (Integração com Google Books e OMDb APIs)
-3. **Sistema de Avaliação (notas e comentários)** ✅ **CONCLUÍDO** (CRUD completo de avaliações)
-4. **Recomendações personalizadas** ✅ **CONCLUÍDO** (Algoritmo baseado em gêneros e autores)
-5. **Integração com APIs externas** ✅ **CONCLUÍDO** (Google Books, OMDb, TMDb)
-6. **Biblioteca Pessoal** ✅ **CONCLUÍDO** (Gerenciamento de livros e filmes salvos)
-7. **Sistema Social** ✅ **CONCLUÍDO** (Follow, timeline, perfis)
-8. **Sistema de Moderação** ✅ **CONCLUÍDO** (Relatórios, ban, mute, roles)
-9. **Interface Responsiva** ✅ **CONCLUÍDO** (18 componentes React, tema claro/escuro)
+1. **Cadastro e Login de Usuários** **CONCLUÍDO** (Sistema completo implementado com JWT)
+2. **Busca e Exibição de Livros e Filmes** **CONCLUÍDO** (Integração com Google Books e OMDb APIs)
+3. **Sistema de Avaliação (notas e comentários)** **CONCLUÍDO** (CRUD completo de avaliações)
+4. **Recomendações personalizadas** **CONCLUÍDO** (Algoritmo baseado em gêneros e autores)
+5. **Integração com APIs externas** **CONCLUÍDO** (Google Books, OMDb, TMDb)
+6. **Biblioteca Pessoal** **CONCLUÍDO** (Gerenciamento de livros e filmes salvos)
+7. **Sistema Social** **CONCLUÍDO** (Follow, timeline, perfis)
+8. **Sistema de Moderação** **CONCLUÍDO** (Relatórios, ban, mute, roles)
+9. **Interface Responsiva** **CONCLUÍDO** (18 componentes React, tema claro/escuro)
 
 ## Status do Projeto (Dez/2025)
 
@@ -66,7 +66,7 @@ npm run dev
 - **Integrações:** Google Books API, OMDb API, TMDb API (fallback)
 - **Documentação:** SITEMAP completo com 981 linhas documentando toda arquitetura
 
-### ✅ **IMPLEMENTADO:**
+### **IMPLEMENTADO:**
 
 **Backend (FastAPI 0.115.6):**
 - **9 Módulos REST** com 80+ endpoints especializados
@@ -167,7 +167,7 @@ const handleSearch = async () => {
 };
 ```
 
-### 📁 Arquitetura Atual dos Routers
+### Arquitetura Atual dos Routers
 
 Backend modularizado em 9 módulos especializados:
 
@@ -241,7 +241,7 @@ routers/
 - Redução média de **70%** no tamanho de cada arquivo
 - Facilita manutenção, testes e expansão futura
 
-### 🔧 **TECNOLOGIAS UTILIZADAS:**
+### **TECNOLOGIAS UTILIZADAS:**
 
 **Backend:**
 - **Framework**: FastAPI 0.115.6
@@ -270,7 +270,7 @@ routers/
 - Role-based access control (RBAC)
 - Proteção de rotas frontend e backend
 
-### 📋 **ENDPOINTS DISPONÍVEIS (80+):**
+### **ENDPOINTS DISPONÍVEIS (80+):**
 
 **Base URL:** http://localhost:8001  
 **Documentação Interativa:** http://localhost:8001/docs
