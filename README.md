@@ -96,7 +96,7 @@ npm run dev
 - **10+ Serviços API**: Comunicação modular com backend via Axios
 - **Interceptors JWT**: Adição automática de token nas requisições
 
-### 🔧 **Code Examples:**
+### **Code Examples:**
 
 #### Backend (backend/app/routers.py):
 ```python
