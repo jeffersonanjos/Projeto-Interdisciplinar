@@ -1,3 +1,7 @@
+IMPORTANTE: para acessar privilégios de administrador do Alexandria, entre com a seguinte conta:
+- Alexandria
+- 123456
+
 # Escopo do Projeto  
 **Título:** Sistema de Recomendação de Livros e Filmes com Avaliações Personalizadas  
 
