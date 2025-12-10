@@ -131,6 +131,16 @@ async def ban_user(
     
     user.is_banned = True
     session.add(user)
+    
+    moderation = Moderation(
+        moderator_id=current_user.id,
+        target_user_id=user_id,
+        action_type="ban",
+        reason="Banimento aplicado via central de moderação",
+        description=f"Usuário {user.username} foi banido pelo administrador {current_user.username}"
+    )
+    session.add(moderation)
+    
     session.commit()
     return {"message": "Usuário banido com sucesso"}
 
@@ -150,6 +160,16 @@ async def unban_user(
     
     user.is_banned = False
     session.add(user)
+    
+    moderation = Moderation(
+        moderator_id=current_user.id,
+        target_user_id=user_id,
+        action_type="unban",
+        reason="Desbanimento aplicado via central de moderação",
+        description=f"Usuário {user.username} foi desbanido pelo administrador {current_user.username}"
+    )
+    session.add(moderation)
+    
     session.commit()
     return {"message": "Usuário desbanido com sucesso"}
 
@@ -175,6 +195,16 @@ async def mute_user(
     
     user.is_muted = True
     session.add(user)
+    
+    moderation = Moderation(
+        moderator_id=current_user.id,
+        target_user_id=user_id,
+        action_type="mute",
+        reason="Silenciamento aplicado via central de moderação",
+        description=f"Usuário {user.username} foi silenciado por {current_user.username}"
+    )
+    session.add(moderation)
+    
     session.commit()
     return {"message": "Usuário silenciado com sucesso"}
 
@@ -197,5 +227,15 @@ async def unmute_user(
     
     user.is_muted = False
     session.add(user)
+    
+    moderation = Moderation(
+        moderator_id=current_user.id,
+        target_user_id=user_id,
+        action_type="unmute",
+        reason="Dessilenciamento aplicado via central de moderação",
+        description=f"Usuário {user.username} foi dessilenciado por {current_user.username}"
+    )
+    session.add(moderation)
+    
     session.commit()
     return {"message": "Usuário desmutado com sucesso"}

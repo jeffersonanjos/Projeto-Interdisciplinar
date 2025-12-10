@@ -34,6 +34,7 @@
 
 .taskbar-reports__select:hover {
   background: var(--bg-primary);
+  color: var(--text-primary);
   transform: translateY(-1px);
 }
 
@@ -181,6 +182,7 @@
 
 .taskbar-reports__button:hover:not(:disabled) {
   background: var(--bg-primary);
+  color: var(--text-primary);
   transform: translateY(-1px);
   box-shadow: 
     0 3px 0 rgba(0, 0, 0, 0.15),
@@ -304,6 +306,7 @@
 }
 
 .taskbar-reports__search-button:hover:not(:disabled) {
+  color: var(--text-primary);
   transform: translateY(-1px);
   box-shadow: 
     0 3px 0 rgba(0, 0, 0, 0.15),
