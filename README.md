@@ -43,49 +43,60 @@ npm run dev
 ```
 
 ## Funcionalidades Principais  
-1. **Cadastro e Login de Usuários** ✅ **CONCLUÍDO** (Sistema completo implementado)
-2. **Busca e Exibição de Livros e Filmes** ❌ **PENDENTE** (Modelos criados, endpoints não implementados)
-3. **Sistema de Avaliação (notas e comentários)** ✅ **CONCLUÍDO** (Endpoint de criação de avaliações implementado)
-4. **Recomendações personalizadas** ❌ **PENDENTE** (Modelo criado, algoritmo não implementado)
-5. **Integração com APIs externas (Google Books)** [-] **EM ANDAMENTO** (Implementado busca de livros)
-6. **Exibição de cards com capas, notas e sinopses** ❌ **PENDENTE** (Frontend não implementado)
-7. **Histórico de Avaliações no perfil do usuário** ❌ **PENDENTE** (Endpoints não implementados)
+1. **Cadastro e Login de Usuários** **CONCLUÍDO** (Sistema completo implementado com JWT)
+2. **Busca e Exibição de Livros e Filmes** **CONCLUÍDO** (Integração com Google Books e OMDb APIs)
+3. **Sistema de Avaliação (notas e comentários)** **CONCLUÍDO** (CRUD completo de avaliações)
+4. **Recomendações personalizadas** **CONCLUÍDO** (Algoritmo baseado em gêneros e autores)
+5. **Integração com APIs externas** **CONCLUÍDO** (Google Books, OMDb, TMDb)
+6. **Biblioteca Pessoal** **CONCLUÍDO** (Gerenciamento de livros e filmes salvos)
+7. **Sistema Social** **CONCLUÍDO** (Follow, timeline, perfis)
+8. **Sistema de Moderação** **CONCLUÍDO** (Relatórios, ban, mute, roles)
+9. **Interface Responsiva** **CONCLUÍDO** (18 componentes React, tema claro/escuro)
 
-## Status do Projeto (Nov/2025)
+## Status do Projeto (Dez/2025)
 
-- **Fase atual:** backbone do backend modularizado, com routers especializados e reutilizáveis para cada domínio (usuários, avaliações, biblioteca, etc.).
-- **Objetivo recente:** concluir a refatoração descrita nos commits `modularização do código` e `Remove múltiplos routers...`, garantindo manutenção simples e expansão guiada por módulos.
-- **Próximo foco:** ampliar as funcionalidades pendentes (recomendações, histórico completo e CRUDs avançados) aproveitando a nova base organizada.
+**Versão:** 0.2.1
 
-### Google Books API Integration:
-- The backend has been integrated with the Google Books API to search for books by query.
-- The frontend has been updated to allow users to search for books and display the results.
+- **Fase atual:** Sistema completo e funcional com backend modularizado e frontend responsivo
+- **Arquitetura:** SPA (Single Page Application) com API RESTful
+- **Backend:** 80+ endpoints organizados em 9 módulos especializados
+- **Frontend:** 18 componentes React com tema adaptativo e Context API
+- **Banco de Dados:** 10 entidades com relacionamentos completos
+- **Autenticação:** Sistema JWT com 3 níveis de acesso (normal, curator, admin)
+- **Integrações:** Google Books API, OMDb API, TMDb API (fallback)
+- **Documentação:** SITEMAP completo com 981 linhas documentando toda arquitetura
 
-### ✅ **IMPLEMENTADO:**
-- **Backend com FastAPI**: Estrutura base do servidor
-- **Modelos de Dados**: User, Book, Movie, Rating, Recommendation (SQLModel/SQLAlchemy)
-- **Banco de Dados**: Configuração Mysql
-- **Sistema Completo de Autenticação**:
-  - Cadastro de Usuários: Endpoint POST `/users/` com hash de senha (bcrypt)
-  - Login com JWT: Endpoints POST `/token` e POST `/login`
-  - Autenticação de Usuários: Middleware JWT com tokens seguros
-  - Perfil do Usuário: Endpoint GET `/users/me/` para dados do usuário logado
-  - Atualização de Usuários: Endpoint PUT `/users/{user_id}`
-- **Sistema de Avaliações**: Endpoint POST `/ratings/` protegido por autenticação
-- **Schemas Pydantic**: Validação de dados de entrada e saída
-- **CORS**: Configurado para desenvolvimento
-- **Documentação Automática**: Swagger/OpenAPI disponível
+### **IMPLEMENTADO:**
 
-### ❌ **PENDENTE:**
-- **Endpoints de Livros**: CRUD completo para livros
-- **Endpoints de Filmes**: CRUD completo para filmes
-- **Integração com APIs Externas**: Google Books (search implemented) and IMDb
-- **Sistema de Recomendações**: Algoritmo de recomendação personalizada
-- **Frontend**: Interface web responsiva
-- **Endpoints de Histórico**: Buscar avaliações do usuário
-- **Endpoints de Recomendações**: Buscar recomendações do usuário
+**Backend (FastAPI 0.115.6):**
+- **9 Módulos REST** com 80+ endpoints especializados
+- **Modelos de Dados**: 10 entidades (User, Book, Movie, Rating, UserReview, UserProfile, UserLibrary, Follow, Report, Moderation)
+- **Banco de Dados**: MySQL com SQLModel/SQLAlchemy
+- **Autenticação JWT Completa**:
+  - Hash bcrypt, tokens com expiração configurável
+  - 3 níveis de acesso: normal, curator, admin
+  - Proteção de rotas com dependencies
+- **CRUD Completo**: Usuários, livros, filmes, avaliações, perfis
+- **Sistema Social**: Follow/unfollow, timeline, atividades
+- **Biblioteca Pessoal**: Gerenciamento de livros e filmes salvos
+- **Recomendações**: Algoritmo baseado em gêneros e autores da biblioteca
+- **Sistema de Moderação**: Relatórios, ban, mute, promoção/demoção de usuários
+- **Upload de Arquivos**: Sistema de avatar com multipart/form-data
+- **Integração Externa**: Google Books API, OMDb API, TMDb API (fallback)
+- **Documentação**: Swagger UI e ReDoc automáticos
 
-### 🔧 **Code Examples:**
+**Frontend (React 18.3.1 + Vite 6.0.3):**
+- **18 Componentes React** organizados por função
+- **Context API**: AuthContext, ThemeContext, UpdateContext
+- **Rotas Protegidas**: Sistema de proteção com ProtectedRoute
+- **5 Views do Dashboard**: Home, Search, Library, Recommendations, Profile
+- **Tema Adaptativo**: Modo claro/escuro
+- **Sistema de Notificações**: Toast não-invasivo
+- **Modais**: Details, CreateMedia, Moderation, Reports, UserReviews
+- **10+ Serviços API**: Comunicação modular com backend via Axios
+- **Interceptors JWT**: Adição automática de token nas requisições
+
+### **Code Examples:**
 
 #### Backend (backend/app/routers.py):
 ```python
@@ -156,98 +167,194 @@ const handleSearch = async () => {
 };
 ```
 
-### 📁 Arquitetura Atual dos Routers
+### Arquitetura Atual dos Routers
 
-Todo o backend foi reorganizado seguindo o guia `app/routers/mapa/ESTRUTURA_FINAL.md`. A árvore abaixo resume a estrutura definitiva dos módulos:
+Backend modularizado em 9 módulos especializados:
 
 ```
 routers/
 ├── __init__.py              # Router principal (agrega todos)
 ├── utils.py                 # Utilitários compartilhados
 │
-├── users/
+├── users/                   # Módulo de Usuários
 │   ├── __init__.py
 │   ├── auth.py              # Autenticação (login/token)
-│   ├── crud.py              # CRUD básico
+│   ├── crud.py              # CRUD básico de usuários
 │   ├── search.py            # Busca de usuários
-│   ├── follow.py            # Sistema de follow
+│   ├── follow.py            # Sistema de follow/unfollow
 │   ├── activities.py        # Atividades do usuário
-│   ├── user_reviews.py      # Avaliações de usuários
-│   └── timeline.py          # Timeline da comunidade
+│   ├── user_reviews.py      # Avaliações entre usuários
+│   ├── timeline.py          # Timeline da comunidade
+│   └── moderation.py        # Promoção/demoção (admin)
 │
-├── ratings/
+├── ratings/                 # Módulo de Avaliações
 │   ├── __init__.py
-│   ├── crud.py              # CRUD de ratings
+│   ├── crud.py              # CRUD de ratings (livros/filmes)
 │   ├── user_ratings.py      # Ratings por usuário
-│   └── reviews.py           # Wrapper para reviews
+│   └── reviews.py           # Reviews com detalhes completos
 │
-├── profile/
+├── profile/                 # Módulo de Perfis
 │   ├── __init__.py
 │   ├── crud.py              # CRUD de perfis
 │   ├── avatar.py            # Upload/remoção de avatares
-│   └── delete.py            # Deleção de perfis
+│   └── delete.py            # Deleção de contas
 │
-├── books/
+├── books/                   # Módulo de Livros
 │   ├── __init__.py
-│   ├── search.py            # Busca de livros
+│   ├── search.py            # Busca via Google Books API
 │   ├── detail.py            # Detalhes de livros
+│   ├── crud.py              # Adicionar livros manualmente
 │   └── genres.py            # Atualização de gêneros
 │
-├── movies/
+├── movies/                  # Módulo de Filmes
 │   ├── __init__.py
-│   ├── search.py            # Busca de filmes
+│   ├── search.py            # Busca via OMDb/TMDb APIs
 │   ├── detail.py            # Detalhes de filmes
+│   ├── crud.py              # Adicionar filmes manualmente
 │   └── genres.py            # Atualização de gêneros
 │
-├── library/
+├── library/                 # Módulo de Biblioteca Pessoal
 │   ├── __init__.py
 │   ├── books.py             # Biblioteca de livros
 │   └── movies.py            # Biblioteca de filmes
 │
-└── recommendations/
+├── recommendations/         # Módulo de Recomendações
+│   ├── __init__.py
+│   ├── books.py             # Recomendações de livros
+│   └── movies.py            # Recomendações de filmes
+│
+├── reports/                 # Módulo de Relatórios
+│   ├── __init__.py
+│   └── crud.py              # CRUD de denúncias e busca de conteúdo
+│
+└── moderation/              # Módulo de Moderação
     ├── __init__.py
-    ├── books.py             # Recomendações de livros
-    └── movies.py            # Recomendações de filmes
+    ├── users.py             # Moderação de usuários (ban/mute)
+    ├── books.py             # Moderação de livros
+    └── movies.py            # Moderação de filmes
 ```
 
-**Estatísticas da modularização**
-- 7 módulos principais consolidados.
-- Maior arquivo ~165 linhas (`ratings/crud.py`).
-- 26+ arquivos `.py` organizados, com redução média de 70% no tamanho de cada arquivo.
-- Na raiz permanecem apenas `__init__.py` e `utils.py`, facilitando imports e reaproveitamento.
+**Estatísticas da modularização:**
+- **9 módulos** principais especializados
+- **80+ endpoints REST** organizados
+- **30+ arquivos** `.py` com responsabilidades únicas
+- Redução média de **70%** no tamanho de cada arquivo
+- Facilita manutenção, testes e expansão futura
 
-### 🔧 **TECNOLOGIAS UTILIZADAS:**
-- **Backend**: FastAPI (Python)
-- **Banco de Dados**: SQLite (configurável para MySQL)
-- **ORM**: SQLModel (SQLAlchemy)
+### **TECNOLOGIAS UTILIZADAS:**
+
+**Backend:**
+- **Framework**: FastAPI 0.115.6
+- **Linguagem**: Python 3.x
+- **Banco de Dados**: MySQL
+- **ORM**: SQLModel + SQLAlchemy
 - **Validação**: Pydantic
-- **Autenticação**: JWT (python-jose), bcrypt (passlib)
+- **Autenticação**: JWT (python-jose[cryptography])
 - **Hash de Senhas**: bcrypt (passlib)
 - **Servidor**: Uvicorn
-- **Segurança**: OAuth2, JWT tokens, hash de senhas
+- **CORS**: FastAPI CORS Middleware
+- **APIs Externas**: Google Books API, OMDb API, TMDb API
 
-### 📋 **ENDPOINTS DISPONÍVEIS:**
+**Frontend:**
+- **Framework**: React 18.3.1
+- **Build Tool**: Vite 6.0.3
+- **Roteamento**: React Router DOM
+- **HTTP Client**: Axios
+- **State Management**: Context API (Auth, Theme, Update)
+- **Estilização**: CSS Modules
 
-#### **Autenticação:**
+**Segurança:**
+- OAuth2 Password Bearer Flow
+- JWT tokens com expiração configurável (30 min)
+- Hash bcrypt com salt automático
+- Role-based access control (RBAC)
+- Proteção de rotas frontend e backend
+
+### **ENDPOINTS DISPONÍVEIS (80+):**
+
+**Base URL:** http://localhost:8001  
+**Documentação Interativa:** http://localhost:8001/docs
+
+#### **Autenticação e Usuários (/users):**
+- `POST /token` - Login OAuth2 (form-data)
+- `POST /login` - Login JSON
 - `POST /users/` - Cadastrar novo usuário
-- `POST /token` - Login com OAuth2 (form-data)
-- `POST /login` - Login com JSON
-- `GET /users/me/` - Obter dados do usuário logado
-- `PUT /users/{user_id}` - Atualizar dados do usuário
+- `GET /users/me/` - Dados do usuário autenticado
+- `PUT /users/{user_id}` - Atualizar usuário
+- `GET /users/search` - Buscar usuários
+- `POST /users/{user_id}/follow` - Seguir usuário
+- `DELETE /users/{user_id}/follow` - Deixar de seguir
+- `GET /users/{user_id}/followers` - Listar seguidores
+- `GET /users/{user_id}/following` - Listar seguidos
+- `GET /users/{user_id}/activities` - Atividades do usuário
+- `GET /timeline` - Timeline da comunidade
+- `POST /users/{user_id}/promote` - Promover a curador (admin)
+- `POST /users/{user_id}/demote` - Remover cargo (admin)
+- `GET /users/curators` - Listar curadores
 
-#### **Avaliações:**
-- `POST /ratings/` - Criar nova avaliação (requer autenticação)
+#### **Livros (/books):**
+- `GET /books/search` - Buscar livros (Google Books API)
+- `GET /books/{book_id}` - Detalhes do livro
+- `POST /books/manual` - Adicionar livro manualmente
+- `PUT /books/{book_id}/update-genres` - Atualizar gêneros
+- `POST /books/update-all-genres` - Atualizar gêneros de todos
 
-#### **Documentação:**
-- `GET /docs` - Documentação Swagger/OpenAPI
-- `GET /redoc` - Documentação ReDoc
+#### **Filmes (/movies):**
+- `GET /movies/search` - Buscar filmes (OMDb/TMDb APIs)
+- `GET /movies` - Busca pública de filmes
+- `GET /movies/{external_id}` - Detalhes do filme (IMDb ID)
+- `POST /movies/manual` - Adicionar filme manualmente
+- `PUT /movies/{movie_id}/update-genres` - Atualizar gêneros
+- `POST /movies/update-all-genres` - Atualizar gêneros de todos
 
-## Tecnologias e Ferramentas Previstas  
-- **Front-end:** HTML, CSS, JavaScript, com framework como React + Vite.  
-- **Back-end:** Node.js, Python, com integração de APIs.  
-- **Banco de Dados:** MySQL para armazenamento de dados de usuários, avaliações e histórico.  
-- **Integrações:** Google Books API, IMDb API.  
-- **Ferramentas de Design:** Figma ou Canva para identidade visual e protótipos.  
+#### **Avaliações (/ratings):**
+- `POST /ratings/` - Criar avaliação (protegido)
+- `PUT /ratings/{rating_id}` - Atualizar avaliação
+- `DELETE /ratings/{rating_id}` - Deletar avaliação
+- `GET /users/{user_id}/ratings` - Avaliações do usuário
+- `GET /users/{user_id}/reviews` - Reviews completos
+
+#### **Biblioteca Pessoal (/library):**
+- `GET /users/{user_id}/library` - Biblioteca de livros
+- `POST /library/add` - Adicionar livro
+- `DELETE /library/remove` - Remover livro
+- `GET /users/{user_id}/library/movies` - Biblioteca de filmes
+- `POST /library/movies/add` - Adicionar filme
+- `DELETE /library/movies/remove` - Remover filme
+
+#### **Recomendações (/recommendations):**
+- `GET /users/{user_id}/recommendations/books` - Recomendações de livros
+- `GET /users/{user_id}/recommendations/movies` - Recomendações de filmes
+
+#### **Perfis (/profiles):**
+- `POST /` - Criar perfil
+- `GET /{user_id}` - Obter perfil
+- `POST /{user_id}/upload-avatar` - Upload de avatar
+- `DELETE /{user_id}/avatar` - Remover avatar
+- `DELETE /{user_id}` - Deletar conta
+
+#### **Relatórios e Moderação (/reports, /moderation):**
+- `POST /reports/` - Criar relatório/denúncia
+- `GET /reports/` - Listar relatórios (curator/admin)
+- `GET /reports/{report_id}` - Obter relatório específico
+- `PATCH /reports/{report_id}` - Atualizar status
+- `DELETE /reports/{report_id}` - Deletar relatório
+- `GET /reports/search/books` - Buscar livros para moderação
+- `GET /reports/search/movies` - Buscar filmes para moderação
+- `POST /moderation/users/{user_id}/ban` - Banir usuário (admin)
+- `POST /moderation/users/{user_id}/unban` - Desbanir usuário
+- `POST /moderation/users/{user_id}/mute` - Silenciar usuário
+- `POST /moderation/books/{book_id}/ban` - Banir livro (admin)
+- `POST /moderation/movies/{movie_id}/mute` - Silenciar filme
+
+**Documentação Completa:** Consulte o arquivo `SITEMAP.md` para detalhes de todos os endpoints
+
+## Documentação Completa
+
+- **SITEMAP.md**: Documentação técnica completa (981 linhas) com arquitetura, API endpoints, modelos de dados, autenticação, integrações e estrutura de código
+- **ROTEIRO_APRESENTACAO.md**: Roteiro completo para apresentação de 15 minutos cobrindo UI, Sistemas Web e SOA
+- **Swagger UI**: http://localhost:8001/docs (documentação interativa automática)
+- **ReDoc**: http://localhost:8001/redoc (documentação alternativa)  
 
 ## Limitações e Restrições  
 - O sistema requer conexão com a internet para consultas às APIs.  
@@ -269,6 +376,10 @@ O sistema será voltado para **leitores e cinéfilos que buscam personalização
 
 # Link da logo, paleta de cores e tipografia 
 https://www.canva.com/design/DAGvhDDOAsQ/ubqk8OcMjWd8rD36G38qpA/edit?utm_content=DAGvhDDOAsQ&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton
+
+# Slide de apresentação
+https://www.canva.com/design/DAG7EPmjaJo/CcLLCUuXOFOFpzNY5xvqoQ/edit?utm_content=DAG7EPmjaJo&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton
+
 # Requisitos do Projeto 
 https://docs.google.com/document/d/1agT58mKhabCQoydbFlBOjwG71Odg-32IwTi0d6ZBiRo/edit?usp=sharing
 
