@@ -1,5 +1,5 @@
 IMPORTANTE: para acessar privilégios de administrador do Alexandria, entre com a seguinte conta:
-- Alexandria
+- alexandria
 - 123456
 
 # Escopo do Projeto  
